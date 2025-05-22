@@ -1,0 +1,4 @@
+module xxf_iosPackageTests {
+    header "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.build/xxf_iosPackageTests-Swift.h"
+    requires objc
+}

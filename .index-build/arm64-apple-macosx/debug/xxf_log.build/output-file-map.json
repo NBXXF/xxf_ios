@@ -1,0 +1,17 @@
+{
+  "": {
+    "swift-dependencies": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/master.swiftdeps"
+  },
+  "/Users/trl/Documents/ios/space/xxf_ios/Sources/xxf_log/log_extensions.swift": {
+    "dependencies": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/log_extensions.d",
+    "object": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/log_extensions.swift.o",
+    "swiftmodule": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/log_extensions~partial.swiftmodule",
+    "swift-dependencies": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/log_extensions.swiftdeps"
+  },
+  "/Users/trl/Documents/ios/space/xxf_ios/Sources/xxf_log/log_utils.swift": {
+    "dependencies": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/log_utils.d",
+    "object": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/log_utils.swift.o",
+    "swiftmodule": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/log_utils~partial.swiftmodule",
+    "swift-dependencies": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/log_utils.swiftdeps"
+  }
+}

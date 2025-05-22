@@ -1,0 +1,11 @@
+{
+  "": {
+    "swift-dependencies": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/master.swiftdeps"
+  },
+  "/Users/trl/Documents/ios/space/xxf_ios/Tests/xxf_iosTests/xxf_iosTests.swift": {
+    "dependencies": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/xxf_iosTests.d",
+    "object": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/xxf_iosTests.swift.o",
+    "swiftmodule": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/xxf_iosTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/xxf_iosTests.swiftdeps"
+  }
+}

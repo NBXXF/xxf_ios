@@ -1,0 +1,4 @@
+module xxf_log {
+    header "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/xxf_log-Swift.h"
+    requires objc
+}

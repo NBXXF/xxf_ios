@@ -1,0 +1,88 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "PackageStructure": ["<PackageStructure>"]
+  "main": ["<xxf_log-arm64-apple-macosx15.0-debug.module>"]
+  "test": ["<xxf_iosTests-arm64-apple-macosx15.0-debug.module>","<xxf_log-arm64-apple-macosx15.0-debug.module>"]
+  "xxf_iosPackageTests-arm64-apple-macosx15.0-debug.module": ["<xxf_iosPackageTests-arm64-apple-macosx15.0-debug.module>"]
+  "xxf_iosTests-arm64-apple-macosx15.0-debug.module": ["<xxf_iosTests-arm64-apple-macosx15.0-debug.module>"]
+  "xxf_log-arm64-apple-macosx15.0-debug.module": ["<xxf_log-arm64-apple-macosx15.0-debug.module>"]
+default: "main"
+nodes:
+  "/Users/trl/Documents/ios/space/xxf_ios/Sources/xxf_log/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/Users/trl/Documents/ios/space/xxf_ios/Tests/xxf_iosTests/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"]
+    outputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+
+  "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.derived/runner.swift"]
+    outputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.build/sources"]
+    description: "Write auxiliary file /Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.build/sources"
+
+  "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/trl/Documents/ios/space/xxf_ios/Tests/xxf_iosTests/xxf_iosTests.swift"]
+    outputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/sources"]
+    description: "Write auxiliary file /Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/sources"
+
+  "/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/trl/Documents/ios/space/xxf_ios/Sources/xxf_log/log_extensions.swift","/Users/trl/Documents/ios/space/xxf_ios/Sources/xxf_log/log_utils.swift"]
+    outputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/sources"]
+    description: "Write auxiliary file /Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/sources"
+
+  "<xxf_iosPackageTests-arm64-apple-macosx15.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_iosPackageTests.swiftmodule"]
+    outputs: ["<xxf_iosPackageTests-arm64-apple-macosx15.0-debug.module>"]
+
+  "<xxf_iosTests-arm64-apple-macosx15.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_iosTests.swiftmodule"]
+    outputs: ["<xxf_iosTests-arm64-apple-macosx15.0-debug.module>"]
+
+  "<xxf_log-arm64-apple-macosx15.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_log.swiftmodule"]
+    outputs: ["<xxf_log-arm64-apple-macosx15.0-debug.module>"]
+
+  "C.xxf_iosPackageTests-arm64-apple-macosx15.0-debug.module":
+    tool: shell
+    inputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.derived/runner.swift","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_iosTests.swiftmodule","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.build/sources"]
+    outputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_iosPackageTests.swiftmodule"]
+    description: "Compiling Swift Module 'xxf_iosPackageTests' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","xxf_iosPackageTests","-emit-dependencies","-emit-module","-emit-module-path","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_iosPackageTests.swiftmodule","-output-file-map","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.build/output-file-map.json","-parse-as-library","-incremental","@/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.build/sources","-I","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx13.0","-enable-batch-mode","-Onone","-enable-testing","-j8","-DSWIFT_PACKAGE","-DDEBUG","-module-cache-path","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosPackageTests.build/xxf_iosPackageTests-Swift.h","-Xfrontend","-experimental-lazy-typecheck","-Xfrontend","-experimental-skip-all-function-bodies","-Xfrontend","-experimental-allow-module-with-compiler-errors","-Xfrontend","-empty-abi-descriptor","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","xxf_ios"]
+
+  "C.xxf_iosTests-arm64-apple-macosx15.0-debug.module":
+    tool: shell
+    inputs: ["/Users/trl/Documents/ios/space/xxf_ios/Tests/xxf_iosTests/xxf_iosTests.swift","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_log.swiftmodule","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/sources"]
+    outputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_iosTests.swiftmodule"]
+    description: "Compiling Swift Module 'xxf_iosTests' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","xxf_iosTests","-emit-dependencies","-emit-module","-emit-module-path","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_iosTests.swiftmodule","-output-file-map","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/output-file-map.json","-parse-as-library","-incremental","@/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_iosTests.build/sources","-I","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx13.0","-enable-batch-mode","-Onone","-enable-testing","-j8","-DSWIFT_PACKAGE","-DDEBUG","-module-cache-path","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-swift-version","6","-Xfrontend","-experimental-lazy-typecheck","-Xfrontend","-experimental-skip-all-function-bodies","-Xfrontend","-experimental-allow-module-with-compiler-errors","-Xfrontend","-empty-abi-descriptor","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","xxf_ios"]
+
+  "C.xxf_log-arm64-apple-macosx15.0-debug.module":
+    tool: shell
+    inputs: ["/Users/trl/Documents/ios/space/xxf_ios/Sources/xxf_log/log_extensions.swift","/Users/trl/Documents/ios/space/xxf_ios/Sources/xxf_log/log_utils.swift","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/sources"]
+    outputs: ["/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_log.swiftmodule"]
+    description: "Compiling Swift Module 'xxf_log' (2 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","xxf_log","-emit-dependencies","-emit-module","-emit-module-path","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules/xxf_log.swiftmodule","-output-file-map","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/output-file-map.json","-parse-as-library","-incremental","@/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/sources","-I","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx13.0","-enable-batch-mode","-Onone","-enable-testing","-j8","-DSWIFT_PACKAGE","-DDEBUG","-module-cache-path","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/trl/Documents/ios/space/xxf_ios/.index-build/arm64-apple-macosx/debug/xxf_log.build/xxf_log-Swift.h","-swift-version","6","-Xfrontend","-experimental-lazy-typecheck","-Xfrontend","-experimental-skip-all-function-bodies","-Xfrontend","-experimental-allow-module-with-compiler-errors","-Xfrontend","-empty-abi-descriptor","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","xxf_ios"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/trl/Documents/ios/space/xxf_ios/Sources/xxf_log/","/Users/trl/Documents/ios/space/xxf_ios/Tests/xxf_iosTests/","/Users/trl/Documents/ios/space/xxf_ios/Package.swift","/Users/trl/Documents/ios/space/xxf_ios/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+
