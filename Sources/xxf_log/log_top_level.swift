@@ -1,6 +1,6 @@
 import Foundation
 
-func logD(_ message: () -> String,
+public func logD(_ message: () -> String,
           tag: String = "General",
           file: String = #fileID,
           function: String = #function,
@@ -10,7 +10,7 @@ func logD(_ message: () -> String,
 
 
 
-func logI(_ message: () -> String,
+public func logI(_ message: () -> String,
           tag: String = "General",
           file: String = #fileID,
           function: String = #function,
@@ -22,7 +22,7 @@ func logI(_ message: () -> String,
 
 
 
-func logW(_ message: () -> String,
+public func logW(_ message: () -> String,
           tag: String = "General",
           file: String = #fileID,
           function: String = #function,
@@ -33,7 +33,7 @@ func logW(_ message: () -> String,
 
 
 
-func logE(_ message:  () -> String,
+public func logE(_ message:  () -> String,
           tag: String = "General",
           file: String = #fileID,
           function: String = #function,

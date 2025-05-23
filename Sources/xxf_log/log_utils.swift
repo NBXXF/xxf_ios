@@ -1,32 +1,32 @@
 import Foundation
 import os
 
-enum LogLevel: String {
+public enum LogLevel: String {
     case debug = "🐛 DEBUG"
     case info = "ℹ️ INFO"
     case warning = "⚠️ WARNING"
     case error = "❌ ERROR"
 }
 
-struct LogUtils {
+public struct LogUtils {
     private static let subsystem = Bundle.main.bundleIdentifier ?? "com.xxf.app"
     private static let category = "general"
     
     private static let logger = Logger(subsystem: subsystem, category: category)
 
-    static func debug(_ message: String) {
+    public static func debug(_ message: String) {
         log(level: .debug, message)
     }
 
-    static func info(_ message: String) {
+    public static func info(_ message: String) {
         log(level: .info, message)
     }
 
-    static func warning(_ message: String) {
+    public static func warning(_ message: String) {
         log(level: .warning, message)
     }
 
-    static func error(_ message: String) {
+    public static func error(_ message: String) {
         log(level: .error, message)
     }
 
