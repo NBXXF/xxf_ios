@@ -4,7 +4,23 @@
 
     ],
     "dependencies" : [
-
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "rxswift",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/ReactiveX/RxSwift.git",
+          "name" : "RxSwift"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "5dd1907d64f0d36f158f61a466bab75067224893",
+            "version" : "6.9.0"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "RxSwift"
+      }
     ]
   },
   "version" : 6
