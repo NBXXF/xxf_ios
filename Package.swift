@@ -15,12 +15,27 @@ let package = Package(
             name: "XXFLog",
             targets: ["XXFLog"]
         ),
+        .library(
+            name: "XXFFlow",
+            targets: ["XXFFlow"]
+        ),
+    ],
+    dependencies: [
+        // 第三方依赖写这里
+        .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "XXFLog"),
+        .target(
+            name: "XXFFlow",
+            dependencies: [
+                "RxSwift", // 这里加第三方依赖
+                // 如果你用 RxCocoa，也加上 "RxCocoa"
+            ]
+        ),
         .testTarget(
             name: "xxf_iosTests",
             dependencies: ["XXFLog"]
