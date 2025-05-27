@@ -39,7 +39,7 @@ public class DefaultProgressHudHandler: ProgressHudHandler {
     public func onError(_ error: Error, errorNotice: String?) {
         // 出错时显示错误提示
         DispatchQueue.main.async {
-            ProgressHUD.failed(errorNotice ?? error.localizedDescription)
+            ProgressHUD.failed(errorNotice ?? DefaultErrorHandler.shared.convert(error: error))
         }
     }
 

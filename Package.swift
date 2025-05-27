@@ -27,6 +27,7 @@ let package = Package(
     dependencies: [
         // 第三方依赖写这里
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
+        /// 支持macos 和ios
         .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [

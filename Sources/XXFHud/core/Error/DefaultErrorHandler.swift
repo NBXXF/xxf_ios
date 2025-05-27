@@ -12,6 +12,10 @@ public class DefaultErrorHandler: ErrorHandler {
 
     public func handle(error: any Error, toastPosition _: Int) {
         // 使用 ProgressHUD、Toast 或其他方式展示
-        ProgressHUD.failed("出错了：\(error.localizedDescription)")
+        ProgressHUD.failed(convert(error: error))
+    }
+
+    public func convert(error: any Error) -> String {
+        return error.localizedDescription
     }
 }
