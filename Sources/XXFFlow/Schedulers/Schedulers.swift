@@ -37,28 +37,28 @@ public enum Schedulers {
     private static let _userInteractive = ConcurrentDispatchQueueScheduler(qos: .userInteractive)
 
     /// 获取 IO 调度器
-    static func io() -> SchedulerType {
+    public static func io() -> SchedulerType {
         return _io
     }
 
     /// 获取计算型调度器
-    static func computation() -> SchedulerType {
+    public static func computation() -> SchedulerType {
         return _computation
     }
 
     /// 获取主线程调度器
-    static func main() -> SchedulerType {
+    public static func main() -> SchedulerType {
         return _main
     }
 
     /// 获取单线程调度器（串行执行）
-    static func single() -> SchedulerType {
+    public static func single() -> SchedulerType {
         return _single
     }
 
     /// 模拟 RxJava 的 Schedulers.newThread()
     /// 每次调用创建一个新调度器（由 GCD 实际管理线程复用）
-    static func newThread() -> SchedulerType {
+    public static func newThread() -> SchedulerType {
         return ConcurrentDispatchQueueScheduler(qos: .default)
     }
 
@@ -70,21 +70,21 @@ public enum Schedulers {
 
     /// 获取用户交互优先级调度器
     /// 不建议业务层主动使用，适合框架内部执行紧急任务
-    static func userInteractive() -> SchedulerType {
+    public static func userInteractive() -> SchedulerType {
         return _userInteractive
     }
 
     /// 创建自定义串行调度器
     /// - Warning: 不建议业务层使用，建议自行管理线程
     @available(*, deprecated, message: "建议业务自己管理")
-    static func serial(label: String) -> SchedulerType {
+    public static func serial(label: String) -> SchedulerType {
         SerialDispatchQueueScheduler(internalSerialQueueName: label)
     }
 
     /// 创建自定义并发调度器
     /// - Warning: 不建议业务层使用，建议自行管理线程
     @available(*, deprecated, message: "建议业务自己管理")
-    static func concurrent(qos: DispatchQoS.QoSClass) -> SchedulerType {
+    public static func concurrent(qos: DispatchQoS.QoSClass) -> SchedulerType {
         ConcurrentDispatchQueueScheduler(qos: DispatchQoS(qosClass: qos, relativePriority: 0))
     }
 }
