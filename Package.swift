@@ -24,6 +24,10 @@ let package = Package(
             targets: ["XXFHud"]
         ),
         .library(
+            name: "XXFHudMac",
+            targets: ["XXFHudMac"]
+        ),
+        .library(
             name: "XXFArch",
             targets: ["XXFArch"]
         ),
@@ -52,6 +56,8 @@ let package = Package(
                 // .product(name: "ProgressHUD", package: "ProgressHUD"),
             ]
         ),
+        .target(
+            name: "XXFHudMac"),
         .target(
             name: "XXFArch",
             dependencies: [
