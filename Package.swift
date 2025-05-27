@@ -23,12 +23,15 @@ let package = Package(
             name: "XXFHud",
             targets: ["XXFHud"]
         ),
+        .library(
+            name: "XXFArch",
+            targets: ["XXFArch"]
+        ),
     ],
     dependencies: [
         // 第三方依赖写这里
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
-        /// 支持macos 和ios
-        .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
+        // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -46,7 +49,15 @@ let package = Package(
             name: "XXFHud",
             dependencies: [
                 "XXFFlow",
-                .product(name: "ProgressHUD", package: "ProgressHUD"),
+                // .product(name: "ProgressHUD", package: "ProgressHUD"),
+            ]
+        ),
+        .target(
+            name: "XXFArch",
+            dependencies: [
+                "XXFLog",
+                "XXFFlow",
+                "XXFHud",
             ]
         ),
         .testTarget(

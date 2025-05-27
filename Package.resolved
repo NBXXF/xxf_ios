@@ -1,15 +1,6 @@
 {
-  "originHash" : "10d84f2ddf08b0b63331da4161c7699d2545ec9b5f18ac91d7af4dc894351cea",
+  "originHash" : "42548c9c38c9dbb5952f596a318d26401d3b767e25f1a7b5ff69bbbd0e845b1d",
   "pins" : [
-    {
-      "identity" : "progresshud",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/relatedcode/ProgressHUD.git",
-      "state" : {
-        "revision" : "9364904a42cb25f58d026451140c4080a868e72e",
-        "version" : "14.1.3"
-      }
-    },
     {
       "identity" : "rxswift",
       "kind" : "remoteSourceControl",

@@ -39,7 +39,7 @@ public extension Observable {
     ) -> Observable<Element> {
         return Observable.create { observer in
             ProgressHUDObservableProxy<Element>(source: self.asObservable(),
-                                                progressHudHandler: handler ?? DefaultProgressHudHandler.shared,
+                                                progressHudHandler: handler ?? ProgressHudUtils.progressHudHandler,
                                                 loadingNotice: loadingNotice,
                                                 successNotice: successNotice,
                                                 errorNotice: errorNotice).subscribe(observer)

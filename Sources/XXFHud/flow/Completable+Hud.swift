@@ -37,7 +37,7 @@ public extension PrimitiveSequence where Trait == CompletableTrait, Element == N
     ) -> PrimitiveSequence<CompletableTrait, Element> {
         return ProgressHUDCompletableProxy(
             source: self,
-            progressHudHandler: handler ?? DefaultProgressHudHandler.shared,
+            progressHudHandler: handler ?? ProgressHudUtils.progressHudHandler,
             loadingNotice: loadingNotice,
             successNotice: successNotice,
             errorNotice: errorNotice
