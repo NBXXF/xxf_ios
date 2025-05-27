@@ -32,8 +32,8 @@ let package = Package(
         .target(
             name: "XXFFlow",
             dependencies: [
-                "RxSwift", // 这里加第三方依赖
-                // 如果你用 RxCocoa，也加上 "RxCocoa"
+                .product(name: "RxSwift", package: "RxSwift"),
+                .product(name: "RxCocoa", package: "RxSwift"),
             ]
         ),
         .testTarget(

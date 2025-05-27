@@ -23,3 +23,11 @@ public extension Observable where Element: Equatable {
         return distinctUntilChanged()
     }
 }
+
+public extension Observable where Element: Hashable {
+    func distinctByHash() -> Observable<Element> {
+        return distinctUntilChanged { lhs, rhs in
+            lhs.hashValue == rhs.hashValue
+        }
+    }
+}

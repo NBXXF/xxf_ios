@@ -10,4 +10,8 @@ extension PrimitiveSequence where Trait == SingleTrait {
     func toCompletable() -> Completable {
         return asCompletable()
     }
+
+    func toObservable() -> Observable<Element> {
+        return asObservable()
+    }
 }

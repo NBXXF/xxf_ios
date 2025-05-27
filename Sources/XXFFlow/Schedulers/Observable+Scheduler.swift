@@ -8,11 +8,19 @@
 import RxSwift
 
 public extension Observable {
-    func subscribeOnIo() -> Observable<Element> {
-        return subscribe(on: ConcurrentDispatchQueueScheduler(qos: .background))
+    func subscribeOn(_ scheduler: ImmediateSchedulerType) -> Observable<Element> {
+        return subscribe(on: scheduler)
+    }
+
+    func observeOn(_ scheduler: ImmediateSchedulerType) -> Observable<Element> {
+        return observe(on: scheduler)
+    }
+
+    func subscribeOnIO() -> Observable<Element> {
+        return subscribeOn(Schedulers.io())
     }
 
     func observeOnMain() -> Observable<Element> {
-        return observe(on: MainScheduler.instance)
+        return observeOn(Schedulers.main())
     }
 }

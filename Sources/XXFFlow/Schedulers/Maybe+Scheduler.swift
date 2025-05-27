@@ -8,11 +8,19 @@
 import RxSwift
 
 public extension PrimitiveSequence where Trait == MaybeTrait {
+    func subscribeOn(_ scheduler: ImmediateSchedulerType) -> PrimitiveSequence<Trait, Element> {
+        return subscribe(on: scheduler)
+    }
+
+    func observeOn(_ scheduler: ImmediateSchedulerType) -> PrimitiveSequence<Trait, Element> {
+        return observe(on: scheduler)
+    }
+
     func subscribeOnIO() -> PrimitiveSequence<Trait, Element> {
-        return subscribe(on: ConcurrentDispatchQueueScheduler(qos: .background))
+        return subscribeOn(Schedulers.io())
     }
 
     func observeOnMain() -> PrimitiveSequence<Trait, Element> {
-        return observe(on: MainScheduler.instance)
+        return observeOn(Schedulers.main())
     }
 }
