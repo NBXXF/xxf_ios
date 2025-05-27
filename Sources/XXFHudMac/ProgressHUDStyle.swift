@@ -113,35 +113,35 @@ public class ProgressHUD: NSView {
     // MARK: - Customization
 
     /// Set the `ProgressHUDStyle` color scheme (Default is .light)
-    class func setDefaultStyle(_ style: ProgressHUDStyle) { ProgressHUD.shared.style = style }
+    public class func setDefaultStyle(_ style: ProgressHUDStyle) { ProgressHUD.shared.style = style }
     private var style: ProgressHUDStyle = .light
 
     /// Set the `ProgressHUDMaskType` (Default is .none)
-    class func setDefaultMaskType(_ maskType: ProgressHUDMaskType) { ProgressHUD.shared.maskType = maskType }
+    public  class func setDefaultMaskType(_ maskType: ProgressHUDMaskType) { ProgressHUD.shared.maskType = maskType }
     private var maskType: ProgressHUDMaskType = .none
 
     /// Set the `ProgressHUDPosition` position in the view (Default is .bottom)
-    class func setDefaultPosition(_ position: ProgressHUDPosition) { ProgressHUD.shared.position = position }
+    public class func setDefaultPosition(_ position: ProgressHUDPosition) { ProgressHUD.shared.position = position }
     private var position: ProgressHUDPosition = .bottom
 
     /// Set the container view in which to display the `ProgressHUD`. If nil then the main screen will be used.
-    class func setContainerView(_ view: NSView?) { ProgressHUD.shared.containerView = view }
+    public class func setContainerView(_ view: NSView?) { ProgressHUD.shared.containerView = view }
     private var containerView: NSView?
 
     /// Set the font to use to display the HUD status message (Default is systemFontOfSize: 18)
-    class func setFont(_ font: NSFont) { ProgressHUD.shared.font = font }
+    public   class func setFont(_ font: NSFont) { ProgressHUD.shared.font = font }
     private var font = NSFont.systemFont(ofSize: 18)
 
     /// The opacity of the HUD view (Default is 0.9)
-    class func setOpacity(_ opacity: CGFloat) { ProgressHUD.shared.opacity = opacity }
+    public  class func setOpacity(_ opacity: CGFloat) { ProgressHUD.shared.opacity = opacity }
     private var opacity: CGFloat = 0.9
 
     /// The size both horizontally and vertically of the progress spinner (Default is 60 points)
-    class func setSpinnerSize(_ size: CGFloat) { ProgressHUD.shared.spinnerSize = size }
+    public class func setSpinnerSize(_ size: CGFloat) { ProgressHUD.shared.spinnerSize = size }
     private var spinnerSize: CGFloat = 60.0
 
     /// The amount of space between the HUD edge and the HUD elements (label, indicator or custom view)
-    class func setMargin(_ margin: CGFloat) { ProgressHUD.shared.margin = margin }
+    public class func setMargin(_ margin: CGFloat) { ProgressHUD.shared.margin = margin }
     private var margin: CGFloat = 18.0
 
     /// The amount of space between the HUD elements (label, indicator or custom view)
@@ -149,11 +149,11 @@ public class ProgressHUD: NSView {
     private var padding: CGFloat = 4.0
 
     /// The corner radius for th HUD
-    class func setCornerRadius(_ radius: CGFloat) { ProgressHUD.shared.cornerRadius = radius }
+    public class func setCornerRadius(_ radius: CGFloat) { ProgressHUD.shared.cornerRadius = radius }
     private var cornerRadius: CGFloat = 15.0
 
     /// Allow User to dismiss HUD manually by a tap event (Default is false)
-    class func setDismissable(_ dismissable: Bool) { ProgressHUD.shared.dismissible = dismissable }
+    public class func setDismissable(_ dismissable: Bool) { ProgressHUD.shared.dismissible = dismissable }
     private var dismissible = false
 
     // MARK: - Presentation
