@@ -11,7 +11,7 @@ import Dispatch
 /// 调度器统一封装，参考 RxJava 的 Schedulers 设计风格
 /// 提供常用调度器（主线程、IO、计算、新线程、单线程等）
 /// 可避免业务层频繁创建调度器对象，提升代码一致性与性能
-enum Schedulers {
+public enum Schedulers {
     /// 对应 RxJava 的 Schedulers.io()
     /// 适合 I/O 密集型操作（文件、网络等），具有较低的优先级和并发性能
     private static let _io = ConcurrentDispatchQueueScheduler(qos: .utility)
