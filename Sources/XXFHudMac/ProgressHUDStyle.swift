@@ -74,7 +74,7 @@ private enum ProgressHUDMode {
     case custom(view: NSView) // Shows a custom view and the status message
 }
 
-typealias ProgressHUDDismissCompletion = () -> Void
+public typealias ProgressHUDDismissCompletion = () -> Void
 
 public class ProgressHUD: NSView {
     // MARK: - Lifecycle
@@ -159,27 +159,27 @@ public class ProgressHUD: NSView {
     // MARK: - Presentation
 
     /// Presents an indeterminate `ProgressHUD` with no status message
-    class func show() {
+    public class func show() {
         ProgressHUD.show(withStatus: "")
     }
 
     /// Presents an indeterminate `ProgressHUD` with a status message
-    class func show(withStatus status: String) {
+    public class func show(withStatus status: String) {
         ProgressHUD.shared.show(withStatus: status, mode: .indeterminate)
     }
 
     /// Presents a determinate (or updates already visible) `ProgressHUD` with a progress value
-    class func show(progress: Double) {
+    public class func show(progress: Double) {
         ProgressHUD.show(progress: progress, status: ProgressHUD.shared.statusLabel.string)
     }
 
     /// Presents a determinate (or updates already visible) `ProgressHUD` with a progress value and status message
-    class func show(progress: Double, status: String) {
+    public class func show(progress: Double, status: String) {
         ProgressHUD.shared.show(progress: progress, status: status)
     }
 
     /// Changes the `ProgressHUD` status message while it's showing
-    class func setStatus(_ status: String) {
+    public class func setStatus(_ status: String) {
         if ProgressHUD.shared.isHidden {
             return
         }
@@ -187,31 +187,31 @@ public class ProgressHUD: NSView {
     }
 
     /// Presents a HUD with an info glyph + status, and dismisses the HUD a little bit later
-    class func showInfoWithStatus(_ status: String) {
+    public class func showInfoWithStatus(_ status: String) {
         ProgressHUD.shared.show(withStatus: status, mode: .info)
         ProgressHUD.dismiss(delay: ProgressHUD.shared.displayDuration(for: status))
     }
 
     /// Presents a HUD with a success glyph + status, and dismisses the HUD a little bit later
-    class func showSuccessWithStatus(_ status: String) {
+    public class func showSuccessWithStatus(_ status: String) {
         ProgressHUD.shared.show(withStatus: status, mode: .success)
         ProgressHUD.dismiss(delay: ProgressHUD.shared.displayDuration(for: status))
     }
 
     /// Presents a HUD with an error glyph + status, and dismisses the HUD a little bit later
-    class func showErrorWithStatus(_ status: String) {
+    public class func showErrorWithStatus(_ status: String) {
         ProgressHUD.shared.show(withStatus: status, mode: .error)
         ProgressHUD.dismiss(delay: ProgressHUD.shared.displayDuration(for: status))
     }
 
     /// Presents a HUD with the status message only, and dismisses the HUD a little bit later
-    class func showTextWithStatus(_ status: String) {
+    public class func showTextWithStatus(_ status: String) {
         ProgressHUD.shared.show(withStatus: status, mode: .text)
         ProgressHUD.dismiss(delay: ProgressHUD.shared.displayDuration(for: status))
     }
 
     /// Presents a HUD with an image + status, and dismisses the HUD a little bit later
-    class func showImage(_ image: NSImage, status: String) {
+    public class func showImage(_ image: NSImage, status: String) {
         let imageView = NSImageView(frame: NSRect(x: 0, y: 0, width: image.size.width, height: image.size.height))
         imageView.image = image
         ProgressHUD.shared.show(withStatus: status, mode: .custom(view: imageView))
@@ -219,27 +219,27 @@ public class ProgressHUD: NSView {
     }
 
     /// Dismisses the currently visible `ProgressHUD` if visible
-    class func dismiss() {
+    public class func dismiss() {
         ProgressHUD.shared.hide(true)
     }
 
     /// Dismisses the currently visible `ProgressHUD` if visible and calls the completion closure
-    class func dismiss(completion _: ProgressHUDDismissCompletion?) {
+    public class func dismiss(completion _: ProgressHUDDismissCompletion?) {
         ProgressHUD.shared.hide(true)
     }
 
     /// Dismisses the currently visible `ProgressHUD` if visible, after a time interval
-    class func dismiss(delay: TimeInterval) {
+    public class func dismiss(delay: TimeInterval) {
         ProgressHUD.shared.perform(#selector(hideDelayed(_:)), with: 1, afterDelay: delay)
     }
 
     /// Dismisses the currently visible `ProgressHUD` if visible, after a time interval and calls the completion closure
-    class func dismiss(delay: TimeInterval, completion _: ProgressHUDDismissCompletion?) {
+    public class func dismiss(delay: TimeInterval, completion _: ProgressHUDDismissCompletion?) {
         ProgressHUD.shared.perform(#selector(hideDelayed(_:)), with: 1, afterDelay: delay)
     }
 
     /// Returns `true` is a `ProgressHUD` is currently being shown
-    class func isVisible() -> Bool {
+    public class func isVisible() -> Bool {
         return !ProgressHUD.shared.isHidden
     }
 
