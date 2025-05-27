@@ -8,7 +8,7 @@ import ObjectiveC
 import RxCocoa
 import RxSwift
 
-extension ObservableType {
+public extension ObservableType {
     /// 绑定生命周期
     func bindUntilDeallocated<T: NSObject>(of object: T) -> Observable<Element> {
         return take(until: object.rx.deallocated)

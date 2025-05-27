@@ -7,7 +7,7 @@
 //
 import RxSwift
 
-extension ObservableType where Element: ObservableType {
+public extension ObservableType where Element: ObservableType {
     static func combineLatestArray(_ sources: [Observable<Element.Element>]) -> Observable<[Element.Element]> {
         guard !sources.isEmpty else {
             return Observable.just([])

@@ -6,7 +6,7 @@
 //
 import RxSwift
 
-extension ObservableType {
+public extension ObservableType {
     func ifEmpty(default defaultValue: Element) -> Observable<Element> {
         return ifEmpty(switchTo: Observable.just(defaultValue))
     }

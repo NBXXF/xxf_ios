@@ -6,7 +6,7 @@
 //
 import RxSwift
 
-extension ObservableType {
+public extension ObservableType {
     func switchMap<R>(_ transform: @escaping (Element) -> Observable<R>) -> Observable<R> {
         return flatMapLatest(transform)
     }

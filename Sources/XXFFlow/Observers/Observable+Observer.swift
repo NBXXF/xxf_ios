@@ -6,7 +6,7 @@
 //
 import RxSwift
 
-extension ObservableType {
+public extension ObservableType {
     func doOnNext(_ onNext: @escaping (Element) -> Void) -> Observable<Element> {
         return self.do(onNext: onNext)
     }

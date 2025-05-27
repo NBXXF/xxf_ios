@@ -6,4 +6,4 @@
 //
 import RxSwift
 
-extension Completable {}
+public extension Completable {}

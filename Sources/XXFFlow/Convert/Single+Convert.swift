@@ -6,7 +6,7 @@
 //
 import RxSwift
 
-extension PrimitiveSequence where Trait == SingleTrait {
+public extension PrimitiveSequence where Trait == SingleTrait {
     func toCompletable() -> Completable {
         return asCompletable()
     }
