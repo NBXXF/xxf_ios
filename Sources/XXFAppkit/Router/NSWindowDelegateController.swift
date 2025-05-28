@@ -7,7 +7,7 @@
 
 import AppKit
 
-public class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
+open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
     /// 解决window 必须强引用的问题
     /// Registry of active window controllers
     private static var controllers: [NSWindowDelegateController] = []
