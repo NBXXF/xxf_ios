@@ -7,7 +7,7 @@
 
 // MARK: - let（Optional 作用域）
 
-extension Optional {
+public extension Optional {
     /// 使用 `letDo`，并传入 `it` 作为命名，更接近 Kotlin 的风格
     func letDo<R>(_ block: (_ it: Wrapped) -> R) -> R? {
         map(block)

@@ -7,10 +7,24 @@
 
 import AppKit
 
-extension NSApplication {
+public extension NSApplication {
     /// 获取当前优先展示窗口（优先 keyWindow，其次 mainWindow，再次 first）
-    public var activeWindow: NSWindow? {
+    var activeWindow: NSWindow? {
         return NSApp.keyWindow ?? NSApp.mainWindow ?? NSApp.windows.first
+    }
+
+    /// 获取当前最活跃的窗口的 contentViewController（优先 keyWindow，其次 mainWindow，其次其他窗口）
+    var topWindowController: NSWindowController? {
+        return keyWindow?.windowController
+            ?? mainWindow?.windowController
+            ?? windows.first(where: { $0.isVisible })?.windowController
+    }
+
+    /// 获取当前最活跃的窗口的 contentViewController（优先 keyWindow，其次 mainWindow，其次其他窗口）
+    var topContentViewController: NSViewController? {
+        return keyWindow?.contentViewController
+            ?? mainWindow?.contentViewController
+            ?? windows.first(where: { $0.isVisible })?.contentViewController
     }
 
     /// 弹出一个新的window
