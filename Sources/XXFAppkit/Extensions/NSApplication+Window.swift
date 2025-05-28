@@ -41,6 +41,9 @@ public extension NSApplication {
         windowController.window?.makeKeyAndOrderFront(nil)
         /// 确保应用激活到前台
         activate(ignoringOtherApps: true)
+
+        /// 强引用,不然mainMenu显示为灰色
+        NSWindowDelegateController.controllers.append(windowController)
     }
 
     /// 关闭应用 (进程完全消失)

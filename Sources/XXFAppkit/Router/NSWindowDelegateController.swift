@@ -10,7 +10,7 @@ import AppKit
 open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
     /// 解决window 必须强引用的问题
     /// Registry of active window controllers
-    private static var controllers: [NSWindowDelegateController] = []
+    static var controllers: [NSWindowDelegateController] = []
 
     // MARK: - Lifecycle
 
