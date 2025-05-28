@@ -12,6 +12,10 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
+            name: "XXFExtensions",
+            targets: ["XXFExtensions"]
+        ),
+        .library(
             name: "XXFLog",
             targets: ["XXFLog"]
         ),
@@ -35,11 +39,18 @@ let package = Package(
     dependencies: [
         // 第三方依赖写这里
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
+        .package(url: "https://github.com/SwifterSwift/SwifterSwift.git", from: "7.0.0")
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
+        .target(
+            name: "XXFExtensions",
+            dependencies: [
+                .product(name: "SwifterSwift", package: "SwifterSwift")
+            ]
+        ),
         .target(
             name: "XXFLog"),
         .target(
