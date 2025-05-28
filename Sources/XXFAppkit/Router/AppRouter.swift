@@ -40,12 +40,7 @@ public final class AppRouter {
     }
 
     /// 打开一个新的窗口，展示传入的控制器（使用已有 windowController）
-    public func presentAsNewWindow(for vc: NSViewController, in windowController: NSWindowController) {
+    public func presentAsNewWindow(for vc: NSViewController, in windowController: NSWindowDelegateController) {
         NSApplication.shared.presentAsNewWindow(for: vc, in: windowController)
-    }
-
-    /// 打开一个新的窗口（使用传入的 NSWindow）
-    public func presentAsNewWindow(for vc: NSViewController, at window: NSWindow) {
-        NSApplication.shared.presentAsNewWindow(for: vc, at: window)
     }
 }

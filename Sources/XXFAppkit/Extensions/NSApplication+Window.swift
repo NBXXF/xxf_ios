@@ -28,7 +28,7 @@ public extension NSApplication {
     }
 
     /// 弹出一个新的window
-    func presentAsNewWindow(for vc: NSViewController, in windowController: NSWindowController) {
+    func presentAsNewWindow(for vc: NSViewController, in windowController: NSWindowDelegateController) {
         windowController.contentViewController = vc
         windowController.showWindow(nil)
 
@@ -38,16 +38,6 @@ public extension NSApplication {
          orderFront：把窗口放到所有其它窗口的前面（显示出来，不被其他窗口遮挡）。
          简单来说，这句代码是“让该窗口弹出来并获得焦点”，用户可以直接操作这个窗口
          */
-        windowController.window?.makeKeyAndOrderFront(nil)
-        /// 确保应用激活到前台
-        activate(ignoringOtherApps: true)
-    }
-
-    /// 弹出一个新的window
-    func presentAsNewWindow(for vc: NSViewController, at window: NSWindow) {
-        let windowController = NSWindowController(window: window)
-        windowController.contentViewController = vc
-        windowController.showWindow(nil)
         windowController.window?.makeKeyAndOrderFront(nil)
         /// 确保应用激活到前台
         activate(ignoringOtherApps: true)
