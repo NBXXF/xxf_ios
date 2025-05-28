@@ -1,0 +1,41 @@
+//
+//  AppRouter.swift
+//  xxf_ios
+//  路由管理
+//  Created by xxf on 2025/5/28.
+//
+import AppKit
+
+@MainActor
+public final class AppRouter {
+    public static let shared = AppRouter()
+    private init() {} // 防止外部构造
+    /// 替换当前主窗口的 contentViewController
+    func presentAsReplaceWindow(for vc: NSViewController) {
+        guard let mainWindow = NSApplication.shared.mainWindow ?? NSApplication.shared.windows.first else {
+            print("⚠️ 无主窗口，无法展示内容")
+            return
+        }
+        mainWindow.presentAsReplaceWindow(for: vc)
+    }
+
+    /// 在当前界面上以模态形式弹出新控制器
+    func presentAsModalWindow(for vc: NSViewController) {
+        /// 优先用焦点窗口
+        guard let activeWindow = NSApplication.shared.activeWindow else {
+            print("⚠️ 无焦点主窗口，无法展示内容")
+            return
+        }
+        activeWindow.presentAsModalWindow(for: vc)
+    }
+
+    /// 打开一个新的窗口，展示传入的控制器（使用已有 windowController）
+    func presentAsNewWindow(for vc: NSViewController, in windowController: NSWindowController) {
+        NSApplication.shared.presentAsNewWindow(for: vc, in: windowController)
+    }
+
+    /// 打开一个新的窗口（使用传入的 NSWindow）
+    func presentAsNewWindow(for vc: NSViewController, at window: NSWindow) {
+        NSApplication.shared.presentAsNewWindow(for: vc, at: window)
+    }
+}

@@ -117,7 +117,7 @@ public class ProgressHUD: NSView {
     private var style: ProgressHUDStyle = .light
 
     /// Set the `ProgressHUDMaskType` (Default is .none)
-    public  class func setDefaultMaskType(_ maskType: ProgressHUDMaskType) { ProgressHUD.shared.maskType = maskType }
+    public class func setDefaultMaskType(_ maskType: ProgressHUDMaskType) { ProgressHUD.shared.maskType = maskType }
     private var maskType: ProgressHUDMaskType = .none
 
     /// Set the `ProgressHUDPosition` position in the view (Default is .bottom)
@@ -129,11 +129,11 @@ public class ProgressHUD: NSView {
     private var containerView: NSView?
 
     /// Set the font to use to display the HUD status message (Default is systemFontOfSize: 18)
-    public   class func setFont(_ font: NSFont) { ProgressHUD.shared.font = font }
+    public class func setFont(_ font: NSFont) { ProgressHUD.shared.font = font }
     private var font = NSFont.systemFont(ofSize: 18)
 
     /// The opacity of the HUD view (Default is 0.9)
-    public  class func setOpacity(_ opacity: CGFloat) { ProgressHUD.shared.opacity = opacity }
+    public class func setOpacity(_ opacity: CGFloat) { ProgressHUD.shared.opacity = opacity }
     private var opacity: CGFloat = 0.9
 
     /// The size both horizontally and vertically of the progress spinner (Default is 60 points)

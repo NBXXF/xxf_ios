@@ -16,6 +16,10 @@ let package = Package(
             targets: ["XXFExtensions"]
         ),
         .library(
+            name: "XXFAppkit",
+            targets: ["XXFAppkit"]
+        ),
+        .library(
             name: "XXFLog",
             targets: ["XXFLog"]
         ),
@@ -39,7 +43,7 @@ let package = Package(
     dependencies: [
         // 第三方依赖写这里
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
-        .package(url: "https://github.com/SwifterSwift/SwifterSwift.git", from: "7.0.0")
+        .package(url: "https://github.com/SwifterSwift/SwifterSwift.git", from: "7.0.0"),
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
@@ -48,8 +52,11 @@ let package = Package(
         .target(
             name: "XXFExtensions",
             dependencies: [
-                .product(name: "SwifterSwift", package: "SwifterSwift")
+                .product(name: "SwifterSwift", package: "SwifterSwift"),
             ]
+        ),
+        .target(
+            name: "XXFAppkit"
         ),
         .target(
             name: "XXFLog"),
