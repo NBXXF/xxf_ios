@@ -12,7 +12,7 @@ import Foundation
 // MARK: - Optional 的 let 顶层函数
 
 @discardableResult
-func `let`<T, R>(_ optional: T?, _ block: (T) -> R) -> R? {
+public func `let`<T, R>(_ optional: T?, _ block: (T) -> R) -> R? {
     guard let value = optional else { return nil }
     return block(value)
 }
@@ -20,14 +20,14 @@ func `let`<T, R>(_ optional: T?, _ block: (T) -> R) -> R? {
 // MARK: - 通用 let 函数，返回 block 的结果
 
 @discardableResult
-func `let`<T, R>(_ value: T, _ block: (T) -> R) -> R {
+public func `let`<T, R>(_ value: T, _ block: (T) -> R) -> R {
     return block(value)
 }
 
 // MARK: - 通用 apply 函数，修改对象并返回对象自身
 
 @discardableResult
-func apply<T>(_ value: T, _ block: (inout T) -> Void) -> T {
+public func apply<T>(_ value: T, _ block: (inout T) -> Void) -> T {
     var copy = value
     block(&copy)
     return copy
@@ -36,21 +36,21 @@ func apply<T>(_ value: T, _ block: (inout T) -> Void) -> T {
 // MARK: - run 函数，类似 let，返回 block 的结果
 
 @discardableResult
-func run<T, R>(_ value: T, _ block: (T) -> R) -> R {
+public func run<T, R>(_ value: T, _ block: (T) -> R) -> R {
     return block(value)
 }
 
 // MARK: - also 函数，修改对象并返回自身
 
 @discardableResult
-func also<T>(_ value: T, _ block: (T) -> Void) -> T {
+public func also<T>(_ value: T, _ block: (T) -> Void) -> T {
     block(value)
     return value
 }
 
 // MARK: - with 函数
 
-func with<T>(_ value: T, block: (inout T) -> Void) -> T {
+public func with<T>(_ value: T, block: (inout T) -> Void) -> T {
     var copy = value
     block(&copy)
     return copy
@@ -58,9 +58,9 @@ func with<T>(_ value: T, block: (inout T) -> Void) -> T {
 
 // MARK: - 协议方案
 
-protocol StandardExtensible {}
+public protocol StandardExtensible {}
 
-extension StandardExtensible {
+public extension StandardExtensible {
     @discardableResult
     func `let`<R>(_ block: (Self) -> R) -> R {
         block(self)
@@ -99,7 +99,7 @@ extension Dictionary: StandardExtensible {}
 // 你也可以让自定义类遵守 RunExtensible
 // class MyClass: RunExtensible { ... }
 
-extension Optional where Wrapped: StandardExtensible {
+public extension Optional where Wrapped: StandardExtensible {
     func `let`<R>(_ block: (Wrapped) -> R) -> R? {
         guard let value = self else { return nil }
         return block(value)
