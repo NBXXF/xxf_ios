@@ -1,71 +1,115 @@
 //
 //  Standard.swift
 //  xxf_ios
-//
+//  高阶顶层函数,Swift 实现对象挂载高阶函数比较麻烦（有值类型Struct和引用类型)
+// 2.采用Sourcery框架来自动生成
+// 3.还有一个方案swift宏
 //  Created by xxf on 2025/5/28.
 //
 
 import Foundation
 
-public extension Optional {
-    /// 使用 `letDo`，并传入 `it` 作为命名，更接近 Kotlin 的风格
-    func `let`<R>(_ block: (_ it: Wrapped) -> R) -> R? {
-        guard let value = self else { return nil }
-        return block(value)
-    }
+// MARK: - Optional 的 let 顶层函数
+
+@discardableResult
+func `let`<T, R>(_ optional: T?, _ block: (T) -> R) -> R? {
+    guard let value = optional else { return nil }
+    return block(value)
 }
 
-public extension NSObject {
-    /// 类似 Kotlin 的 `let`
-    @discardableResult
-    func `let`<R>(_ block: (Self) -> R) -> R {
-        return block(self as! Self)
-    }
+// MARK: - 通用 let 函数，返回 block 的结果
 
-    /// 类似 Kotlin 的 `apply`，用于修改对象并返回自己
-    func apply(_ block: (inout Self) -> Void) -> Self {
-        var copy = self
-        block(&copy)
-        return copy
-    }
-
-    /// run: 使用当前值进行某种处理并返回结果
-    func run<R>(_ block: (Self) -> R) -> R {
-        return block(self as! Self)
-    }
-
-    /// 类似 Kotlin 的 `also`，用于修改对象并返回自己
-    @discardableResult
-    func also(_ block: (Self) -> Void) -> Self {
-        block(self)
-        return self
-    }
+@discardableResult
+func `let`<T, R>(_ value: T, _ block: (T) -> R) -> R {
+    return block(value)
 }
 
-// 对 struct 类型使用 apply 的辅助函数
+// MARK: - 通用 apply 函数，修改对象并返回对象自身
+
+@discardableResult
+func apply<T>(_ value: T, _ block: (inout T) -> Void) -> T {
+    var copy = value
+    block(&copy)
+    return copy
+}
+
+// MARK: - run 函数，类似 let，返回 block 的结果
+
+@discardableResult
+func run<T, R>(_ value: T, _ block: (T) -> R) -> R {
+    return block(value)
+}
+
+// MARK: - also 函数，修改对象并返回自身
+
+@discardableResult
+func also<T>(_ value: T, _ block: (T) -> Void) -> T {
+    block(value)
+    return value
+}
+
+// MARK: - with 函数
+
 func with<T>(_ value: T, block: (inout T) -> Void) -> T {
     var copy = value
     block(&copy)
     return copy
 }
 
-// MARK: - 其他方案
+// MARK: - 协议方案
 
-// 缺点自定义的swift类需要手动写下面的扩展模版声明
-// 2.采用Sourcery框架来自动生成
-// 3.还有一个方案swift宏
-// protocol RunExtensible {}
-//
-// extension RunExtensible {
-//    func run<T>(_ block: (Self) -> T) -> T {
-//        return block(self)
-//    }
-// }
-//
-//// 常用类型扩展一下
-// extension String: RunExtensible {}
-// extension Int: RunExtensible {}
-// extension Double: RunExtensible {}
-// extension Array: RunExtensible {}
-// extension Dictionary: RunExtensible {}
-// extension NSObject: RunExtensible {} // 所有 class 类型都继承 NSObject
+protocol StandardExtensible {}
+
+extension StandardExtensible {
+    @discardableResult
+    func `let`<R>(_ block: (Self) -> R) -> R {
+        block(self)
+    }
+
+    func apply(_ block: (inout Self) -> Void) -> Self {
+        var copy = self
+        block(&copy)
+        return copy
+    }
+
+    @discardableResult
+    func run<R>(_ block: (Self) -> R) -> R {
+        block(self)
+    }
+
+    @discardableResult
+    func also(_ block: (Self) -> Void) -> Self {
+        block(self)
+        return self
+    }
+
+    func with(_ block: (inout Self) -> Void) -> Self {
+        var copy = self
+        block(&copy)
+        return copy
+    }
+}
+
+extension NSObject: StandardExtensible {}
+extension String: StandardExtensible {}
+extension Int: StandardExtensible {}
+extension Double: StandardExtensible {}
+extension Array: StandardExtensible {}
+extension Dictionary: StandardExtensible {}
+// 你也可以让自定义类遵守 RunExtensible
+// class MyClass: RunExtensible { ... }
+
+extension Optional where Wrapped: StandardExtensible {
+    func `let`<R>(_ block: (Wrapped) -> R) -> R? {
+        guard let value = self else { return nil }
+        return block(value)
+    }
+
+    @discardableResult
+    func also(_ block: (Wrapped) -> Void) -> Wrapped? {
+        if let value = self {
+            block(value)
+        }
+        return self
+    }
+}
