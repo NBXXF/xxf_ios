@@ -2,7 +2,7 @@
 //  Standard.swift
 //  xxf_ios
 //  高阶顶层函数,Swift 实现对象挂载高阶函数比较麻烦（有值类型Struct和引用类型)
-// 2.采用Sourcery框架来自动生成
+// 2.采用Sourcery框架来自动生成,但也需要写注解,倾向于下面接口定义拓展
 // 3.还有一个方案swift宏
 //  Created by xxf on 2025/5/28.
 //
@@ -42,6 +42,7 @@ public func run<T, R>(_ value: T, _ block: (T) -> R) -> R {
 
 // MARK: - also 函数，修改对象并返回自身
 
+/// 注意参数没有加inout 值类型的struct注意级联使用
 @discardableResult
 public func also<T>(_ value: T, _ block: (T) -> Void) -> T {
     block(value)
@@ -77,6 +78,7 @@ public extension StandardExtensible {
         block(self)
     }
 
+    /// 注意参数没有加inout 值类型的struct注意级联使用
     @discardableResult
     func also(_ block: (Self) -> Void) -> Self {
         block(self)
@@ -96,8 +98,8 @@ extension Int: StandardExtensible {}
 extension Double: StandardExtensible {}
 extension Array: StandardExtensible {}
 extension Dictionary: StandardExtensible {}
-// 你也可以让自定义类遵守 RunExtensible
-// class MyClass: RunExtensible { ... }
+// 你也可以让自定义类遵守 StandardExtensible
+// class MyClass: StandardExtensible { ... }
 
 public extension Optional where Wrapped: StandardExtensible {
     func `let`<R>(_ block: (Wrapped) -> R) -> R? {
