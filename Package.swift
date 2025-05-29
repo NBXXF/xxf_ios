@@ -28,6 +28,10 @@ let package = Package(
             targets: ["XXFFlow"]
         ),
         .library(
+            name: "XXFHttp",
+            targets: ["XXFHttp"]
+        ),
+        .library(
             name: "XXFHud",
             targets: ["XXFHud"]
         ),
@@ -44,6 +48,7 @@ let package = Package(
         // 第三方依赖写这里
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
         .package(url: "https://github.com/SwifterSwift/SwifterSwift.git", from: "7.0.0"),
+        .package(url: "https://github.com/Moya/Moya.git", from: "15.0.3"),
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
@@ -65,6 +70,14 @@ let package = Package(
             dependencies: [
                 .product(name: "RxSwift", package: "RxSwift"),
                 .product(name: "RxCocoa", package: "RxSwift"),
+            ]
+        ),
+        .target(
+            name: "XXFHttp",
+            dependencies: [
+                .product(name: "Moya", package: "Moya"),
+                .product(name: "RxMoya", package: "Moya"),
+                "XXFFlow",
             ]
         ),
         .target(
