@@ -1,5 +1,5 @@
 //
-//  NSTLabel.swift
+//  NSLabel.swift
 //  xxf_ios
 //  和uikit 对齐 UILabel
 //  Created by xxf on 2025/5/29.
@@ -7,38 +7,32 @@
 
 import AppKit
 
-class NSLabel: NSTextField {
-    /// 类似 UILabel 的 text 属性，方便赋值读取文本
-    var text: String {
+public class NSLabel: NSTextField {
+    public var text: String {
         get { stringValue }
         set { stringValue = newValue }
     }
 
-    /// 控制显示的行数，默认1，0表示无限行
-    var numberOfLines: Int = 1 {
+    public var numberOfLines: Int = 1 {
         didSet {
             updateLineBreakAndMode()
         }
     }
 
-    /// 文本对齐，默认左对齐，映射 NSTextAlignment
-    var textAlignment: NSTextAlignment = .left {
+    public var textAlignment: NSTextAlignment {
+        get { alignment }
+        set { alignment = newValue }
+    }
+
+    override public var textColor: NSColor? {
         didSet {
-            alignment = textAlignment
+            // 不要赋值自己，避免死循环
         }
     }
 
-    /// 文本颜色，默认系统标签颜色
-    override var textColor: NSColor? {
+    override public var font: NSFont? {
         didSet {
-            textColor = textColor
-        }
-    }
-
-    /// 字体，默认系统字体14号
-    override var font: NSFont? {
-        didSet {
-            font = font
+            // 同上
         }
     }
 
@@ -52,21 +46,30 @@ class NSLabel: NSTextField {
         setup()
     }
 
+    public convenience init(text: String,
+                            font: NSFont = NSFont.systemFont(ofSize: 14),
+                            textColor: NSColor = .labelColor,
+                            alignment: NSTextAlignment = .left,
+                            numberOfLines: Int = 1)
+    {
+        self.init(frame: .zero)
+        self.text = text
+        self.font = font
+        self.textColor = textColor
+        textAlignment = alignment
+        self.numberOfLines = numberOfLines
+    }
+
     private func setup() {
         isEditable = false
         isSelectable = false
         drawsBackground = false
         isBezeled = false
 
-        // 默认单行显示，超出尾部显示省略号
-        updateLineBreakAndMode()
-
-        // 默认字体和颜色
         font = NSFont.systemFont(ofSize: 14)
         textColor = NSColor.labelColor
 
-        // 默认左对齐
-        alignment = .left
+        updateLineBreakAndMode()
     }
 
     private func updateLineBreakAndMode() {
@@ -77,13 +80,13 @@ class NSLabel: NSTextField {
         } else {
             usesSingleLineMode = false
             lineBreakMode = .byWordWrapping
-            maximumNumberOfLines = numberOfLines == 0 ? 0 : numberOfLines
+            // 如果0不代表无限，改成大数字或者验证下
+            maximumNumberOfLines = numberOfLines == 0 ? Int.max : numberOfLines
         }
         needsDisplay = true
     }
 
-    /// 方便设置富文本
-    func setAttributedText(_ attributedText: NSAttributedString) {
+    public func setAttributedText(_ attributedText: NSAttributedString) {
         attributedStringValue = attributedText
     }
 }
