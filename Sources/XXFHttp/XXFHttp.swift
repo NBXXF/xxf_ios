@@ -5,6 +5,11 @@
 //  Created by xxf on 2025/5/29.
 //
 
+// MARK: - - 继续暴露到引用层
+
+@_exported import Moya
+@_exported import RxMoya
+
 import Foundation
 import Moya
 

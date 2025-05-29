@@ -92,8 +92,10 @@ let package = Package(
         .target(
             name: "XXFArch",
             dependencies: [
+                "XXFExtensions",
                 "XXFLog",
                 "XXFFlow",
+                "XXFHttp",
                 "XXFHud",
             ]
         ),
