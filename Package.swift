@@ -46,9 +46,13 @@ let package = Package(
     ],
     dependencies: [
         // 第三方依赖写这里
+        /// 新的跨平台日志库 比os.Logger更好用,能更好扩展
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.6.3"),
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
         .package(url: "https://github.com/SwifterSwift/SwifterSwift.git", from: "7.0.0"),
         .package(url: "https://github.com/Moya/Moya.git", from: "15.0.3"),
+        .package(url: "https://github.com/kean/Pulse", from: "5.1.4"),
+        .package(url: "https://github.com/kean/PulseLogHandler.git", from: "5.1.0"),
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
@@ -64,7 +68,15 @@ let package = Package(
             name: "XXFAppkit"
         ),
         .target(
-            name: "XXFLog"),
+            name: "XXFLog",
+            dependencies: [
+                .product(name: "Logging", package: "swift-log"),
+                /// 可视化
+                .product(name: "Pulse", package: "Pulse"),
+                .product(name: "PulseUI", package: "Pulse"),
+                .product(name: "PulseLogHandler", package: "PulseLogHandler"),
+            ]
+        ),
         .target(
             name: "XXFFlow",
             dependencies: [
@@ -77,6 +89,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Moya", package: "Moya"),
                 .product(name: "RxMoya", package: "Moya"),
+                /// 流的拓展
                 "XXFFlow",
             ]
         ),

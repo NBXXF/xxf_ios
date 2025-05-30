@@ -1,5 +1,5 @@
 {
-  "originHash" : "2010785610129c5913261a6f6033397858d721af0179a51d86a37e9b3bdeebe5",
+  "originHash" : "c4c06fd6009b53af26bb8058697a299aa517b21297cb922b682d2d1aaaba39d8",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -20,6 +20,24 @@
       }
     },
     {
+      "identity" : "pulse",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kean/Pulse",
+      "state" : {
+        "revision" : "6125ce7fb51b114ba71b761d18cfd5557923bd4d",
+        "version" : "5.1.4"
+      }
+    },
+    {
+      "identity" : "pulseloghandler",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kean/PulseLogHandler.git",
+      "state" : {
+        "revision" : "477e9ef76615f0b76b43bb502af432fe6750b704",
+        "version" : "5.1.0"
+      }
+    },
+    {
       "identity" : "reactiveswift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ReactiveCocoa/ReactiveSwift.git",
@@ -35,6 +53,15 @@
       "state" : {
         "revision" : "5dd1907d64f0d36f158f61a466bab75067224893",
         "version" : "6.9.0"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log.git",
+      "state" : {
+        "revision" : "3d8596ed08bd13520157f0355e35caed215ffbfa",
+        "version" : "1.6.3"
       }
     },
     {
