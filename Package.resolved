@@ -1,5 +1,5 @@
 {
-  "originHash" : "c4c06fd6009b53af26bb8058697a299aa517b21297cb922b682d2d1aaaba39d8",
+  "originHash" : "61fbf38cd5245aae4e7f5f19d1549774890167fab41fe3d56efc23fe0c6ee256",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -20,21 +20,12 @@
       }
     },
     {
-      "identity" : "pulse",
+      "identity" : "pulsecompat",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kean/Pulse",
+      "location" : "https://github.com/NBXXF/PulseCompat",
       "state" : {
-        "revision" : "6125ce7fb51b114ba71b761d18cfd5557923bd4d",
-        "version" : "5.1.4"
-      }
-    },
-    {
-      "identity" : "pulseloghandler",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kean/PulseLogHandler.git",
-      "state" : {
-        "revision" : "477e9ef76615f0b76b43bb502af432fe6750b704",
-        "version" : "5.1.0"
+        "revision" : "054862325d7c2c4665401be91fbd7b6583b41162",
+        "version" : "4.2.7"
       }
     },
     {

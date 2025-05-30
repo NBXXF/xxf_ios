@@ -51,8 +51,7 @@ let package = Package(
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
         .package(url: "https://github.com/SwifterSwift/SwifterSwift.git", from: "7.0.0"),
         .package(url: "https://github.com/Moya/Moya.git", from: "15.0.3"),
-        .package(url: "https://github.com/kean/Pulse", from: "5.1.4"),
-        .package(url: "https://github.com/kean/PulseLogHandler.git", from: "5.1.0"),
+        .package(url: "https://github.com/NBXXF/PulseCompat", .upToNextMajor(from: "4.2.7")),
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
@@ -72,9 +71,10 @@ let package = Package(
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
                 /// 可视化
-                .product(name: "Pulse", package: "Pulse"),
-                .product(name: "PulseUI", package: "Pulse"),
-                .product(name: "PulseLogHandler", package: "PulseLogHandler"),
+                .product(name: "Pulse", package: "PulseCompat"),
+                .product(name: "PulseUI", package: "PulseCompat"),
+                .product(name: "PulseLogHandler", package: "PulseCompat"),
+                .product(name: "PulseProxy", package: "PulseCompat"),
             ]
         ),
         .target(

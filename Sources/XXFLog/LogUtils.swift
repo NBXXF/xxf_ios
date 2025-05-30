@@ -8,6 +8,7 @@ import Foundation
 import Logging
 import Pulse
 import PulseLogHandler
+import PulseProxy
 
 public class LogUtils {
     public static let config: Config = .init(logInterceptor: { _ in
@@ -47,6 +48,10 @@ public class LogUtils {
             }
             return MultiplexLogHandler(handlers)
         }
+
+        #if DEBUG
+            NetworkLogger.enableProxy()
+        #endif
     }
 
     /// 获取日志目录（iOS/macOS 通用）

@@ -19,7 +19,7 @@ public final class XXFHttp: @unchecked Sendable {
     private var pool = [ObjectIdentifier: Any]()
     private let queue = DispatchQueue(label: "com.xxf.providerPool.queue")
 
-    func getApiService<T: TargetType>(for type: T.Type) -> MoyaProvider<T> {
+    public func getApiService<T: TargetType>(for type: T.Type) -> MoyaProvider<T> {
         let key = ObjectIdentifier(type)
         return queue.sync {
             if let existing = pool[key] as? MoyaProvider<T> {
@@ -33,7 +33,7 @@ public final class XXFHttp: @unchecked Sendable {
     }
 
     // 移除某个TargetType对应的provider
-    func remove<T: TargetType>(for type: T.Type) {
+    public func remove<T: TargetType>(for type: T.Type) {
         let key = ObjectIdentifier(type)
         _ = queue.sync {
             pool.removeValue(forKey: key)
@@ -41,7 +41,7 @@ public final class XXFHttp: @unchecked Sendable {
     }
 
     // 清空所有缓存
-    func clear() {
+    public func clear() {
         queue.sync {
             pool.removeAll()
         }
