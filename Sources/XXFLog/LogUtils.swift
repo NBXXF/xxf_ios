@@ -25,8 +25,12 @@ public class LogUtils {
         guard !isInitialized else { return }
         isInitialized = true
         LoggingSystem.bootstrap { label in
-            var handlers: [LogHandler] = [PersistentLogHandler(label: label), // UI 实时查看
-                                          StreamLogHandler.standardOutput(label: label)] // 控制台]
+            var streamLogHandler = StreamLogHandler.standardOutput(label: label)
+            streamLogHandler.logLevel = .debug // ✅ 设置最低等级为 debug
+            var persistentLogHandler = PersistentLogHandler(label: label)
+            persistentLogHandler.logLevel = .debug // ✅ 设置最低等级为 debug
+            var handlers: [LogHandler] = [persistentLogHandler, // UI 实时查看
+                                          streamLogHandler] // 控制台
 
             // 获取日志目录并确保目录存在
             let logDirectory = getLogDirectoryURL()
