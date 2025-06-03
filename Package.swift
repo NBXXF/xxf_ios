@@ -32,6 +32,10 @@ let package = Package(
             targets: ["XXFHttp"]
         ),
         .library(
+            name: "XXFDatabase",
+            targets: ["XXFDatabase"]
+        ),
+        .library(
             name: "XXFHud",
             targets: ["XXFHud"]
         ),
@@ -92,6 +96,9 @@ let package = Package(
                 /// 流的拓展
                 "XXFFlow",
             ]
+        ),
+        .target(
+            name: "XXFDatabase"
         ),
         .target(
             name: "XXFHud",
