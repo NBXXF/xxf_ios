@@ -10,7 +10,7 @@ import XXFDatabase
 import XXFExtensions
 
 open class BaseDaoImpl<PK: DatabaseValueConvertible,
-    Entity: PersistableRecord & FetchableRecord & TableRecord>: XXFDatabase.BaseDao
+    Entity: BaseEntity>: XXFDatabase.BaseDao
 {
     public typealias PK = PK
     public typealias Entity = Entity

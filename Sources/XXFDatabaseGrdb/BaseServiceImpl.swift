@@ -10,7 +10,7 @@ import XXFDatabase
 import XXFExtensions
 
 open class BaseServiceImpl<PK: DatabaseValueConvertible,
-    Entity: PersistableRecord & FetchableRecord & TableRecord,
+    Entity: BaseEntity,
     DAO: BaseDaoImpl<PK, Entity>>: XXFDatabase.BaseService
 {
     public typealias Query = QueryInterfaceRequest<Entity>
