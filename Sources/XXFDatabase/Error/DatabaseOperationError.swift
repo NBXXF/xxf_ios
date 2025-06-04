@@ -1,8 +1,8 @@
 //
 //  DatabaseOperationError.swift
 //  xxf_ios
-//
-//  Created by trl on 2025/6/4.
+//  准确记录异常,主要是数据库的service 方法命名相似性较高
+//  Created by xxfon 2025/6/4.
 //
 
 import Foundation

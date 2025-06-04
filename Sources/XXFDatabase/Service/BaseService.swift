@@ -2,7 +2,7 @@
 //  BaseService.swift
 //  xxf_ios
 //  数据库通用service，无论底层数据库是objectbox 还是GRDB
-//  Created by trl on 2025/6/3.
+//  Created by xxfon 2025/6/3.
 //
 
 public protocol BaseService {
@@ -30,7 +30,7 @@ public protocol BaseService {
     func selectOne(where block: (Query) -> Query) throws -> Entity?
     func selectFirst(where block: (Query) -> Query) -> Entity?
     func selectList(where block: (Query) -> Query) -> [Entity]
-    // func selectPage(page: Int, pageSize: Int, where block: (Query)->Query) -> PageResult<Entity>
+    func selectPage(page: Int, pageSize: Int, where block: (Query) -> Query) -> BasePageInfoDTO<Entity>
     func count(where block: (Query) -> Query) -> Int
     func contains(where block: (Query) -> Query) -> Bool
 }

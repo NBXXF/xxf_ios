@@ -2,7 +2,7 @@
 //  Untitled.swift
 //  xxf_ios
 //  GRDB 实现的BaseService
-//  Created by trl on 2025/6/3.
+//  Created by xxfon 2025/6/3.
 //
 import Foundation
 import GRDB
@@ -10,144 +10,120 @@ import XXFDatabase
 import XXFExtensions
 
 open class BaseServiceImpl<PK: DatabaseValueConvertible,
-    Entity: PersistableRecord & FetchableRecord & TableRecord>: XXFDatabase.BaseService
+    Entity: PersistableRecord & FetchableRecord & TableRecord,
+    DAO: BaseDaoImpl<PK, Entity>>: XXFDatabase.BaseService
 {
-    public typealias PK = PK
-    public typealias Entity = Entity
     public typealias Query = QueryInterfaceRequest<Entity>
-    public typealias QueryBlock = (Query) -> Query
     public typealias ErrorConsumer = (Error) -> Void
-
-    ///尽可能私有化,避免业务子类直接使用这个api
-    private let dbQueue: DatabaseQueue
+    /// 尽可能私有化,避免业务子类直接使用这个api
+    private let dao: DAO
     private let errorConsumer: ErrorConsumer?
-    init(dbQueue: DatabaseQueue, errorConsumer: ErrorConsumer?) {
-        self.dbQueue = dbQueue
+    public init(dao: DAO, errorConsumer: ErrorConsumer?) {
+        self.dao = dao
         self.errorConsumer = errorConsumer
     }
 
     public func insert(_ entity: Entity) {
         _ = runOperation({
-            try! dbQueue.write { db in
-                try entity.insert(db)
-            }
-        }, errorConsumer: errorConsumer)
+            try dao.insert(entity)
+        }, errorConsumer: errorConsumer).getOrNull()
     }
 
     public func insert(_ entities: [Entity]) {
         _ = runOperation({
-            try! dbQueue.write { db in
-                for e in entities {
-                    try e.insert(db)
-                }
-            }
-        }, errorConsumer: errorConsumer)
+            try dao.insert(entities)
+        }, errorConsumer: errorConsumer).getOrNull()
     }
 
     public func update(_ entity: Entity) {
         _ = runOperation({
-            try! dbQueue.write { db in
-                try entity.update(db)
-            }
-        }, errorConsumer: errorConsumer)
+            try dao.update(entity)
+        }, errorConsumer: errorConsumer).getOrNull()
     }
 
     public func update(_ entities: [Entity]) {
         _ = runOperation({
-            try! dbQueue.write { db in
-                for e in entities {
-                    try e.update(db)
-                }
-            }
-        }, errorConsumer: errorConsumer)
+            try dao.update(entities)
+        }, errorConsumer: errorConsumer).getOrNull()
     }
 
     public func delete(id: PK) {
         _ = runOperation({
-            try! dbQueue.write { db in
-                /// 效率稍低,主要是现在没办法知道pk 的名字,不想在模型上加更多协议
-                if let entity = try Entity.fetchOne(db, key: id) {
-                    try entity.delete(db)
-                }
-            }
-        }, errorConsumer: errorConsumer)
+            try dao.delete(id: id)
+        }, errorConsumer: errorConsumer).getOrNull()
     }
 
     public func delete(ids: [PK]) {
         _ = runOperation({
-            try! dbQueue.write { db in
-                for id in ids {
-                    _ = try Entity.deleteOne(db, key: id)
-                }
-            }
-        }, errorConsumer: errorConsumer)
+            try dao.delete(ids: ids)
+        }, errorConsumer: errorConsumer).getOrNull()
     }
 
     public func selectById(_ id: PK) -> Entity? {
-        try! dbQueue.read { db in
-            try Entity.fetchOne(db, key: id)
+        guard let result: Entity? = runOperation({
+            try dao.selectById(id)
+        }, errorConsumer: errorConsumer).getOrNull() else {
+            return nil
         }
+        return result
     }
 
     public func selectByIds(_ ids: [PK]) -> [Entity] {
-        let result = runOperation({
-            try! dbQueue.read { db in
-                try Entity.fetchAll(db, keys: ids)
-            }
+        let result: [Entity] = runOperation({
+            try dao.selectByIds(ids)
         }, errorConsumer: errorConsumer).getOrElse([])
         return result
     }
 
     public func selectAll() -> [Entity] {
-        let result = runOperation({
-            try! dbQueue.read { db in
-                try Entity.fetchAll(db)
-            }
+        let result: [Entity] = runOperation({
+            try dao.selectAll()
         }, errorConsumer: errorConsumer).getOrElse([])
         return result
     }
 
-    public func selectOne(where block: QueryBlock) throws -> Entity? {
-        let results = selectList(where: block)
-        guard results.count <= 1 else {
-            throw NSError(domain: "BaseService", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Multiple results found"])
-        }
-        return results.first
+    public func selectOne(where block: (Query) -> Query) throws -> Entity? {
+        try dao.selectOne(where: block)
     }
 
-    public func selectFirst(where block: QueryBlock) -> Entity? {
+    public func selectFirst(where block: (Query) -> Query) -> Entity? {
         let result: Entity? = runOperation({
-            try! dbQueue.read { db in
-                let request = block(Entity.all())
-                return try request.fetchOne(db)!
-            }
+            try dao.selectFirst(where: block)
         }, errorConsumer: errorConsumer).getOrNull()
         return result
     }
 
-    public func selectList(where block: QueryBlock) -> [Entity] {
-        let results: [Entity] = runOperation({
-            try! dbQueue.read { db in
-                let request = block(Entity.all())
-                return try request.fetchAll(db)
-            }
+    public func selectList(where block: (Query) -> Query) -> [Entity] {
+        let result: [Entity] = runOperation({
+            try dao.selectList(where: block)
         }, errorConsumer: errorConsumer).getOrElse([])
-        return results
+        return result
     }
 
-    public func count(where block: QueryBlock) -> Int {
+    public func selectPage(page: Int, pageSize: Int, where block: (Query) -> Query) -> BasePageInfoDTO<Entity> {
+        let result: BasePageInfoDTO<Entity> = runOperation({
+            try dao.selectPage(page: page, pageSize: pageSize, where: block)
+        }, errorConsumer: errorConsumer).getOrElse(BasePageInfoDTO(
+            pageNum: page,
+            pageSize: pageSize,
+            hasNextPage: false,
+            total: 0,
+            list: []
+        ))
+
+        return result
+    }
+
+    public func count(where block: (Query) -> Query) -> Int {
         let result = runOperation({
-            try! dbQueue.read { db in
-                let request = block(Entity.all())
-                return try request.fetchCount(db)
-            }
+            try dao.count(where: block)
         }, errorConsumer: errorConsumer).getOrElse(0)
         return result
     }
 
-    public func contains(where block: QueryBlock) -> Bool {
+    public func contains(where block: (Query) -> Query) -> Bool {
         let result: Bool = runOperation({
-            selectFirst(where: block) != nil
+            try dao.contains(where: block)
         }, errorConsumer: errorConsumer).getOrElse(false)
         return result
     }

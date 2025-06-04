@@ -2,7 +2,7 @@
 //  LogViewController.swift
 //  xxf_ios
 //  日志界面
-//  Created by trl on 2025/5/30.
+//  Created by xxfon 2025/5/30.
 //
 
 import PulseUI
