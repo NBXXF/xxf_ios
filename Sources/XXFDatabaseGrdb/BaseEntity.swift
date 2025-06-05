@@ -2,7 +2,7 @@
 //  BaseEntity.swift
 //  xxf_ios
 //  GRDB 实现的实体约束
-//  Created by trl on 2025/6/4.
+//  Created by xxf on 2025/6/4.
 //
 import GRDB
 import XXFDatabase
