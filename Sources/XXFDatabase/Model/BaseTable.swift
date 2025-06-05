@@ -5,4 +5,4 @@
 //  Created by trl on 2025/6/4.
 //
 
-public protocol BaseTable {}
+public protocol BaseTable:Codable {}
