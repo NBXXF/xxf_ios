@@ -83,7 +83,13 @@ public extension DatabaseQueue {
                 ).appendingPathComponent(bundleId, isDirectory: true)
                     .appendingPathComponent(dbNamed)
                 try FileManager.default.createDirectory(at: dbURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-                path = dbURL.path()
+                if #available(iOS 16, macOS 13, *) {
+                    // iOS16+用不编码路径
+                    path = dbURL.path(percentEncoded: false)
+                } else {
+                    // iOS16之前，path就是非编码路径
+                    path = dbURL.path
+                }
             }
         }
 
