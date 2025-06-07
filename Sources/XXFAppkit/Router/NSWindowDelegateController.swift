@@ -15,7 +15,7 @@ open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
     // MARK: - Lifecycle
 
     /// After window loads, set delegate and register self
-    override public func windowDidLoad() {
+    override open func windowDidLoad() {
         super.windowDidLoad()
         window?.delegate = self
         // 先移除再添加，保证数组中只有一个引用
@@ -26,7 +26,7 @@ open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
     // MARK: - NSWindowDelegate
 
     /// Called when the window is about to close
-    public func windowWillClose(_: Notification) {
+    open func windowWillClose(_: Notification) {
         removeFromRegistry()
     }
 
