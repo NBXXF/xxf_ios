@@ -8,7 +8,6 @@
 import AppKit
 
 open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
-
     /// 解决 window 必须强引用的问题
     /// Registry of active window controllers
     static var controllers: [NSWindowDelegateController] = []
@@ -22,7 +21,7 @@ open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
     }
 
     /// nib/storyboard 创建时调用
-    required public init?(coder: NSCoder) {
+    public required init?(coder: NSCoder) {
         super.init(coder: coder)
         commonInit()
     }
@@ -48,7 +47,7 @@ open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
     // MARK: - NSWindowDelegate
 
     /// 窗口关闭时移除自己
-    open func windowWillClose(_ notification: Notification) {
+    open func windowWillClose(_: Notification) {
         removeFromRegistry()
     }
 
