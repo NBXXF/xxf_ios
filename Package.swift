@@ -122,6 +122,7 @@ let package = Package(
             name: "XXFDi",
             dependencies: [
                 .product(name: "Factory", package: "Factory"),
+                .product(name: "FactoryKit", package: "Factory"),
             ]
         ),
         .target(
