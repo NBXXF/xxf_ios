@@ -37,6 +37,22 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
         }
     }
 
+    public func insertOrUpdate(_ entity: Entity) throws {
+        try dbQueue.write { db in
+            /// 自增主键 会变
+            try entity.insert(db, onConflict: .replace)
+        }
+    }
+
+    public func insertOrUpdate(_ entities: [Entity]) throws {
+        try dbQueue.write { db in
+            /// 自增主键 会变
+            for e in entities {
+                try e.insert(db, onConflict: .replace)
+            }
+        }
+    }
+
     public func update(_ entity: Entity) throws {
         try dbQueue.write { db in
             try entity.update(db)

@@ -13,6 +13,9 @@ public protocol BaseService {
     func insert(_ entity: Entity)
     func insert(_ entities: [Entity])
 
+    func insertOrUpdate(_ entity: Entity)
+    func insertOrUpdate(_ entities: [Entity])
+
     func update(_ entity: Entity)
     func update(_ entities: [Entity])
 

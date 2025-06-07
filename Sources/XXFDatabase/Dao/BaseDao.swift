@@ -13,6 +13,9 @@ public protocol BaseDao {
     func insert(_ entity: Entity) throws
     func insert(_ entities: [Entity]) throws
 
+    func insertOrUpdate(_ entity: Entity) throws
+    func insertOrUpdate(_ entities: [Entity]) throws
+
     func update(_ entity: Entity) throws
     func update(_ entities: [Entity]) throws
 

@@ -35,6 +35,18 @@ open class BaseServiceImpl<PK: DatabaseValueConvertible,
         }, errorConsumer: errorConsumer).getOrNull()
     }
 
+    public func insertOrUpdate(_ entity: Entity) {
+        _ = runOperation({
+            try dao.insertOrUpdate(entity)
+        }, errorConsumer: errorConsumer).getOrNull()
+    }
+
+    public func insertOrUpdate(_ entities: [Entity]) {
+        _ = runOperation({
+            try dao.insertOrUpdate(entities)
+        }, errorConsumer: errorConsumer).getOrNull()
+    }
+
     public func update(_ entity: Entity) {
         _ = runOperation({
             try dao.update(entity)
