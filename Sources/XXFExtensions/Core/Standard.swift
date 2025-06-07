@@ -100,6 +100,8 @@ extension Array: StandardExtensible {}
 extension Dictionary: StandardExtensible {}
 // 你也可以让自定义类遵守 StandardExtensible
 // class MyClass: StandardExtensible { ... }
+// 或者
+// extension MyClass: StandardExtensible { }
 
 public extension Optional where Wrapped: StandardExtensible {
     func `let`<R>(_ block: (Wrapped) -> R) -> R? {
