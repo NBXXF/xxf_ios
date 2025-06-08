@@ -72,15 +72,7 @@ public extension DatabaseQueue {
 
         private func ensurePathed() throws {
             if let dbNamed {
-                guard let bundleId = Bundle.main.bundleIdentifier else {
-                    throw NSError(domain: "AppError", code: 1, userInfo: [NSLocalizedDescriptionKey: "无法获取 Bundle ID"])
-                }
-                let dbURL = try FileManager.default.url(
-                    for: .applicationSupportDirectory,
-                    in: .userDomainMask,
-                    appropriateFor: nil,
-                    create: true
-                ).appendingPathComponent(bundleId, isDirectory: true)
+                let dbURL = FileManager.default.applicationSupportDirectory()
                     .appendingPathComponent(dbNamed)
                 try FileManager.default.createDirectory(at: dbURL.deletingLastPathComponent(), withIntermediateDirectories: true)
                 if #available(iOS 16, macOS 13, *) {

@@ -9,6 +9,7 @@ import Logging
 import Pulse
 import PulseLogHandler
 import PulseProxy
+import XXFExtensions
 
 public class LogUtils {
     public static let config: Config = .init(logInterceptor: { _ in
@@ -61,18 +62,7 @@ public class LogUtils {
     /// 获取日志目录（iOS/macOS 通用）
     /// - Returns: 日志文件夹 URL，未创建目录
     public static func getLogDirectoryURL() -> URL {
-        #if os(iOS)
-            let paths = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
-            let baseDir = paths[0]
-        #elseif os(macOS)
-            // macOS 使用 Application Support 目录，适合存储应用数据
-            let paths = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-            let baseDir = paths[0]
-        #else
-            // 其他平台使用临时目录兜底
-            let baseDir = FileManager.default.temporaryDirectory
-        #endif
-
+        let baseDir=FileManager.default.applicationSupportDirectory()
         return baseDir.appendingPathComponent("Logs", isDirectory: true)
     }
 

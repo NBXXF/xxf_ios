@@ -83,6 +83,7 @@ let package = Package(
         .target(
             name: "XXFLog",
             dependencies: [
+                "XXFExtensions",
                 .product(name: "Logging", package: "swift-log"),
                 /// 可视化
                 .product(name: "Pulse", package: "PulseCompat"),
