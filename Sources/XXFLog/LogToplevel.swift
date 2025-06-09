@@ -6,6 +6,7 @@
 //
 import Foundation
 
+@inlinable
 public func logD(_ message: () -> String,
                  tag: String = "General",
                  file: String = #fileID,
@@ -15,6 +16,7 @@ public func logD(_ message: () -> String,
     LogUtils.log(message, level: .debug, tag: tag, file: file, function: function, line: line)
 }
 
+@inlinable
 public func logI(_ message: () -> String,
                  tag: String = "General",
                  file: String = #fileID,
@@ -24,6 +26,7 @@ public func logI(_ message: () -> String,
     LogUtils.log(message, level: .info, tag: tag, file: file, function: function, line: line)
 }
 
+@inlinable
 public func logW(_ message: () -> String,
                  tag: String = "General",
                  file: String = #fileID,
@@ -33,6 +36,7 @@ public func logW(_ message: () -> String,
     LogUtils.log(message, level: .warning, tag: tag, file: file, function: function, line: line)
 }
 
+@inlinable
 public func logE(_ message: () -> String,
                  tag: String = "General",
                  file: String = #fileID,

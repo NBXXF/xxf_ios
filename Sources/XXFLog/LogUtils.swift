@@ -15,7 +15,9 @@ public class LogUtils {
     public static let config: Config = .init(logInterceptor: { _ in
         false
     })
-    private static let logger = {
+    
+    @usableFromInline
+    static let logger = {
         let subsystem = Bundle.main.bundleIdentifier ?? "com.xxf.logger"
         return Logger(label: subsystem)
     }()
@@ -66,6 +68,7 @@ public class LogUtils {
         return baseDir.appendingPathComponent("Logs", isDirectory: true)
     }
 
+    @inlinable
     static func log(_ message: () -> String,
                     level: LogLevel,
                     tag: String,
