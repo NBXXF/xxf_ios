@@ -72,6 +72,11 @@ public extension TargetType {
     static var apiService: Reactive<MoyaProvider<Self>> {
         return XXFHttp.shared.getApiService(for: Self.self).rx
     }
+
+    @inlinable
+    static var rawApiService: MoyaProvider<Self> {
+        return XXFHttp.shared.getApiService(for: Self.self)
+    }
 }
 
 /// 增加拓展,业务可直接使用
@@ -79,5 +84,10 @@ public extension BaseApiService {
     @inlinable
     static var apiService: Reactive<MoyaProvider<Self>> {
         return XXFHttp.shared.getApiService(for: Self.self).rx
+    }
+
+    @inlinable
+    static var rawApiService: MoyaProvider<Self> {
+        return XXFHttp.shared.getApiService(for: Self.self)
     }
 }
