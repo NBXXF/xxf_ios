@@ -15,7 +15,7 @@ public class LogUtils {
     public static let config: Config = .init(logInterceptor: { _ in
         false
     })
-    
+
     @usableFromInline
     static let logger = {
         let subsystem = Bundle.main.bundleIdentifier ?? "com.xxf.logger"

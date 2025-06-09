@@ -20,23 +20,6 @@ public final class XXFHttp: @unchecked Sendable {
     private var pool = [ObjectIdentifier: Any]()
     private let queue = DispatchQueue(label: "com.xxf.providerPool.queue")
 
-    /// 通过重载函数实现类型约束判断：在这里自动调用 createProvider()
-    private func _createIfAnnotated<T: TargetType>(_ type: T.Type) -> MoyaProvider<T> {
-        _createIfAnnotated_impl(type)
-    }
-
-    // MARK: - Annotated 版本：符合 UserClientAdapterAnnotatable 的类型
-
-    private func _createIfAnnotated_impl<T: TargetType & UserClientAdapterAnnotatable>(_: T.Type) -> MoyaProvider<T> {
-        return T.adaptClient()
-    }
-
-    // MARK: - 默认版本：不符合 Annotatable 的类型
-
-    private func _createIfAnnotated_impl<T: TargetType>(_: T.Type) -> MoyaProvider<T> {
-        return MoyaProvider<T>()
-    }
-
     // 对外接口
     public func getApiService<T: TargetType>(for type: T.Type) -> MoyaProvider<T> {
         let key = ObjectIdentifier(type)
@@ -46,7 +29,22 @@ public final class XXFHttp: @unchecked Sendable {
                 return existing
             }
 
-            let newProvider: MoyaProvider<T> = _createIfAnnotated(T.self)
+            let newProvider = MoyaProvider<T>()
+            pool[key] = newProvider
+            return newProvider
+        }
+    }
+
+    // 对外接口
+    public func getApiService<T: BaseApiService>(for type: T.Type) -> MoyaProvider<T> {
+        let key = ObjectIdentifier(type)
+
+        return queue.sync {
+            if let existing = pool[key] as? MoyaProvider<T> {
+                return existing
+            }
+
+            let newProvider: MoyaProvider<T> = type.adaptClient()
             pool[key] = newProvider
             return newProvider
         }
@@ -70,6 +68,14 @@ public final class XXFHttp: @unchecked Sendable {
 
 /// 增加拓展,业务可直接使用
 public extension TargetType {
+    @inlinable
+    static var apiService: Reactive<MoyaProvider<Self>> {
+        return XXFHttp.shared.getApiService(for: Self.self).rx
+    }
+}
+
+/// 增加拓展,业务可直接使用
+public extension BaseApiService {
     @inlinable
     static var apiService: Reactive<MoyaProvider<Self>> {
         return XXFHttp.shared.getApiService(for: Self.self).rx

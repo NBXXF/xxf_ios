@@ -1,17 +1,16 @@
 //
-//  SimpleApiservice.swift
+//  SimpleApiService.swift
 //  xxf_ios
 //  ApiService简化配置
 //  Created by trl on 2025/6/9.
 //
 
-import Moya
 import Foundation
+import Moya
 
 /// API 服务协议：所有 API 枚举（如 UserApiService）应继承此协议。
 /// 提供统一的 MoyaProvider 构建机制，并支持通过静态属性配置。
 public protocol SimpleApiService: BaseApiService {
-    
     /// Endpoint 构建闭包：用于将 Target 转换为 Endpoint（URL、任务等）。
     static var endpointClosure: MoyaProvider<Self>.EndpointClosure { get }
 
@@ -35,7 +34,6 @@ public protocol SimpleApiService: BaseApiService {
 }
 
 public extension SimpleApiService {
-
     // MARK: - 默认实现，可按需在枚举中覆盖
 
     /// 默认 Endpoint 规则：将 TargetType 映射为 Endpoint。
