@@ -7,9 +7,3 @@
 import Moya
 
 public protocol BaseApiService: TargetType, UserClientAdapterAnnotatable {}
-
-public extension BaseApiService {
-    static func adaptClient() -> MoyaProvider<Self> {
-        MoyaProvider<Self>()
-    }
-}

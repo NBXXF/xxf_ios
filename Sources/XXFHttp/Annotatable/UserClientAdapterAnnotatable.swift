@@ -10,9 +10,3 @@ import Moya
 public protocol UserClientAdapterAnnotatable: TargetType {
     static func adaptClient() -> MoyaProvider<Self>
 }
-
-public extension UserClientAdapterAnnotatable {
-    static func adaptClient() -> MoyaProvider<Self> {
-        MoyaProvider<Self>()
-    }
-}
