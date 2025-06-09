@@ -37,11 +37,11 @@ public extension MoyaProvider {
     @preconcurrency
     @discardableResult
     func requestStream(_ target: Target,
-                       on queue: DispatchQueue = .main,
+                       callbackQueue: DispatchQueue = .main,
                        completion: @escaping DataStreamRequest.Handler<Data, Never>) -> DataStreamRequest
     {
         let streamRequest = requestStream(target)
-        streamRequest.responseStream(on: queue, stream: completion)
+        streamRequest.responseStream(on: callbackQueue, stream: completion)
         return streamRequest
     }
 
@@ -55,11 +55,11 @@ public extension MoyaProvider {
     @preconcurrency
     @discardableResult
     func requestStreamString(_ target: Target,
-                             on queue: DispatchQueue = .main,
+                             callbackQueue: DispatchQueue = .main,
                              completion: @escaping DataStreamRequest.Handler<String, Never>) -> DataStreamRequest
     {
         let streamRequest = requestStream(target)
-        streamRequest.responseStreamString(on: queue, stream: completion)
+        streamRequest.responseStreamString(on: callbackQueue, stream: completion)
         return streamRequest
     }
 
@@ -74,12 +74,12 @@ public extension MoyaProvider {
     @preconcurrency
     @discardableResult
     func requestStream<Serializer: DataStreamSerializer>(_ target: Target,
-                                                         using serializer: Serializer,
-                                                         on queue: DispatchQueue = .main,
+                                                         serializer: Serializer,
+                                                         callbackQueue: DispatchQueue = .main,
                                                          completion: @escaping DataStreamRequest.Handler<Serializer.SerializedObject, AFError>) -> DataStreamRequest
     {
         let streamRequest = requestStream(target)
-        streamRequest.responseStream(using: serializer, on: queue, stream: completion)
+        streamRequest.responseStream(using: serializer, on: callbackQueue, stream: completion)
         return streamRequest
     }
 
@@ -102,14 +102,14 @@ public extension MoyaProvider {
     @discardableResult
     func requestStreamDecodable<T: Decodable & Sendable>(
         _ target: Target,
-        of type: T.Type = T.self,
-        on queue: DispatchQueue = .main,
-        using decoder: any DataDecoder = JSONDecoder(),
+        type: T.Type = T.self,
+        callbackQueue: DispatchQueue = .main,
+        decoder: any DataDecoder = JSONDecoder(),
         preprocessor: any DataPreprocessor = PassthroughPreprocessor(),
         completion: @escaping DataStreamRequest.Handler<T, AFError>
     ) -> DataStreamRequest {
         let streamRequest = requestStream(target)
-        streamRequest.responseStreamDecodable(of: type, on: queue, using: decoder, preprocessor: preprocessor, stream: completion)
+        streamRequest.responseStreamDecodable(of: type, on: callbackQueue, using: decoder, preprocessor: preprocessor, stream: completion)
         return streamRequest
     }
 }

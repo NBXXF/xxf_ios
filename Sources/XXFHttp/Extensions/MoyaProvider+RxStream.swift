@@ -13,7 +13,7 @@ import Moya
 public extension Reactive where Base: MoyaProviderType {
     /// 原始 Data 流 Observable
     func requestStream(_ target: Base.Target,
-                       on queue: DispatchQueue = .main) -> Observable<Data>
+                       callbackQueue: DispatchQueue = .main) -> Observable<Data>
     {
         Observable.create { observer in
             // 更安全地转换
@@ -21,7 +21,7 @@ public extension Reactive where Base: MoyaProviderType {
                 observer.onError(AFError.explicitlyCancelled)
                 return Disposables.create()
             }
-            let streamRequest = provider.requestStream(target, on: queue) { wrapper in
+            let streamRequest = provider.requestStream(target, callbackQueue: callbackQueue) { wrapper in
                 switch wrapper.event {
                 case let .stream(result):
                     switch result {
@@ -41,7 +41,7 @@ public extension Reactive where Base: MoyaProviderType {
 
     /// UTF8 String 流 Observable
     func requestStreamString(_ target: Base.Target,
-                             on queue: DispatchQueue = .main) -> Observable<String>
+                             callbackQueue: DispatchQueue = .main) -> Observable<String>
     {
         Observable.create { observer in
             // 更安全地转换
@@ -49,7 +49,7 @@ public extension Reactive where Base: MoyaProviderType {
                 observer.onError(AFError.explicitlyCancelled)
                 return Disposables.create()
             }
-            let streamRequest = provider.requestStreamString(target, on: queue) { wrapper in
+            let streamRequest = provider.requestStreamString(target, callbackQueue: callbackQueue) { wrapper in
                 switch wrapper.event {
                 case let .stream(result):
                     switch result {
@@ -70,9 +70,9 @@ public extension Reactive where Base: MoyaProviderType {
     /// Decodable 解码流 Observable
     func requestStreamDecodable<T: Decodable & Sendable>(
         _ target: Base.Target,
-        of type: T.Type = T.self,
-        on queue: DispatchQueue = .main,
-        using decoder: any Alamofire.DataDecoder = JSONDecoder(),
+        type: T.Type = T.self,
+        callbackQueue: DispatchQueue = .main,
+        decoder: any Alamofire.DataDecoder = JSONDecoder(),
         preprocessor: any DataPreprocessor = PassthroughPreprocessor()
     ) -> Observable<T> {
         Observable.create { observer in
@@ -83,9 +83,9 @@ public extension Reactive where Base: MoyaProviderType {
             }
             let streamRequest = provider.requestStreamDecodable(
                 target,
-                of: type,
-                on: queue,
-                using: decoder,
+                type: type,
+                callbackQueue: callbackQueue,
+                decoder: decoder,
                 preprocessor: preprocessor
             ) { wrapper in
                 switch wrapper.event {
