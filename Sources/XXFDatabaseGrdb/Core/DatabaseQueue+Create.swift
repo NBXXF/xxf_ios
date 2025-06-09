@@ -2,7 +2,7 @@
 //  DatabaseQueue+Create.swift
 //  xxf_ios
 //  简化api & 单例的数据库
-//  Created by xxf on 2025/6/5.
+//  Created by xxf on /6/5.
 //
 
 import Foundation

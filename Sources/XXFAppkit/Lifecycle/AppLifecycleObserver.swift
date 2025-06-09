@@ -2,7 +2,7 @@
 //  AppLifecycleObserver.swift
 //  xxf_ios
 //  app 生命周期管理，支持多回调注册和取消订阅
-//  Created by xxf on 2025/6/2.
+//  Created by xxf on /6/2.
 //
 
 import AppKit

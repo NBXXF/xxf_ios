@@ -2,7 +2,7 @@
 //  Config.swift
 //  xxf_ios
 //
-//  Created by xxf on 2025/5/23.
+//  Created by xxf on /5/23.
 //
 
 public struct Config: Sendable {

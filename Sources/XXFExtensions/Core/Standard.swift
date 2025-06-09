@@ -4,7 +4,7 @@
 //  高阶顶层函数,Swift 实现对象挂载高阶函数比较麻烦（有值类型Struct和引用类型)
 // 2.采用Sourcery框架来自动生成,但也需要写注解,倾向于下面接口定义拓展
 // 3.还有一个方案swift宏
-//  Created by xxf on 2025/5/28.
+//  Created by xxf on /5/28.
 //
 
 import Foundation

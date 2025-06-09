@@ -2,7 +2,7 @@
 //  BaseService+Result.swift
 //  xxf_ios
 //  增加安全性包裹
-//  Created by xxfon 2025/6/4.
+//  Created by xxfon /6/4.
 //
 
 public extension BaseService {

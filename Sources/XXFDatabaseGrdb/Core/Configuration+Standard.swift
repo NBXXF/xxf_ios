@@ -2,7 +2,7 @@
 //  Configuration+Standard.swift
 //  xxf_ios
 //  简化api
-//  Created by xxf on 2025/6/5.
+//  Created by xxf on /6/5.
 //
 
 import GRDB

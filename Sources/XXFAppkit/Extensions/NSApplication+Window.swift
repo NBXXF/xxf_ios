@@ -2,7 +2,7 @@
 //  NSApplication+Window.swift
 //  xxf_ios
 //  窗口管理
-//  Created by xxf on 2025/5/28.
+//  Created by xxf on /5/28.
 //
 
 import AppKit

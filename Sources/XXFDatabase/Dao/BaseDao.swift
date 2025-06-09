@@ -2,7 +2,7 @@
 //  BaseDao.swift
 //  xxf_ios
 //  提供通用的dao层
-//  Created by xxf on 2025/6/4.
+//  Created by xxf on /6/4.
 //
 
 public protocol BaseDao {

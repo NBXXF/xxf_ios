@@ -2,7 +2,7 @@
 //  XXFHttp.swift
 //  xxf_ios
 //  缓存api实例
-//  Created by xxf on 2025/5/29.
+//  Created by xxf on /5/29.
 //
 
 // MARK: - - 继续暴露到引用层
@@ -12,31 +12,51 @@
 
 import Foundation
 import Moya
+import RxSwift
 
 public final class XXFHttp: @unchecked Sendable {
-    static let shared = XXFHttp()
+    public static let shared = XXFHttp()
 
     private var pool = [ObjectIdentifier: Any]()
     private let queue = DispatchQueue(label: "com.xxf.providerPool.queue")
 
+    /// 通过重载函数实现类型约束判断：在这里自动调用 createProvider()
+    private func _createIfAnnotated<T: TargetType>(_ type: T.Type) -> MoyaProvider<T> {
+        _createIfAnnotated_impl(type)
+    }
+
+    // MARK: - Annotated 版本：符合 UserClientAdapterAnnotatable 的类型
+
+    private func _createIfAnnotated_impl<T: TargetType & UserClientAdapterAnnotatable>(_: T.Type) -> MoyaProvider<T> {
+        return T.adaptClient()
+    }
+
+    // MARK: - 默认版本：不符合 Annotatable 的类型
+
+    private func _createIfAnnotated_impl<T: TargetType>(_: T.Type) -> MoyaProvider<T> {
+        return MoyaProvider<T>()
+    }
+
+    // 对外接口
     public func getApiService<T: TargetType>(for type: T.Type) -> MoyaProvider<T> {
         let key = ObjectIdentifier(type)
+
         return queue.sync {
             if let existing = pool[key] as? MoyaProvider<T> {
                 return existing
-            } else {
-                let newProvider = MoyaProvider<T>()
-                pool[key] = newProvider
-                return newProvider
             }
+
+            let newProvider: MoyaProvider<T> = _createIfAnnotated(T.self)
+            pool[key] = newProvider
+            return newProvider
         }
     }
 
     // 移除某个TargetType对应的provider
-    public func remove<T: TargetType>(for type: T.Type) {
+    public func remove<T: TargetType>(for type: T.Type) -> MoyaProvider<T>? {
         let key = ObjectIdentifier(type)
-        _ = queue.sync {
-            pool.removeValue(forKey: key)
+        return queue.sync {
+            pool.removeValue(forKey: key) as? MoyaProvider<T>
         }
     }
 
@@ -50,7 +70,8 @@ public final class XXFHttp: @unchecked Sendable {
 
 /// 增加拓展,业务可直接使用
 public extension TargetType {
-    static var apiService: MoyaProvider<Self> {
-        return XXFHttp.shared.getApiService(for: Self.self)
+    @inlinable
+    static var apiService: Reactive<MoyaProvider<Self>> {
+        return XXFHttp.shared.getApiService(for: Self.self).rx
     }
 }

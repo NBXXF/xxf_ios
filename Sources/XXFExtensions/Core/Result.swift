@@ -2,7 +2,7 @@
 //  Result.swift
 //  xxf_ios
 //
-//  Created by xxfon 2025/6/4.
+//  Created by xxfon /6/4.
 //
 
 import Foundation

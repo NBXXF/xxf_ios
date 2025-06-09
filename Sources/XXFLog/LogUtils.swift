@@ -2,7 +2,7 @@
 //  LogUtils.swift
 //  xxf_ios
 //  底层用swift-log 比os.Logger 更好,生态更好,比如Pulse
-//  Created by xxf on 2025/5/23.
+//  Created by xxf on /5/23.
 //
 import Foundation
 import Logging
@@ -62,7 +62,7 @@ public class LogUtils {
     /// 获取日志目录（iOS/macOS 通用）
     /// - Returns: 日志文件夹 URL，未创建目录
     public static func getLogDirectoryURL() -> URL {
-        let baseDir=FileManager.default.applicationSupportDirectory()
+        let baseDir = FileManager.default.applicationSupportDirectory()
         return baseDir.appendingPathComponent("Logs", isDirectory: true)
     }
 

@@ -2,7 +2,7 @@
 //  Type.swift
 //  xxf_ios
 //  支持类型获取
-//  Created by xxfon 2025/6/4.
+//  Created by xxfon /6/4.
 //
 
 import ObjectiveC
