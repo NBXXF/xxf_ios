@@ -1,0 +1,50 @@
+//
+//  System.swift
+//  xxf_ios
+//  系统性拓展
+//  Created by trl on /6/10.
+//
+
+import Foundation
+
+public enum System {
+    /// macOS 和 iOS 系统默认的换行符是 "\n"
+    public static var lineSeparator: String {
+        #if os(Windows)
+            return "\r\n"
+        #else
+            return "\n"
+        #endif
+    }
+
+    /// ProcessInfo.processInfo.operatingSystemVersionString  不能识别 iPadOS/visionOS watchOS
+    public static var osName: String {
+        #if os(macOS)
+            return "macOS"
+        #elseif os(iOS)
+            return "iOS"
+        #elseif os(tvOS)
+            return "tvOS"
+        #elseif os(watchOS)
+            return "watchOS"
+        #elseif os(visionOS)
+            return "visionOS"
+        #elseif os(Linux)
+            return "Linux"
+        #elseif os(Windows)
+            return "Windows"
+        #else
+            return "Unknown"
+        #endif
+    }
+
+    /// 示例：macOS 14.4.1、iOS 17.5
+    public static var osVersion: String {
+        let version = ProcessInfo.processInfo.operatingSystemVersion
+        return "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)"
+    }
+
+    public static var timestampMillis: Int {
+        Int(Date().timeIntervalSince1970 * 1000)
+    }
+}
