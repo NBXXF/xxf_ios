@@ -2,7 +2,7 @@
 //  MoyaProvider+RxStream.swift
 //  xxf_ios
 //  rxswift 来做stream流
-//  Created by trl on /6/9.
+//  Created by xxf on /6/9.
 //
 
 import Alamofire
