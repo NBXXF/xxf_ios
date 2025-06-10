@@ -8,7 +8,7 @@ import ObjectiveC
 import RxCocoa
 import RxSwift
 
-extension PrimitiveSequence where Trait == SingleTrait, Element: BaseHttpResult {
+public extension PrimitiveSequence where Trait == SingleTrait, Element: BaseHttpResult {
     func mapHttpData() -> Single<Element.DataType> {
         return asObservable()
             .mapHttpData()

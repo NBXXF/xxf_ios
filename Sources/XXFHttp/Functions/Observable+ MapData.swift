@@ -9,7 +9,7 @@ import ObjectiveC
 import RxCocoa
 import RxSwift
 
-extension Observable where Element: BaseHttpResult {
+public extension Observable where Element: BaseHttpResult {
     /// 直接返回对应的data字段
     func mapHttpData() -> Observable<Element.DataType> {
         return flatMap { result -> Observable<Element.DataType> in

@@ -8,7 +8,7 @@ import ObjectiveC
 import RxCocoa
 import RxSwift
 
-extension PrimitiveSequence where Trait == MaybeTrait, Element: BaseHttpResult {
+public extension PrimitiveSequence where Trait == MaybeTrait, Element: BaseHttpResult {
     /// 直接返回对应的data字段
     func mapHttpData() -> Maybe<Element.DataType> {
         return asObservable()
