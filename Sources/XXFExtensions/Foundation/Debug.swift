@@ -8,14 +8,16 @@
 import Darwin
 import Foundation
 
-private let timebaseInfo: mach_timebase_info_data_t = {
+@usableFromInline
+let timebaseInfo: mach_timebase_info_data_t = {
     var info = mach_timebase_info_data_t()
     mach_timebase_info(&info)
     return info
 }()
 
 @discardableResult
-private func measureTime(onlyDebug: Bool = true, _ block: () -> Void) -> TimeInterval {
+@inlinable
+func measureTime(onlyDebug: Bool = true, _ block: () -> Void) -> TimeInterval {
     #if DEBUG
         // Debug 模式下，无论 onlyDebug true/false 都测量
         return measureBlock(block)
@@ -31,7 +33,8 @@ private func measureTime(onlyDebug: Bool = true, _ block: () -> Void) -> TimeInt
     #endif
 }
 
-private func measureBlock(_ block: () -> Void) -> TimeInterval {
+@inlinable
+func measureBlock(_ block: () -> Void) -> TimeInterval {
     let start = mach_absolute_time()
     block()
     let end = mach_absolute_time()
@@ -42,16 +45,19 @@ private func measureBlock(_ block: () -> Void) -> TimeInterval {
 }
 
 /// 纳秒
+@inlinable
 public func measureTimeNanos(onlyDebug: Bool = true, _ block: () -> Void) -> Int {
     Int(measureTime(onlyDebug: onlyDebug, block) * 1_000_000_000)
 }
 
 /// 微秒
+@inlinable
 public func measureTimeMicros(onlyDebug: Bool = true, _ block: () -> Void) -> Int {
     Int(measureTime(onlyDebug: onlyDebug, block) * 1_000_000)
 }
 
 /// 毫秒
+@inlinable
 public func measureTimeMillis(onlyDebug: Bool = true, _ block: () -> Void) -> Int {
     Int(measureTime(onlyDebug: onlyDebug, block) * 1000)
 }
@@ -59,6 +65,7 @@ public func measureTimeMillis(onlyDebug: Bool = true, _ block: () -> Void) -> In
 /// 断言 指定运行超时时间,
 /// - parameter condition：纳秒
 /// - parameter block: 要执行的代码块
+@inlinable
 public func assertMeasureTimeNanos(condition: Int, _ block: () -> Void) {
     assert(Int(measureTime(onlyDebug: true, block) * 1_000_000_000) <= condition, "block run time out")
 }
@@ -66,6 +73,7 @@ public func assertMeasureTimeNanos(condition: Int, _ block: () -> Void) {
 /// 断言 指定运行超时时间,
 /// - parameter condition：微秒
 /// - parameter block: 要执行的代码块
+@inlinable
 public func assertMeasureTimeMicros(condition: Int, _ block: () -> Void) {
     assert(Int(measureTime(onlyDebug: true, block) * 1_000_000_000) <= condition, "block run time out")
 }
@@ -73,6 +81,7 @@ public func assertMeasureTimeMicros(condition: Int, _ block: () -> Void) {
 /// 断言 指定运行超时时间,
 /// - parameter condition：毫秒
 /// - parameter block: 要执行的代码块
+@inlinable
 public func assertMeasureTimeMillis(condition: Int, _ block: () -> Void) {
     assert(Int(measureTime(onlyDebug: true, block) * 1_000_000_000) <= condition, "block run time out")
 }
@@ -80,6 +89,7 @@ public func assertMeasureTimeMillis(condition: Int, _ block: () -> Void) {
 /// 断言(包括release)  指定运行超时时间, 纳秒单位
 /// - parameter condition: 纳秒阈值
 /// - parameter block: 要执行的代码块
+@inlinable
 public func preconditionMeasureTimeNanos(condition: Int, _ block: () -> Void) {
     let nanos = Int(measureTime(onlyDebug: false, block) * 1_000_000_000)
     precondition(nanos <= condition, "block run time out: took \(nanos) ns, limit \(condition) ns")
@@ -88,6 +98,7 @@ public func preconditionMeasureTimeNanos(condition: Int, _ block: () -> Void) {
 /// 断言(包括release)  指定运行超时时间, 微秒单位
 /// - parameter condition: 微秒阈值
 /// - parameter block: 要执行的代码块
+@inlinable
 public func preconditionMeasureTimeMicros(condition: Int, _ block: () -> Void) {
     let micros = Int(measureTime(onlyDebug: false, block) * 1_000_000)
     precondition(micros <= condition, "block run time out: took \(micros) µs, limit \(condition) µs")
@@ -96,6 +107,7 @@ public func preconditionMeasureTimeMicros(condition: Int, _ block: () -> Void) {
 /// 断言(包括release) 指定运行超时时间, 毫秒单位
 /// - parameter condition: 毫秒阈值
 /// - parameter block: 要执行的代码块
+@inlinable
 public func preconditionMeasureTimeMillis(condition: Int, _ block: () -> Void) {
     let millis = Int(measureTime(onlyDebug: false, block) * 1000)
     precondition(millis <= condition, "block run time out: took \(millis) ms, limit \(condition) ms")
