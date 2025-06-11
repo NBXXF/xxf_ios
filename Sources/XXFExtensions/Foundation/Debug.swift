@@ -55,3 +55,48 @@ public func measureTimeMicros(onlyDebug: Bool = true, _ block: () -> Void) -> In
 public func measureTimeMillis(onlyDebug: Bool = true, _ block: () -> Void) -> Int {
     Int(measureTime(onlyDebug: onlyDebug, block) * 1000)
 }
+
+/// 断言 指定运行超时时间,
+/// - parameter condition：纳秒
+/// - parameter block: 要执行的代码块
+public func assertMeasureTimeNanos(condition: Int, _ block: () -> Void) {
+    assert(Int(measureTime(onlyDebug: true, block) * 1_000_000_000) <= condition, "block run time out")
+}
+
+/// 断言 指定运行超时时间,
+/// - parameter condition：微秒
+/// - parameter block: 要执行的代码块
+public func assertMeasureTimeMicros(condition: Int, _ block: () -> Void) {
+    assert(Int(measureTime(onlyDebug: true, block) * 1_000_000_000) <= condition, "block run time out")
+}
+
+/// 断言 指定运行超时时间,
+/// - parameter condition：毫秒
+/// - parameter block: 要执行的代码块
+public func assertMeasureTimeMillis(condition: Int, _ block: () -> Void) {
+    assert(Int(measureTime(onlyDebug: true, block) * 1_000_000_000) <= condition, "block run time out")
+}
+
+/// 断言(包括release)  指定运行超时时间, 纳秒单位
+/// - parameter condition: 纳秒阈值
+/// - parameter block: 要执行的代码块
+public func preconditionMeasureTimeNanos(condition: Int, _ block: () -> Void) {
+    let nanos = Int(measureTime(onlyDebug: false, block) * 1_000_000_000)
+    precondition(nanos <= condition, "block run time out: took \(nanos) ns, limit \(condition) ns")
+}
+
+/// 断言(包括release)  指定运行超时时间, 微秒单位
+/// - parameter condition: 微秒阈值
+/// - parameter block: 要执行的代码块
+public func preconditionMeasureTimeMicros(condition: Int, _ block: () -> Void) {
+    let micros = Int(measureTime(onlyDebug: false, block) * 1_000_000)
+    precondition(micros <= condition, "block run time out: took \(micros) µs, limit \(condition) µs")
+}
+
+/// 断言(包括release) 指定运行超时时间, 毫秒单位
+/// - parameter condition: 毫秒阈值
+/// - parameter block: 要执行的代码块
+public func preconditionMeasureTimeMillis(condition: Int, _ block: () -> Void) {
+    let millis = Int(measureTime(onlyDebug: false, block) * 1000)
+    precondition(millis <= condition, "block run time out: took \(millis) ms, limit \(condition) ms")
+}

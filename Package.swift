@@ -147,6 +147,7 @@ let package = Package(
                 "XXFFlow",
                 "XXFHttp",
                 "XXFHud",
+                "XXFPerformance",
             ]
         ),
         .target(
