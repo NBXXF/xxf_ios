@@ -55,6 +55,10 @@ let package = Package(
             name: "XXFArch",
             targets: ["XXFArch"]
         ),
+        .library(
+            name: "XXFPerformance",
+            targets: ["XXFPerformance"]
+        ),
     ],
     dependencies: [
         // 第三方依赖写这里
@@ -145,6 +149,8 @@ let package = Package(
                 "XXFHud",
             ]
         ),
+        .target(
+            name: "XXFPerformance"),
         .testTarget(
             name: "xxf_iosTests",
             dependencies: ["XXFLog"]
