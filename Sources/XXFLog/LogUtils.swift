@@ -69,6 +69,7 @@ public class LogUtils {
     }
 
     @inlinable
+    @inline(__always)
     static func log(_ message: () -> String,
                     level: LogLevel,
                     tag: String,

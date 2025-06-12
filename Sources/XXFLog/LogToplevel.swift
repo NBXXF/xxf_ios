@@ -7,6 +7,7 @@
 import Foundation
 
 @inlinable
+@inline(__always)
 public func logD(_ message: () -> String,
                  tag: String = "General",
                  file: String = #fileID,
@@ -17,6 +18,7 @@ public func logD(_ message: () -> String,
 }
 
 @inlinable
+@inline(__always)
 public func logI(_ message: () -> String,
                  tag: String = "General",
                  file: String = #fileID,
@@ -27,6 +29,7 @@ public func logI(_ message: () -> String,
 }
 
 @inlinable
+@inline(__always)
 public func logW(_ message: () -> String,
                  tag: String = "General",
                  file: String = #fileID,
@@ -37,6 +40,7 @@ public func logW(_ message: () -> String,
 }
 
 @inlinable
+@inline(__always)
 public func logE(_ message: () -> String,
                  tag: String = "General",
                  file: String = #fileID,

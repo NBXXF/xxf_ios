@@ -6,6 +6,7 @@
 //  - check 专注于检查自身
 //  Created by trl on 6/12.
 //
+@inlinable
 @inline(__always)
 public func require(_ condition: @autoclosure () -> Bool,
                     _ message: @autoclosure () -> String = "Failed requirement.") throws
@@ -15,6 +16,7 @@ public func require(_ condition: @autoclosure () -> Bool,
     }
 }
 
+@inlinable
 @inline(__always)
 public func check(_ condition: @autoclosure () -> Bool,
                   _ message: @autoclosure () -> String = "Check failed.") throws
@@ -24,6 +26,7 @@ public func check(_ condition: @autoclosure () -> Bool,
     }
 }
 
+@inlinable
 @inline(__always)
 public func requireNotNil<T>(_ value: T?,
                              _ message: @autoclosure () -> String = "Required value was nil.") throws -> T
@@ -34,6 +37,7 @@ public func requireNotNil<T>(_ value: T?,
     return v
 }
 
+@inlinable
 @inline(__always)
 public func checkNotNil<T>(_ value: T?,
                            _ message: @autoclosure () -> String = "Checked value was nil.") throws -> T
@@ -44,6 +48,7 @@ public func checkNotNil<T>(_ value: T?,
     return v
 }
 
+@inlinable
 @inline(__always)
 public func error(_ message: @autoclosure () -> String) throws -> Never {
     throw IllegalStateError(message())
