@@ -151,7 +151,8 @@ let package = Package(
             ]
         ),
         .target(
-            name: "XXFPerformance"),
+            name: "XXFPerformance"
+        ),
         .testTarget(
             name: "xxf_iosTests",
             dependencies: ["XXFLog"]

@@ -36,6 +36,9 @@ public enum Schedulers {
     /// 适合需要尽快影响 UI 的紧急任务，如动画数据准备
     private static let _userInteractive = ConcurrentDispatchQueueScheduler(qos: .userInteractive)
 
+    /// 排队到当前线程中顺序执行
+    private static let _trampoline = CurrentThreadScheduler.instance
+
     /// 获取 IO 调度器
     public static func io() -> SchedulerType {
         return _io
@@ -86,5 +89,10 @@ public enum Schedulers {
     @available(*, deprecated, message: "建议业务自己管理")
     public static func concurrent(qos: DispatchQoS.QoSClass) -> SchedulerType {
         ConcurrentDispatchQueueScheduler(qos: DispatchQoS(qosClass: qos, relativePriority: 0))
+    }
+
+    /// 排队到当前线程中顺序执行
+    public static func trampoline() -> ImmediateSchedulerType {
+        return _trampoline
     }
 }
