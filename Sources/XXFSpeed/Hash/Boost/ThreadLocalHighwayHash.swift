@@ -5,7 +5,7 @@
 //  Created by xxf/6/15.
 //
 import Foundation
-import HighwayHash
+import XXFHighwayHash
 
 public enum ThreadLocalHighwayHash {
     private static let key = "com.xxf.threadLocal.highwayhash"

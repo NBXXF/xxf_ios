@@ -74,8 +74,8 @@ let package = Package(
         .package(url: "https://github.com/NBXXF/PulseCompat", .upToNextMajor(from: "4.2.7")),
         .package(url: "https://github.com/hmlongco/Factory.git", from: "2.5.3"),
         .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "7.0.0")),
-        .package(url: "https://github.com/NBXXF/XXFHighwayHash.git", from: "0.0.2"),
-        .package(url: "https://github.com/NBXXF/XXFXXHash.swift.git", from: "0.0.1"),
+        .package(url: "https://github.com/NBXXF/XXFHighwayHash.swift.git", from: "1.0.0"),
+        .package(url: "https://github.com/NBXXF/XXFXXHash.swift.git", from: "1.0.0"),
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
@@ -94,8 +94,8 @@ let package = Package(
         .target(
             name: "XXFSpeed",
             dependencies: [
-                .product(name: "HighwayHash", package: "XXFHighwayHash"),
-                .product(name: "xxHash", package: "XXFXXHash.swift"),
+                .product(name: "XXFHighwayHash", package: "XXFHighwayHash.swift"),
+                .product(name: "XXFXXHash", package: "XXFXXHash.swift"),
             ]
         ),
         .target(

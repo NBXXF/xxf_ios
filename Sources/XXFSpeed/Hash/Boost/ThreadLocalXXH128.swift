@@ -5,17 +5,17 @@
 //  Created by xxf/6/15.
 //
 import Foundation
-import xxHash
+import XXFXXHash
 
 public enum ThreadLocalXXH128 {
     private static let key = "com.xxf.threadLocal.xxhash128"
 
-    private static func getInstance() -> xxHash128 {
+    private static func getInstance() -> XXHash128 {
         let threadDict = Thread.current.threadDictionary
-        if let instance = threadDict[key] as? xxHash128 {
+        if let instance = threadDict[key] as? XXHash128 {
             return instance
         } else {
-            let instance = try! xxHash128()
+            let instance = try! XXHash128()
             threadDict[key] = instance
             return instance
         }

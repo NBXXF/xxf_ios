@@ -5,17 +5,17 @@
 //  Created by xxf/6/15.
 //
 import Foundation
-import xxHash
+import XXFXXHash
 
 public enum ThreadLocalXXH32 {
     private static let key = "com.xxf.threadLocal.xxhash32"
 
-    private static func getInstance() -> xxHash32 {
+    private static func getInstance() -> XXHash32 {
         let threadDict = Thread.current.threadDictionary
-        if let instance = threadDict[key] as? xxHash32 {
+        if let instance = threadDict[key] as? XXHash32 {
             return instance
         } else {
-            let instance = try! xxHash32()
+            let instance = try! XXHash32()
             threadDict[key] = instance
             return instance
         }

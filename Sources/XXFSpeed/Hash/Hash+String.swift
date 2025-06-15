@@ -5,7 +5,6 @@
 //  Created by trl on 6/15.
 //
 import Foundation
-import HighwayHash
 
 /**
  Prodcut                Width           Bandwidth (GB/s)

@@ -6,17 +6,17 @@
 //
 
 import Foundation
-import xxHash
+import XXFXXHash
 
 public enum ThreadLocalXXH3 {
     private static let key = "com.xxf.threadLocal.xxhash3"
 
-    private static func getInstance() -> xxHash3 {
+    private static func getInstance() -> XXHash3 {
         let threadDict = Thread.current.threadDictionary
-        if let instance = threadDict[key] as? xxHash3 {
+        if let instance = threadDict[key] as? XXHash3 {
             return instance
         } else {
-            let instance = try! xxHash3()
+            let instance = try! XXHash3()
             threadDict[key] = instance
             return instance
         }

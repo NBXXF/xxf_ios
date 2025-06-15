@@ -1,5 +1,5 @@
 {
-  "originHash" : "68484eca72b4f2c1abb271673bc5797b6934f90f7cf0bbaf3d8daed40824dfe0",
+  "originHash" : "061a74e8b159839c71bdea771fb517400c9202ab2e526f3d1c3b1eb2db610f26",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -83,12 +83,12 @@
       }
     },
     {
-      "identity" : "xxfhighwayhash",
+      "identity" : "xxfhighwayhash.swift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/NBXXF/XXFHighwayHash.git",
+      "location" : "https://github.com/NBXXF/XXFHighwayHash.swift.git",
       "state" : {
-        "revision" : "9ab65ee3e7121ce0afa12e3233a64bde9e0d6d79",
-        "version" : "0.0.2"
+        "revision" : "d56cdf3f5f5474753af0cc890a33ca2ea7092f4f",
+        "version" : "1.0.0"
       }
     },
     {
@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NBXXF/XXFXXHash.swift.git",
       "state" : {
-        "revision" : "5dc539a1016ea562fa99d601acfac924e448b73c",
-        "version" : "0.0.1"
+        "revision" : "331aa39bd71f828a8866876d667a60ed90c198c9",
+        "version" : "1.0.0"
       }
     }
   ],
