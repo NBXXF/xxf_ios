@@ -84,6 +84,7 @@ let package = Package(
             name: "XXFExtensions",
             dependencies: [
                 .product(name: "SwifterSwift", package: "SwifterSwift"),
+                "XXFSpeed",
             ]
         ),
         .target(

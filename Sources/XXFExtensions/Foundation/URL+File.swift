@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import XXFSpeed
 
 public extension URL {
     /// 返回当前平台下尽可能唯一、稳定的文件 ID，适用于 macOS / iOS。
@@ -16,11 +17,11 @@ public extension URL {
     ///
     /// - Parameter path: 文件路径
     /// - Returns: 唯一标识符字符串，或path.hash
-    func getFileId(forPath path: String) -> String {
-        let fileURL = URL(fileURLWithPath: path)
+    func getFileId() -> UInt64 {
+        let fileURL = self
         var statbuf = stat()
         guard lstat(path, &statbuf) == 0 else {
-            return "\(path.hashValue)"
+            return "\(path)".toXXH3()
         }
 
         let inodeID = "ino:\(statbuf.st_ino)"
@@ -36,9 +37,9 @@ public extension URL {
             } else {
                 // fallback: 使用父目录路径 hash（不稳定）
                 let volumeRoot = fileURL.deletingLastPathComponent()
-                volumeID = "vhash:\(volumeRoot.absoluteString.hashValue)"
+                volumeID = "vhash:\(volumeRoot.absoluteString)"
             }
         #endif
-        return "\(volumeID)-\(inodeID)"
+        return "\(volumeID)-\(inodeID)".toXXH3()
     }
 }
