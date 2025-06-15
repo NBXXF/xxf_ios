@@ -74,6 +74,7 @@ let package = Package(
         .package(url: "https://github.com/NBXXF/PulseCompat", .upToNextMajor(from: "4.2.7")),
         .package(url: "https://github.com/hmlongco/Factory.git", from: "2.5.3"),
         .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "7.0.0")),
+        .package(url: "https://github.com/NBXXF/XXFHighwayHash.git", from: "0.0.2"),
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
@@ -88,18 +89,13 @@ let package = Package(
         .target(
             name: "XXFAppkit"
         ),
-        .target(
-              name: "XXFSpeedC",
-              path: "Sources/XXFSpeedC",
-              publicHeadersPath: "include",
-              cSettings: [
-                  .headerSearchPath("A"),
-                  .headerSearchPath("B"),
-              ]
-          ),
+        .systemLibrary(name: "XXFXXHash"),
         .target(
             name: "XXFSpeed",
-            dependencies: ["XXFSpeedC"]
+            dependencies: [
+                .product(name: "HighwayHash", package: "XXFHighwayHash"),
+                "XXFXXHash",
+            ]
         ),
         .target(
             name: "XXFLog",
@@ -165,6 +161,7 @@ let package = Package(
                 "XXFHttp",
                 "XXFHud",
                 "XXFPerformance",
+                "XXFSpeed",
             ]
         ),
         .target(

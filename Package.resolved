@@ -1,5 +1,5 @@
 {
-  "originHash" : "436368f7c36a1a835f961c394892558b3ea285fb81e642d1f6a0a6db8895e5bf",
+  "originHash" : "e9a6a55d5199fbb298123f6034e611db0684cea35d07073f67a0336c333cdb27",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -80,6 +80,15 @@
       "state" : {
         "revision" : "5a6de915bb80234e1e31b3e3e5f7a7995fc1f4db",
         "version" : "7.0.0"
+      }
+    },
+    {
+      "identity" : "xxfhighwayhash",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NBXXF/XXFHighwayHash.git",
+      "state" : {
+        "revision" : "9ab65ee3e7121ce0afa12e3233a64bde9e0d6d79",
+        "version" : "0.0.2"
       }
     }
   ],

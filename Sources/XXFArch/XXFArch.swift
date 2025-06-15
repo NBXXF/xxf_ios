@@ -11,3 +11,4 @@
 @_exported import XXFHttp
 @_exported import XXFHud
 @_exported import XXFLog
+@_exported import XXFSpeed
