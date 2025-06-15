@@ -1,5 +1,5 @@
 {
-  "originHash" : "e9a6a55d5199fbb298123f6034e611db0684cea35d07073f67a0336c333cdb27",
+  "originHash" : "68484eca72b4f2c1abb271673bc5797b6934f90f7cf0bbaf3d8daed40824dfe0",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -89,6 +89,15 @@
       "state" : {
         "revision" : "9ab65ee3e7121ce0afa12e3233a64bde9e0d6d79",
         "version" : "0.0.2"
+      }
+    },
+    {
+      "identity" : "xxfxxhash.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NBXXF/XXFXXHash.swift.git",
+      "state" : {
+        "revision" : "5dc539a1016ea562fa99d601acfac924e448b73c",
+        "version" : "0.0.1"
       }
     }
   ],

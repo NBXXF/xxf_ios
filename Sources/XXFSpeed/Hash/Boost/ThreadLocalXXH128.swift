@@ -5,6 +5,7 @@
 //  Created by xxf/6/15.
 //
 import Foundation
+import xxHash
 
 public enum ThreadLocalXXH128 {
     private static let key = "com.xxf.threadLocal.xxhash128"

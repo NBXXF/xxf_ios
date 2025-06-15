@@ -75,6 +75,7 @@ let package = Package(
         .package(url: "https://github.com/hmlongco/Factory.git", from: "2.5.3"),
         .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "7.0.0")),
         .package(url: "https://github.com/NBXXF/XXFHighwayHash.git", from: "0.0.2"),
+        .package(url: "https://github.com/NBXXF/XXFXXHash.swift.git", from: "0.0.1"),
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
@@ -91,15 +92,10 @@ let package = Package(
             name: "XXFAppkit"
         ),
         .target(
-            name: "XXFXXHash",
-            path: "Sources/XXFXXHash",
-            publicHeadersPath: "include" // 👈 必须显式指向这个目录
-        ),
-        .target(
             name: "XXFSpeed",
             dependencies: [
                 .product(name: "HighwayHash", package: "XXFHighwayHash"),
-                "XXFXXHash",
+                .product(name: "xxHash", package: "XXFXXHash.swift"),
             ]
         ),
         .target(
