@@ -18,10 +18,20 @@ public extension URL {
     /// - Parameter path: 文件路径
     /// - Returns: 唯一标识符字符串，或path.hash
     func getFileId() -> UInt64 {
-        let fileURL = self
+        // 只对文件 URL 生效
+        guard isFileURL else {
+            return path.toXXH3()
+        }
+
         var statbuf = stat()
-        guard lstat(path, &statbuf) == 0 else {
-            return "\(path)".toXXH3()
+        let ok = withUnsafeFileSystemRepresentation { cPath -> Bool in
+            guard let cPath = cPath else { return false }
+            return lstat(cPath, &statbuf) == 0
+        }
+
+        guard ok else {
+            // lstat 失败或路径非法，退化到对路径字符串做哈希
+            return path.toXXH3()
         }
 
         let inodeID = "ino:\(statbuf.st_ino)"
@@ -30,14 +40,12 @@ public extension URL {
 
         // macOS 上尝试 volumeUUID（iOS 上这段通常会失败）
         #if os(macOS)
-            if let values = try? fileURL.resourceValues(forKeys: [.volumeUUIDStringKey]),
+            if let values = try? resourceValues(forKeys: [.volumeUUIDStringKey]),
                let uuid = values.volumeUUIDString
             {
                 volumeID = "vol:\(uuid)"
             } else {
-                // fallback: 使用父目录路径 hash（不稳定）
-                let volumeRoot = fileURL.deletingLastPathComponent()
-                volumeID = "vhash:\(volumeRoot.absoluteString)"
+                volumeID = deviceID
             }
         #endif
         return "\(volumeID)-\(inodeID)".toXXH3()
