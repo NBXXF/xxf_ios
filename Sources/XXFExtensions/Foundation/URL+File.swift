@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  URL+File.swift
 //  xxf_ios
 //
 //  Created by trl on /6/15.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension URL{
+public extension URL {
     /// 返回当前平台下尽可能唯一、稳定的文件 ID，适用于 macOS / iOS。
     ///
     /// 结构类似于：
@@ -29,17 +29,16 @@ public extension URL{
 
         // macOS 上尝试 volumeUUID（iOS 上这段通常会失败）
         #if os(macOS)
-        if let values = try? fileURL.resourceValues(forKeys: [.volumeUUIDStringKey]),
-           let uuid = values.volumeUUIDString {
-            volumeID = "vol:\(uuid)"
-        } else {
-            // fallback: 使用父目录路径 hash（不稳定）
-            let volumeRoot = fileURL.deletingLastPathComponent()
-            volumeID = "vhash:\(volumeRoot.absoluteString.hashValue)"
-        }
+            if let values = try? fileURL.resourceValues(forKeys: [.volumeUUIDStringKey]),
+               let uuid = values.volumeUUIDString
+            {
+                volumeID = "vol:\(uuid)"
+            } else {
+                // fallback: 使用父目录路径 hash（不稳定）
+                let volumeRoot = fileURL.deletingLastPathComponent()
+                volumeID = "vhash:\(volumeRoot.absoluteString.hashValue)"
+            }
         #endif
         return "\(volumeID)-\(inodeID)"
     }
-
 }
-

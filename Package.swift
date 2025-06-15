@@ -24,6 +24,10 @@ let package = Package(
             targets: ["XXFLog"]
         ),
         .library(
+            name: "XXFSpeed",
+            targets: ["XXFSpeed"]
+        ),
+        .library(
             name: "XXFFlow",
             targets: ["XXFFlow"]
         ),
@@ -83,6 +87,19 @@ let package = Package(
         ),
         .target(
             name: "XXFAppkit"
+        ),
+        .target(
+              name: "XXFSpeedC",
+              path: "Sources/XXFSpeedC",
+              publicHeadersPath: "include",
+              cSettings: [
+                  .headerSearchPath("A"),
+                  .headerSearchPath("B"),
+              ]
+          ),
+        .target(
+            name: "XXFSpeed",
+            dependencies: ["XXFSpeedC"]
         ),
         .target(
             name: "XXFLog",
