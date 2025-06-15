@@ -1,0 +1,4 @@
+module XXFXXHash {
+    umbrella header "xxhash_swift.h"
+    export *
+}

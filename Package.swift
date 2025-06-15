@@ -90,7 +90,11 @@ let package = Package(
         .target(
             name: "XXFAppkit"
         ),
-        .systemLibrary(name: "XXFXXHash"),
+        .target(
+            name: "XXFXXHash",
+            path: "Sources/XXFXXHash",
+            publicHeadersPath: "include" // 👈 必须显式指向这个目录
+        ),
         .target(
             name: "XXFSpeed",
             dependencies: [
