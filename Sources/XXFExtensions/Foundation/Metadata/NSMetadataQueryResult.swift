@@ -636,9 +636,12 @@ public struct NSMetadataQueryResult: NSMetadataProtocol {
 // MARK: - 解析辅助方法
 
 extension NSMetadataQueryResult {
+    private static let nullValues: Set<String> = ["(null)", "<null>", "nil", "NULL", ""]
+
     static func cleanString(_ string: String?) -> String? {
-        string?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let s = string?.trimmingCharacters(in: .whitespacesAndNewlines) else { return nil }
+        let cleaned = s.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+        return nullValues.contains(cleaned.lowercased()) ? nil : cleaned
     }
 
     static func parseDouble(_ string: String?) -> Double {
@@ -680,6 +683,7 @@ extension NSMetadataQueryResult {
         df.locale = Locale(identifier: "en_US_POSIX")
         let formats = [
             "yyyy-MM-dd'T'HH:mm:ssZ",
+            "yyyy-MM-dd HH:mm:ss Z",
             "yyyy-MM-dd HH:mm:ss",
             "yyyy-MM-dd",
         ]
