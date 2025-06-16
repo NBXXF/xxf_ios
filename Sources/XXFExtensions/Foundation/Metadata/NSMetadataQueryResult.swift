@@ -1,18 +1,21 @@
-
 //
-//  MDItem+Query.swift
+//  NSMetadataQuery.swift
 //  xxf_ios
+//  可作为字典工具,业务快速索引
+//  Created by trl on 6/12.
 //
-//  Created by xxf on 6/12.
-//
-
-import CoreServices
 import Foundation
 
-// 所有支持的 MDItem 字段
-extension MDItem: NSMetadataProtocol {
+/// Spotlight 支持的字段
+public struct NSMetadataQueryResult: NSMetadataProtocol {
+    public var metadataDict: [String: Any]
+
+    init(metadataDict: [String: Any]) {
+        self.metadataDict = metadataDict
+    }
+
     func value<T>(forAttribute key: String) -> T? {
-        MDItemCopyAttribute(self, key as CFString) as? T
+        metadataDict[key] as? T
     }
 
     // MARK: - 通用基础属性
