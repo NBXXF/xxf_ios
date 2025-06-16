@@ -7,11 +7,13 @@
 
 import Foundation
 
+public protocol NSMetadataOperationProtocol {
+    func value<T>(forMetadataItem key: String) -> T?
+}
+
 /// 文件元数据协议（包含所有 Spotlight 支持的元数据）
 /// 目前实现类有MDItem, URL, NSMetadataItem, NSMetadataQueryResult
 public protocol NSMetadataProtocol {
-    func value<T>(forMetadataItem key: String) -> T?
-
     // MARK: - 通用基础属性
 
     var mdItemAttributeChangeDate: Date? { get } // 属性变更日期

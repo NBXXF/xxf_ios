@@ -7,7 +7,7 @@
 import Foundation
 
 /// Spotlight 支持的字段
-public struct NSMetadataQueryResult: NSMetadataProtocol {
+public struct NSMetadataQueryResult: NSMetadataProtocol, NSMetadataOperationProtocol {
     public var metadataDict: [String: Any]
 
     init(metadataDict: [String: Any]) {

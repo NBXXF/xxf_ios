@@ -16,7 +16,7 @@ import Foundation
 import Foundation
 
 /// Spotlight 支持的字段
-extension NSMetadataItem: NSMetadataProtocol {
+extension NSMetadataItem: NSMetadataProtocol, NSMetadataOperationProtocol {
     public func value<T>(forMetadataItem key: String) -> T? {
         return value(forAttribute: key) as? T
     }

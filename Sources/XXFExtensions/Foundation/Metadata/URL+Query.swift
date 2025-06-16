@@ -10,7 +10,7 @@ import Foundation
 import CoreServices
 import Foundation
 
-extension URL: NSMetadataProtocol {
+extension URL: NSMetadataProtocol, NSMetadataOperationProtocol {
     private nonisolated(unsafe) static var mdItemKey: UInt8 = 0
 
     // MARK: - 元数据查询方法
