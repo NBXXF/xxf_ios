@@ -35,6 +35,10 @@ extension URL: NSMetadataProtocol {
         return itemRef
     }
 
+    public func value<T>(forMetadataItem key: String) -> T? {
+        return mdItem?.value(forMetadataItem: key)
+    }
+
     // MARK: - 通用基础属性
 
     /// 属性变更日期 (格式: Date?) - 文件元数据最后修改的日期
