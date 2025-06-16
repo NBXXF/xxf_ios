@@ -2,7 +2,7 @@
 //  URL+File.swift
 //  xxf_ios
 //
-//  Created by trl on /6/15.
+//  Created by xxf on /6/15.
 //
 
 import Foundation

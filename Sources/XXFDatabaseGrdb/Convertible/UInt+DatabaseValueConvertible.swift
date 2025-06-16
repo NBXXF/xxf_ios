@@ -3,7 +3,7 @@
 //  xxf_ios
 //  支持所有无符号整数数据库自动转换,建表的时候声明成.blob类型就可以了
 //  blob类型比string/text 性能更好
-//  Created by trl on 6/15.
+//  Created by xxf on 6/15.
 //
 
 import Foundation

@@ -2,7 +2,7 @@
 //  Hash+String.swift
 //  xxf_ios
 //  快速hash算法
-//  Created by trl on 6/15.
+//  Created by xxf on 6/15.
 //
 import Foundation
 

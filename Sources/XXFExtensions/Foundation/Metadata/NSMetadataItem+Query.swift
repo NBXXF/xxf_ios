@@ -1,0 +1,531 @@
+//
+//  NSMetadataItem+Query.swift
+//  xxf_ios
+//
+//  Created by xxf on 6/12.
+//
+import Foundation
+
+/// Spotlight 支持的字段
+public extension NSMetadataItem {
+    // MARK: - 通用基础属性
+
+    /// 属性变更日期 (格式: Date) - 文件元数据最后修改的日期
+    var mdItemAttributeChangeDate: Date? { value(forAttribute: MDKey.attributeChangeDate) as? Date }
+
+    /// 受众群体 (格式: [String]) - 文件的目标受众列表
+    var mdItemAudiences: [String]? { value(forAttribute: MDKey.audiences) as? [String] }
+
+    /// 作者列表 (格式: [String]) - 文件的作者姓名列表
+    var mdItemAuthors: [String]? { value(forAttribute: MDKey.authors) as? [String] }
+
+    /// 作者地址 (格式: [String]) - 作者的邮政地址列表
+    var mdItemAuthorAddresses: [String]? { value(forAttribute: MDKey.authorAddresses) as? [String] }
+
+    /// 作者邮箱 (格式: [String]) - 作者的电子邮件地址列表
+    var mdItemAuthorEmailAddresses: [String]? { value(forAttribute: MDKey.authorEmailAddresses) as? [String] }
+
+    /// 城市 (格式: String) - 与文件关联的城市名称
+    var mdItemCity: String? { value(forAttribute: MDKey.city) as? String }
+
+    /// 注释 (格式: String) - 用户提供的文件注释
+    var mdItemComment: String? { value(forAttribute: MDKey.comment) as? String }
+
+    /// 联系关键词 (格式: [String]) - 与联系人相关的关键词
+    var mdItemContactKeywords: [String]? { value(forAttribute: MDKey.contactKeywords) as? [String] }
+
+    /// 内容创建日期 (格式: Date) - 文件内容最初创建的日期
+    var mdItemContentCreationDate: Date? { value(forAttribute: MDKey.contentCreationDate) as? Date }
+
+    /// 内容修改日期 (格式: Date) - 文件内容最后修改的日期
+    var mdItemContentModificationDate: Date? { value(forAttribute: MDKey.contentModificationDate) as? Date }
+
+    /// 内容类型 (格式: String) - 文件的统一类型标识符 (UTI)，如 "public.jpeg"
+    var mdItemContentType: String? { value(forAttribute: MDKey.contentType) as? String }
+
+    /// 内容类型树 (格式: [String]) - 文件的所有UTI层次结构
+    var mdItemContentTypeTree: [String]? { value(forAttribute: MDKey.contentTypeTree) as? [String] }
+
+    /// 贡献者 (格式: [String]) - 为文件内容做出贡献的人员列表
+    var mdItemContributors: [String]? { value(forAttribute: MDKey.contributors) as? [String] }
+
+    /// 版权信息 (格式: String) - 文件的版权声明
+    var mdItemCopyright: String? { value(forAttribute: MDKey.copyright) as? String }
+
+    /// 国家 (格式: String) - 与文件关联的国家名称
+    var mdItemCountry: String? { value(forAttribute: MDKey.country) as? String }
+
+    /// 覆盖范围 (格式: String) - 文件内容的时空覆盖范围
+    var mdItemCoverage: String? { value(forAttribute: MDKey.coverage) as? String }
+
+    /// 创建者 (格式: String) - 创建文件的应用程序名称
+    var mdItemCreator: String? { value(forAttribute: MDKey.creator) as? String }
+
+    /// 添加日期 (格式: Date) - 文件添加到当前位置的日期
+    var mdItemDateAdded: Date? { value(forAttribute: MDKey.dateAdded) as? Date }
+
+    /// 描述 (格式: String) - 文件内容的文本描述
+    var mdItemDescription: String? { value(forAttribute: MDKey.description) as? String }
+
+    /// 显示名称 (格式: String) - 文件的用户可见名称
+    var mdItemDisplayName: String? { value(forAttribute: MDKey.displayName) as? String }
+
+    /// 下载日期 (格式: Date) - 文件从互联网下载的日期
+    var mdItemDownloadedDate: Date? { value(forAttribute: MDKey.downloadedDate) as? Date }
+
+    /// 到期日期 (格式: Date) - 文件到期的日期
+    var mdItemDueDate: Date? { value(forAttribute: MDKey.dueDate) as? Date }
+
+    /// 持续时间(秒) (格式: Double) - 媒体文件的持续时间(以秒为单位)
+    var mdItemDurationSeconds: Double? { value(forAttribute: MDKey.durationSeconds) as? Double }
+
+    /// 编辑者 (格式: [String]) - 编辑过文件的人员列表
+    var mdItemEditors: [String]? { value(forAttribute: MDKey.editors) as? [String] }
+
+    /// 电子邮件地址 (格式: [String]) - 与文件关联的电子邮件地址
+    var mdItemEmailAddresses: [String]? { value(forAttribute: MDKey.emailAddresses) as? [String] }
+
+    /// 编码应用程序 (格式: [String]) - 用于编码文件的应用程序列表
+    var mdItemEncodingApplications: [String]? { value(forAttribute: MDKey.encodingApplications) as? [String] }
+
+    /// Finder注释 (格式: String) - Finder中显示的注释
+    var mdItemFinderComment: String? { value(forAttribute: MDKey.finderComment) as? String }
+
+    /// 字体列表 (格式: [String]) - 文档中使用的字体名称列表
+    var mdItemFonts: [String]? { value(forAttribute: MDKey.fonts) as? [String] }
+
+    /// 标题 (格式: String) - 文件的标题或标题行
+    var mdItemHeadline: String? { value(forAttribute: MDKey.headline) as? String }
+
+    /// 标识符 (格式: String) - 文件的唯一标识符
+    var mdItemIdentifier: String? { value(forAttribute: MDKey.identifier) as? String }
+
+    /// 信息 (格式: String) - 关于文件的其他信息
+    var mdItemInformation: String? { value(forAttribute: MDKey.information) as? String }
+
+    /// 即时消息地址 (格式: [String]) - 与文件关联的即时消息地址
+    var mdItemInstantMessageAddresses: [String]? { value(forAttribute: MDKey.instantMessageAddresses) as? [String] }
+
+    /// 说明 (格式: String) - 如何使用文件的说明
+    var mdItemInstructions: String? { value(forAttribute: MDKey.instructions) as? String }
+
+    /// 关键词 (格式: [String]) - 描述文件内容的关键词
+    var mdItemKeywords: [String]? { value(forAttribute: MDKey.keywords) as? [String] }
+
+    /// 种类 (格式: String) - 用户可见的文件类型描述，如 "JPEG图像"
+    var mdItemKind: String? { value(forAttribute: MDKey.kind) as? String }
+
+    /// 语言 (格式: [String]) - 文件内容的语言代码列表，如 ["en", "zh"]
+    var mdItemLanguages: [String]? { value(forAttribute: MDKey.languages) as? [String] }
+
+    /// 最后使用日期 (格式: Date) - 文件最后一次被访问的日期
+    var mdItemLastUsedDate: Date? { value(forAttribute: MDKey.lastUsedDate) as? Date }
+
+    /// 命名位置 (格式: String) - 与文件关联的命名位置
+    var mdItemNamedLocation: String? { value(forAttribute: MDKey.namedLocation) as? String }
+
+    /// 组织 (格式: [String]) - 与文件关联的组织名称列表
+    var mdItemOrganizations: [String]? { value(forAttribute: MDKey.organizations) as? [String] }
+
+    /// 参与者 (格式: [String]) - 文件内容中的参与者列表
+    var mdItemParticipants: [String]? { value(forAttribute: MDKey.participants) as? [String] }
+
+    /// 电话号码 (格式: [String]) - 与文件关联的电话号码
+    var mdItemPhoneNumbers: [String]? { value(forAttribute: MDKey.phoneNumbers) as? [String] }
+
+    /// 项目 (格式: [String]) - 与文件关联的项目名称列表
+    var mdItemProjects: [String]? { value(forAttribute: MDKey.projects) as? [String] }
+
+    /// 出版商 (格式: [String]) - 文件内容的出版商列表
+    var mdItemPublishers: [String]? { value(forAttribute: MDKey.publishers) as? [String] }
+
+    /// 收件人 (格式: [String]) - 文件的目标收件人列表
+    var mdItemRecipients: [String]? { value(forAttribute: MDKey.recipients) as? [String] }
+
+    /// 收件人地址 (格式: [String]) - 收件人的邮政地址列表
+    var mdItemRecipientAddresses: [String]? { value(forAttribute: MDKey.recipientAddresses) as? [String] }
+
+    /// 收件人邮箱 (格式: [String]) - 收件人的电子邮件地址列表
+    var mdItemRecipientEmailAddresses: [String]? { value(forAttribute: MDKey.recipientEmailAddresses) as? [String] }
+
+    /// 权限 (格式: String) - 文件的使用权限信息
+    var mdItemRights: String? { value(forAttribute: MDKey.rights) as? String }
+
+    /// 安全方法 (格式: String) - 文件使用的安全方法
+    var mdItemSecurityMethod: String? { value(forAttribute: MDKey.securityMethod) as? String }
+
+    /// 星级评分 (格式: Double) - 用户对文件的评分(通常0-5)
+    var mdItemStarRating: Double? { value(forAttribute: MDKey.starRating) as? Double }
+
+    /// 州/省 (格式: String) - 与文件关联的州或省名称
+    var mdItemStateOrProvince: String? { value(forAttribute: MDKey.stateOrProvince) as? String }
+
+    /// 主题 (格式: String) - 文件内容的主题
+    var mdItemSubject: String? { value(forAttribute: MDKey.subject) as? String }
+
+    /// 文本内容 (格式: String) - 文件的原始文本内容
+    var mdItemTextContent: String? { value(forAttribute: MDKey.textContent) as? String }
+
+    /// 主题 (格式: String) - 文件内容的主题或类别
+    var mdItemTheme: String? { value(forAttribute: MDKey.theme) as? String }
+
+    /// 标题 (格式: String) - 文件的标题
+    var mdItemTitle: String? { value(forAttribute: MDKey.title) as? String }
+
+    /// URL (格式: String) - 与文件关联的URL
+    var mdItemUrl: String? { value(forAttribute: MDKey.url) as? String }
+
+    /// 版本 (格式: String) - 文件的版本号
+    var mdItemVersion: String? { value(forAttribute: MDKey.version) as? String }
+
+    /// 来源 (格式: [String]) - 文件下载来源的URL列表
+    var mdItemWhereFroms: [String]? { value(forAttribute: MDKey.whereFroms) as? [String] }
+
+    // MARK: - 文件系统属性
+
+    /// 文件内容变更日期 (格式: Date) - 文件内容最后修改的日期
+    var mdItemFSContentChangeDate: Date? { value(forAttribute: MDKey.fsContentChangeDate) as? Date }
+
+    /// 文件创建日期 (格式: Date) - 文件在文件系统中创建的日期
+    var mdItemFSCreationDate: Date? { value(forAttribute: MDKey.fsCreationDate) as? Date }
+
+    /// 是否有自定义图标 (格式: Bool) - 文件是否有自定义图标
+    var mdItemFSHasCustomIcon: Bool? { value(forAttribute: MDKey.fsHasCustomIcon) as? Bool }
+
+    /// 是否隐藏 (格式: Bool) - 文件是否在Finder中隐藏
+    var mdItemFSInvisible: Bool? { value(forAttribute: MDKey.fsInvisible) as? Bool }
+
+    /// 是否隐藏扩展名 (格式: Bool) - 文件扩展名是否隐藏
+    var mdItemFSIsExtensionHidden: Bool? { value(forAttribute: MDKey.fsIsExtensionHidden) as? Bool }
+
+    /// 是否为模板文件 (格式: Bool) - 文件是否为模板文件
+    var mdItemFSIsStationery: Bool? { value(forAttribute: MDKey.fsIsStationery) as? Bool }
+
+    /// Finder标签 (格式: Int) - Finder标签颜色索引(0-7)
+    var mdItemFSLabel: Int? { value(forAttribute: MDKey.fsLabel) as? Int }
+
+    /// 文件名 (格式: String) - 文件的名称(包括扩展名)
+    var mdItemFSName: String? { value(forAttribute: MDKey.fsName) as? String }
+
+    /// 节点数量 (格式: Int) - 目录包含的项目数(仅目录有效)
+    var mdItemFSNodeCount: Int? { value(forAttribute: MDKey.fsNodeCount) as? Int }
+
+    /// 所有者组ID (格式: Int) - 文件所有者组的ID
+    var mdItemFSOwnerGroupID: Int? { value(forAttribute: MDKey.fsOwnerGroupID) as? Int }
+
+    /// 所有者用户ID (格式: Int) - 文件所有者的用户ID
+    var mdItemFSOwnerUserID: Int? { value(forAttribute: MDKey.fsOwnerUserID) as? Int }
+
+    /// 文件路径 (格式: String) - 文件的完整路径
+    var mdItemFSPath: String? { value(forAttribute: MDKey.fsPath) as? String }
+
+    /// 文件大小 (格式: Int) - 文件大小(以字节为单位)
+    var mdItemFSSize: Int? { value(forAttribute: MDKey.fsSize) as? Int }
+
+    // MARK: - 图像属性
+
+    /// 相机品牌 (格式: String) - 拍摄照片的相机品牌
+    var mdItemAcquisitionMake: String? { value(forAttribute: MDKey.acquisitionMake) as? String }
+
+    /// 相机型号 (格式: String) - 拍摄照片的相机型号
+    var mdItemAcquisitionModel: String? { value(forAttribute: MDKey.acquisitionModel) as? String }
+
+    /// 相册名称 (格式: String) - 照片所属的相册名称
+    var mdItemAlbum: String? { value(forAttribute: MDKey.album) as? String }
+
+    /// 海拔高度 (格式: Double) - 拍摄地点的海拔高度(米)
+    var mdItemAltitude: Double? { value(forAttribute: MDKey.altitude) as? Double }
+
+    /// 光圈值 (格式: Double) - 拍摄时的光圈值(f-number)
+    var mdItemAperture: Double? { value(forAttribute: MDKey.aperture) as? Double }
+
+    /// 每样本位数 (格式: Int) - 图像每个颜色分量的位数
+    var mdItemBitsPerSample: Int? { value(forAttribute: MDKey.bitsPerSample) as? Int }
+
+    /// 相机所有者 (格式: String) - 相机所有者的姓名
+    var mdItemCameraOwner: String? { value(forAttribute: MDKey.cameraOwner) as? String }
+
+    /// 色彩空间 (格式: String) - 图像使用的色彩空间，如 "RGB", "CMYK"
+    var mdItemColorSpace: String? { value(forAttribute: MDKey.colorSpace) as? String }
+
+    /// EXIF版本 (格式: String) - EXIF元数据的版本
+    var mdItemExifVersion: String? { value(forAttribute: MDKey.exifVersion) as? String }
+
+    /// 曝光模式 (格式: Int) - 相机曝光模式(1=手动,2=自动,3=自动包围)
+    var mdItemExposureMode: Int? { value(forAttribute: MDKey.exposureMode) as? Int }
+
+    /// 曝光程序 (格式: Int) - 相机使用的曝光程序(1=手动,2=正常,3=光圈优先等)
+    var mdItemExposureProgram: Int? { value(forAttribute: MDKey.exposureProgram) as? Int }
+
+    /// 曝光时间(秒) (格式: Double) - 快门速度(以秒为单位)
+    var mdItemExposureTimeSeconds: Double? { value(forAttribute: MDKey.exposureTimeSeconds) as? Double }
+
+    /// 曝光时间字符串 (格式: String) - 人类可读的曝光时间，如 "1/125"
+    var mdItemExposureTimeString: String? { value(forAttribute: MDKey.exposureTimeString) as? String }
+
+    /// 光圈值 (格式: Double) - 拍摄时的光圈值(f-number)
+    var mdItemFNumber: Double? { value(forAttribute: MDKey.fNumber) as? Double }
+
+    /// 闪光灯状态 (格式: Int) - 闪光灯是否触发(0=关闭,1=开启)
+    var mdItemFlashOnOff: Int? { value(forAttribute: MDKey.flashOnOff) as? Int }
+
+    /// 焦距 (格式: Double) - 拍摄时的实际焦距(毫米)
+    var mdItemFocalLength: Double? { value(forAttribute: MDKey.focalLength) as? Double }
+
+    /// 35mm等效焦距 (格式: Double) - 35mm胶片等效焦距(毫米)
+    var mdItemFocalLength35mm: Double? { value(forAttribute: MDKey.focalLength35mm) as? Double }
+
+    /// GPS区域信息 (格式: String) - GPS区域描述
+    var mdItemGPSAreaInformation: String? { value(forAttribute: MDKey.gpsAreaInformation) as? String }
+
+    /// GPS日期戳 (格式: String) - GPS日期记录(格式: "YYYY:MM:DD")
+    var mdItemGPSDateStamp: String? { value(forAttribute: MDKey.gpsDateStamp) as? String }
+
+    /// GPS目标方位 (格式: Double) - 相对于真北的目标方位角(度数)
+    var mdItemGPSDestBearing: Double? { value(forAttribute: MDKey.gpsDestBearing) as? Double }
+
+    /// GPS目标距离 (格式: Double) - 到目标的距离(米)
+    var mdItemGPSDestDistance: Double? { value(forAttribute: MDKey.gpsDestDistance) as? Double }
+
+    /// GPS目标纬度 (格式: Double) - 目标地点的纬度
+    var mdItemGPSDestLatitude: Double? { value(forAttribute: MDKey.gpsDestLatitude) as? Double }
+
+    /// GPS目标经度 (格式: Double) - 目标地点的经度
+    var mdItemGPSDestLongitude: Double? { value(forAttribute: MDKey.gpsDestLongitude) as? Double }
+
+    /// GPS差分校正 (格式: Int) - 是否应用差分GPS校正(0=无,1=已应用)
+    var mdItemGPSDifferental: Int? { value(forAttribute: MDKey.gpsDifferental) as? Int }
+
+    /// GPS精度 (格式: Double) - GPS精度(0-100)
+    var mdItemGPSDop: Double? { value(forAttribute: MDKey.gpsDop) as? Double }
+
+    /// GPS地图基准 (格式: String) - GPS使用的地图基准
+    var mdItemGPSMapDatum: String? { value(forAttribute: MDKey.gpsMapDatum) as? String }
+
+    /// GPS测量模式 (格式: String) - GPS测量模式，如 "2-dimensional"
+    var mdItemGPSMeasureMode: String? { value(forAttribute: MDKey.gpsMeasureMode) as? String }
+
+    /// GPS处理方法 (格式: String) - GPS位置计算方法
+    var mdItemGPSProcessingMethod: String? { value(forAttribute: MDKey.gpsProcessingMethod) as? String }
+
+    /// GPS状态 (格式: String) - GPS接收器状态，如 "A"(活动)或 "V"(无效)
+    var mdItemGPSStatus: String? { value(forAttribute: MDKey.gpsStatus) as? String }
+
+    /// GPS轨迹 (格式: Double) - 相对于真北的运动方向(度数)
+    var mdItemGPSTrack: Double? { value(forAttribute: MDKey.gpsTrack) as? Double }
+
+    /// 是否有Alpha通道 (格式: Bool) - 图像是否包含Alpha通道
+    var mdItemHasAlphaChannel: Bool? { value(forAttribute: MDKey.hasAlphaChannel) as? Bool }
+
+    /// 图像方向 (格式: Double) - 拍摄时相机相对于真北的方向(度数)
+    var mdItemImageDirection: Double? { value(forAttribute: MDKey.imageDirection) as? Double }
+
+    /// ISO感光度 (格式: Int) - 相机ISO感光度设置
+    var mdItemISOSpeed: Int? { value(forAttribute: MDKey.isoSpeed) as? Int }
+
+    /// 纬度 (格式: Double) - 拍摄地点的纬度
+    var mdItemLatitude: Double? { value(forAttribute: MDKey.latitude) as? Double }
+
+    /// 图层名称 (格式: [String]) - 图像中图层的名称列表
+    var mdItemLayerNames: [String]? { value(forAttribute: MDKey.layerNames) as? [String] }
+
+    /// 镜头型号 (格式: String) - 相机镜头的型号
+    var mdItemLensModel: String? { value(forAttribute: MDKey.lensModel) as? String }
+
+    /// 经度 (格式: Double) - 拍摄地点的经度
+    var mdItemLongitude: Double? { value(forAttribute: MDKey.longitude) as? Double }
+
+    /// 最大光圈 (格式: Double) - 镜头的最大光圈值
+    var mdItemMaxAperture: Double? { value(forAttribute: MDKey.maxAperture) as? Double }
+
+    /// 测光模式 (格式: Int) - 相机使用的测光模式
+    var mdItemMeteringMode: Int? { value(forAttribute: MDKey.meteringMode) as? Int }
+
+    /// 方向 (格式: Int) - 图像方向(1=正常,3=180度,6=90度顺时针,8=270度顺时针)
+    var mdItemOrientation: Int? { value(forAttribute: MDKey.orientation) as? Int }
+
+    /// 像素总数 (格式: Int) - 图像中的总像素数
+    var mdItemPixelCount: Int? { value(forAttribute: MDKey.pixelCount) as? Int }
+
+    /// 像素高度 (格式: Int) - 图像高度(像素)
+    var mdItemPixelHeight: Int? { value(forAttribute: MDKey.pixelHeight) as? Int }
+
+    /// 像素宽度 (格式: Int) - 图像宽度(像素)
+    var mdItemPixelWidth: Int? { value(forAttribute: MDKey.pixelWidth) as? Int }
+
+    /// 色彩配置文件名 (格式: String) - 图像使用的色彩配置文件名
+    var mdItemProfileName: String? { value(forAttribute: MDKey.profileName) as? String }
+
+    /// 红眼校正状态 (格式: Int) - 是否应用红眼校正(0=否,1=是)
+    var mdItemRedEyeOnOff: Int? { value(forAttribute: MDKey.redEyeOnOff) as? Int }
+
+    /// 垂直分辨率 (DPI) (格式: Int) - 图像的垂直分辨率(每英寸点数)
+    var mdItemResolutionHeightDpi: Int? { value(forAttribute: MDKey.resolutionHeightDpi) as? Int }
+
+    /// 水平分辨率 (DPI) (格式: Int) - 图像的水平分辨率(每英寸点数)
+    var mdItemResolutionWidthDpi: Int? { value(forAttribute: MDKey.resolutionWidthDpi) as? Int }
+
+    /// 速度 (格式: Double) - 拍摄时相机的移动速度(km/h)
+    var mdItemSpeed: Double? { value(forAttribute: MDKey.speed) as? Double }
+
+    /// 时间戳 (格式: Date) - 图像创建的时间戳
+    var mdItemTimestamp: Date? { value(forAttribute: MDKey.timestamp) as? Date }
+
+    /// 白平衡 (格式: Int) - 相机白平衡设置(0=自动,1=手动)
+    var mdItemWhiteBalance: Int? { value(forAttribute: MDKey.whiteBalance) as? Int }
+
+    /// XMP信用信息 (格式: String) - XMP元数据中的信用信息
+    var mdItemXMPCredit: String? { value(forAttribute: MDKey.xmpCredit) as? String }
+
+    /// XMP数字来源类型 (格式: String) - XMP元数据中的数字来源类型
+    var mdItemXMPDigitalSourceType: String? { value(forAttribute: MDKey.xmpDigitalSourceType) as? String }
+
+    // MARK: - 音频/视频属性
+
+    /// 音频比特率 (格式: Int) - 音频流的比特率(比特/秒)
+    var mdItemAudioBitRate: Int? { value(forAttribute: MDKey.audioBitRate) as? Int }
+
+    /// 音频通道数 (格式: Int) - 音频通道数量(1=单声道,2=立体声等)
+    var mdItemAudioChannelCount: Int? { value(forAttribute: MDKey.audioChannelCount) as? Int }
+
+    /// 音频采样率 (格式: Int) - 音频采样率(Hz)
+    var mdItemAudioSampleRate: Int? { value(forAttribute: MDKey.audioSampleRate) as? Int }
+
+    /// 音轨编号 (格式: Int) - 音轨在专辑中的编号
+    var mdItemAudioTrackNumber: Int? { value(forAttribute: MDKey.audioTrackNumber) as? Int }
+
+    /// 编解码器 (格式: [String]) - 媒体使用的编解码器列表
+    var mdItemCodecs: [String]? { value(forAttribute: MDKey.codecs) as? [String] }
+
+    /// 作曲家 (格式: String) - 音频内容的作曲家
+    var mdItemComposer: String? { value(forAttribute: MDKey.composer) as? String }
+
+    /// 交付类型 (格式: String) - 媒体交付类型，如 "streaming"
+    var mdItemDeliveryType: String? { value(forAttribute: MDKey.deliveryType) as? String }
+
+    /// 导演 (格式: String) - 视频内容的导演
+    var mdItemDirector: String? { value(forAttribute: MDKey.director) as? String }
+
+    /// 流派 (格式: String) - 媒体内容的流派
+    var mdItemGenre: String? { value(forAttribute: MDKey.genre) as? String }
+
+    /// 是否为通用MIDI序列 (格式: Bool) - 是否是通用MIDI序列文件
+    var mdItemIsGeneralMIDISequence: Bool? { value(forAttribute: MDKey.isGeneralMIDISequence) as? Bool }
+
+    /// 调号 (格式: String) - 音频的调号，如 "C major"
+    var mdItemKeySignature: String? { value(forAttribute: MDKey.keySignature) as? String }
+
+    /// 作词者 (格式: String) - 音频歌词的作者
+    var mdItemLyricist: String? { value(forAttribute: MDKey.lyricist) as? String }
+
+    /// 媒体类型 (格式: [String]) - 媒体包含的内容类型列表，如 ["audio", "video"]
+    var mdItemMediaTypes: [String]? { value(forAttribute: MDKey.mediaTypes) as? [String] }
+
+    /// 音乐流派 (格式: String) - 音频内容的音乐流派
+    var mdItemMusicalGenre: String? { value(forAttribute: MDKey.musicalGenre) as? String }
+
+    /// 原始格式 (格式: String) - 媒体原始格式
+    var mdItemOriginalFormat: String? { value(forAttribute: MDKey.originalFormat) as? String }
+
+    /// 原始来源 (格式: String) - 媒体的原始来源
+    var mdItemOriginalSource: String? { value(forAttribute: MDKey.originalSource) as? String }
+
+    /// 表演者 (格式: [String]) - 媒体内容的表演者列表
+    var mdItemPerformers: [String]? { value(forAttribute: MDKey.performers) as? [String] }
+
+    /// 制作人 (格式: String) - 媒体内容的制作人
+    var mdItemProducer: String? { value(forAttribute: MDKey.producer) as? String }
+
+    /// 录制日期 (格式: Date) - 媒体内容的录制日期
+    var mdItemRecordingDate: Date? { value(forAttribute: MDKey.recordingDate) as? Date }
+
+    /// 录制年份 (格式: Int) - 媒体内容的录制年份
+    var mdItemRecordingYear: Int? { value(forAttribute: MDKey.recordingYear) as? Int }
+
+    /// 是否可流式传输 (格式: Bool) - 媒体是否适合流式传输
+    var mdItemStreamable: Bool? { value(forAttribute: MDKey.streamable) as? Bool }
+
+    /// 速度 (格式: Double) - 音频的速度(每分钟节拍数)
+    var mdItemTempo: Double? { value(forAttribute: MDKey.tempo) as? Double }
+
+    /// 拍号 (格式: String) - 音频的拍号，如 "4/4"
+    var mdItemTimeSignature: String? { value(forAttribute: MDKey.timeSignature) as? String }
+
+    /// 总比特率 (格式: Int) - 媒体的总比特率(音频+视频，比特/秒)
+    var mdItemTotalBitRate: Int? { value(forAttribute: MDKey.totalBitRate) as? Int }
+
+    /// 视频比特率 (格式: Int) - 视频流的比特率(比特/秒)
+    var mdItemVideoBitRate: Int? { value(forAttribute: MDKey.videoBitRate) as? Int }
+
+    // MARK: - 应用相关属性
+
+    /// 应用类别 (格式: [String]) - 应用的类别列表，如 ["Games", "Entertainment"]
+    var mdItemApplicationCategories: [String]? { value(forAttribute: MDKey.applicationCategories) as? [String] }
+
+    /// 应用包标识符 (格式: String) - 应用的Bundle Identifier，如 "com.apple.Safari"
+    var mdItemCFBundleIdentifier: String? { value(forAttribute: MDKey.cfBundleIdentifier) as? String }
+
+    /// 可执行架构 (格式: [String]) - 应用支持的CPU架构列表，如 ["x86_64", "arm64"]
+    var mdItemExecutableArchitectures: [String]? { value(forAttribute: MDKey.executableArchitectures) as? [String] }
+
+    /// 可执行平台 (格式: String) - 应用的目标平台，如 "macosx"
+    var mdItemExecutablePlatform: String? { value(forAttribute: MDKey.executablePlatform) as? String }
+
+    /// 是否由应用管理 (格式: Bool) - 文件是否由特定应用管理
+    var mdItemIsApplicationManaged: Bool? { value(forAttribute: MDKey.isApplicationManaged) as? Bool }
+
+    /// 可能是垃圾文件 (格式: Bool) - 文件是否可能是不需要的文件
+    var mdItemIsLikelyJunk: Bool? { value(forAttribute: MDKey.isLikelyJunk) as? Bool }
+
+    // MARK: - 媒体制作属性
+
+    /// Apple Loop描述符 (格式: [String]) - Apple Loop音频文件的描述符
+    var mdItemAppleLoopDescriptors: [String]? { value(forAttribute: MDKey.appleLoopDescriptors) as? [String] }
+
+    /// Apple Loop键过滤器类型 (格式: String) - Apple Loop的键过滤器类型
+    var mdItemAppleLoopsKeyFilterType: String? { value(forAttribute: MDKey.appleLoopsKeyFilterType) as? String }
+
+    /// Apple Loop循环模式 (格式: String) - Apple Loop的循环模式
+    var mdItemAppleLoopsLoopMode: String? { value(forAttribute: MDKey.appleLoopsLoopMode) as? String }
+
+    /// Apple Loop根键 (格式: String) - Apple Loop的根音键
+    var mdItemAppleLoopsRootKey: String? { value(forAttribute: MDKey.appleLoopsRootKey) as? String }
+
+    /// 音频编码应用 (格式: String) - 用于编码音频的应用程序
+    var mdItemAudioEncodingApplication: String? { value(forAttribute: MDKey.audioEncodingApplication) as? String }
+
+    /// EXIF GPS版本 (格式: String) - EXIF中GPS信息的版本
+    var mdItemEXIFGPSVersion: String? { value(forAttribute: MDKey.exifGpsVersion) as? String }
+
+    /// GPS版本 (格式: String) - GPS信息的版本
+    var mdItemGPSVersion: String? { value(forAttribute: MDKey.gpsVersion) as? String }
+
+    /// 媒体扩展 (格式: [String]) - 媒体文件支持的扩展名列表
+    var mdItemMediaExtensions: [String]? {
+        if #available(macOS 15.0, *) {
+            return value(forAttribute: MDKey.mediaExtensions) as? [String]
+        } else {
+            return nil
+        }
+    }
+
+    /// 乐器类别 (格式: String) - 音乐乐器的类别
+    var mdItemMusicalInstrumentCategory: String? { value(forAttribute: MDKey.musicalInstrumentCategory) as? String }
+
+    /// 乐器名称 (格式: String) - 音乐乐器的名称
+    var mdItemMusicalInstrumentName: String? { value(forAttribute: MDKey.musicalInstrumentName) as? String }
+
+    // MARK: - 页面/文档属性
+
+    /// HTML内容 (格式: String) - 文档的HTML内容
+    var mdItemHTMLContent: String? { value(forAttribute: MDKey.htmlContent) as? String }
+
+    /// 页数 (格式: Int) - 文档的总页数
+    var mdItemNumberOfPages: Int? { value(forAttribute: MDKey.numberOfPages) as? Int }
+
+    /// 页面高度 (格式: Double) - 文档页面的高度(点)
+    var mdItemPageHeight: Double? { value(forAttribute: MDKey.pageHeight) as? Double }
+
+    /// 页面宽度 (格式: Double) - 文档页面的宽度(点)
+    var mdItemPageWidth: Double? { value(forAttribute: MDKey.pageWidth) as? Double }
+}

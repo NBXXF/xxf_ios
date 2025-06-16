@@ -2,7 +2,7 @@
 //  DispatchTimeInterval+TimeUnit.swift
 //  xxf_ios
 //  时间戳转换,借鉴Java TimeUnit类
-//  Created by trl on 6/6.
+//  Created by xxf on 6/6.
 //
 
 import Foundation

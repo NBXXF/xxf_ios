@@ -2,7 +2,7 @@
 //  Scheduler+Dispatch.swift
 //  xxf_ios
 //  可直接执行任务指定线程
-//  Created by trl on 6/7.
+//  Created by xxf on 6/7.
 //
 
 import Foundation

@@ -2,7 +2,7 @@
 //  IllegalStateError.swift
 //  xxf_ios
 //
-//  Created by trl on 6/12.
+//  Created by xxf on 6/12.
 //
 
 // 定义一个错误类型，类似 Java/Kotlin 的 IllegalArgumentException

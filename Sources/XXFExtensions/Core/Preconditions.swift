@@ -4,7 +4,7 @@
 //  专注于参数校验
 //  - require 专注于教研外部参数
 //  - check 专注于检查自身
-//  Created by trl on 6/12.
+//  Created by xxf on 6/12.
 //
 @inlinable
 @inline(__always)

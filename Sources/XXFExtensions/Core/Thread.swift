@@ -2,7 +2,7 @@
 //  Thread.swift
 //  xxf_ios
 //  线程相关
-//  Created by trl on 6/12.
+//  Created by xxf on 6/12.
 //
 
 import Foundation
