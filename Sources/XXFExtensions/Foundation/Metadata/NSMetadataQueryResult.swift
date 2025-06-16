@@ -10,7 +10,7 @@ import Foundation
 public struct NSMetadataQueryResult: NSMetadataProtocol, NSMetadataOperationProtocol {
     public var metadataDict: [String: Any]
 
-    init(metadataDict: [String: Any]) {
+    public init(metadataDict: [String: Any]) {
         self.metadataDict = metadataDict
     }
 
