@@ -51,8 +51,9 @@ public extension URL {
         return "\(volumeID)-\(inodeID)".toXXH3()
     }
 
-    /// 是否是文件夹
+    // 是否是文件夹（仅本地文件 URL）
     func isDirectory() -> Bool {
+        guard isFileURL else { return false }
         return path.withCString { cstr in
             var statbuf = stat()
             if lstat(cstr, &statbuf) == 0 {
@@ -60,5 +61,20 @@ public extension URL {
             }
             return false
         }
+    }
+
+    /// 是否是符号链接（仅本地文件 URL）
+    func isSymbolicLink() -> Bool {
+        guard isFileURL else { return false }
+        return path.withCString { cstr in
+            var statbuf = stat()
+            return lstat(cstr, &statbuf) == 0 && (statbuf.st_mode & S_IFMT) == S_IFLNK
+        }
+    }
+
+    /// 是否是 Finder 替身（Alias 文件）（仅本地文件 URL）
+    func isAliasFile() -> Bool {
+        guard isFileURL else { return false }
+        return (try? resourceValues(forKeys: [.isAliasFileKey]))?.isAliasFile == true
     }
 }
