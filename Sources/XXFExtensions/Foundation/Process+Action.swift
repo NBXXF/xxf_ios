@@ -5,6 +5,7 @@
 //  Created by trl on 6/17.
 //
 
+import Darwin
 import Foundation
 
 public extension Process {
@@ -58,7 +59,37 @@ public extension Process {
 
     /// 判断指定端口是否被占用
     static func isPortInUse(_ port: Int) -> Bool {
-        return !getProcessesListening(onPort: port).isEmpty
+        return isPortAvailable(port) || !getProcessesListening(onPort: port).isEmpty
+    }
+
+    private static func isPortAvailable(_ port: Int) -> Bool {
+        var addr = sockaddr_in()
+        addr.sin_len = __uint8_t(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = in_port_t(UInt16(port).bigEndian)
+        addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
+        addr.sin_zero = (0, 0, 0, 0, 0, 0, 0, 0)
+
+        let sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+        guard sock >= 0 else {
+            return false
+        }
+
+        defer {
+            close(sock)
+        }
+
+        // 设置 socket 选项 SO_REUSEADDR 防止 TIME_WAIT 状态影响端口占用判断
+        var yes: Int32 = 1
+        setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, socklen_t(MemoryLayout<Int32>.size))
+
+        let result = withUnsafePointer(to: &addr) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                Darwin.bind(sock, sockaddrPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+
+        return result == 0
     }
 
     /// 查询进程
