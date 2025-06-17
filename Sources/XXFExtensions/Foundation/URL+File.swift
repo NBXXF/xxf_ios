@@ -52,8 +52,8 @@ public extension URL {
     }
 
     /// 是否是文件夹
-    var isDirectory: Bool {
-        path.withCString { cstr in
+    func isDirectory() -> Bool {
+        return path.withCString { cstr in
             var statbuf = stat()
             if lstat(cstr, &statbuf) == 0 {
                 return (statbuf.st_mode & S_IFMT) == S_IFDIR
