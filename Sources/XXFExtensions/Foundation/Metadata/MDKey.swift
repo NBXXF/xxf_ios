@@ -5,7 +5,12 @@
 //  文件源信息对应的key
 //  Created by xxf on 6/12.
 //
-
+/**
+ 官方文献
+ https://developer.apple.com/documentation/coreservices/file_metadata/mditem
+ https://developer.apple.com/documentation/coreservices/file_metadata/mditem/common_metadata_attribute_keys
+ https://developer.apple.com/library/archive/documentation/CoreServices/Reference/MetadataAttributesRef/Reference/CommonAttrs.html
+ */
 import CoreServices
 
 public enum MDKey {

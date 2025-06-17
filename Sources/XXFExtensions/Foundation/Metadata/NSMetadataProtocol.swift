@@ -26,6 +26,12 @@ public protocol NSMetadataOperationProtocol {
  | 实时监听                  | ❌ 无                                    | ❌ 无                               | ✅ 有                                              |
  | 适合场景                  | 元数据提取                           | 扫描真实属性                   | 搜索与监听,有严重内存缓存问题    |
  */
+/**
+ 官方文献
+ https://developer.apple.com/documentation/coreservices/file_metadata/mditem
+ https://developer.apple.com/documentation/coreservices/file_metadata/mditem/common_metadata_attribute_keys
+ https://developer.apple.com/library/archive/documentation/CoreServices/Reference/MetadataAttributesRef/Reference/CommonAttrs.html
+ */
 public protocol NSMetadataProtocol {
     // MARK: - 通用基础属性
 
