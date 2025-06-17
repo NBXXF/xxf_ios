@@ -7,340 +7,340 @@
 import Foundation
 
 /// 字段信息 请查看协议里面的注释
-public class NSMetadataItemResult: NSMetadataProtocol {
-    public var mdItemAttributeChangeDate: Date?
+open class NSMetadataItemResult: NSMetadataProtocol {
+    open var mdItemAttributeChangeDate: Date?
 
-    public var mdItemAudiences: [String]?
+    open var mdItemAudiences: [String]?
 
-    public var mdItemAuthors: [String]?
+    open var mdItemAuthors: [String]?
 
-    public var mdItemAuthorAddresses: [String]?
+    open var mdItemAuthorAddresses: [String]?
 
-    public var mdItemAuthorEmailAddresses: [String]?
+    open var mdItemAuthorEmailAddresses: [String]?
 
-    public var mdItemCity: String?
+    open var mdItemCity: String?
 
-    public var mdItemComment: String?
+    open var mdItemComment: String?
 
-    public var mdItemContactKeywords: [String]?
+    open var mdItemContactKeywords: [String]?
 
-    public var mdItemContentCreationDate: Date?
+    open var mdItemContentCreationDate: Date?
 
-    public var mdItemContentModificationDate: Date?
+    open var mdItemContentModificationDate: Date?
 
-    public var mdItemContentType: String?
+    open var mdItemContentType: String?
 
-    public var mdItemContentTypeTree: [String]?
+    open var mdItemContentTypeTree: [String]?
 
-    public var mdItemContributors: [String]?
+    open var mdItemContributors: [String]?
 
-    public var mdItemCopyright: String?
+    open var mdItemCopyright: String?
 
-    public var mdItemCountry: String?
+    open var mdItemCountry: String?
 
-    public var mdItemCoverage: String?
+    open var mdItemCoverage: String?
 
-    public var mdItemCreator: String?
+    open var mdItemCreator: String?
 
-    public var mdItemDateAdded: Date?
+    open var mdItemDateAdded: Date?
 
-    public var mdItemDescription: String?
+    open var mdItemDescription: String?
 
-    public var mdItemDisplayName: String?
+    open var mdItemDisplayName: String?
 
-    public var mdItemDownloadedDate: Date?
+    open var mdItemDownloadedDate: Date?
 
-    public var mdItemDueDate: Date?
+    open var mdItemDueDate: Date?
 
-    public var mdItemDurationSeconds: Double?
+    open var mdItemDurationSeconds: Double?
 
-    public var mdItemEditors: [String]?
+    open var mdItemEditors: [String]?
 
-    public var mdItemEmailAddresses: [String]?
+    open var mdItemEmailAddresses: [String]?
 
-    public var mdItemEncodingApplications: [String]?
+    open var mdItemEncodingApplications: [String]?
 
-    public var mdItemFinderComment: String?
+    open var mdItemFinderComment: String?
 
-    public var mdItemFonts: [String]?
+    open var mdItemFonts: [String]?
 
-    public var mdItemHeadline: String?
+    open var mdItemHeadline: String?
 
-    public var mdItemIdentifier: String?
+    open var mdItemIdentifier: String?
 
-    public var mdItemInformation: String?
+    open var mdItemInformation: String?
 
-    public var mdItemInstantMessageAddresses: [String]?
+    open var mdItemInstantMessageAddresses: [String]?
 
-    public var mdItemInstructions: String?
+    open var mdItemInstructions: String?
 
-    public var mdItemKeywords: [String]?
+    open var mdItemKeywords: [String]?
 
-    public var mdItemKind: String?
+    open var mdItemKind: String?
 
-    public var mdItemLanguages: [String]?
+    open var mdItemLanguages: [String]?
 
-    public var mdItemLastUsedDate: Date?
+    open var mdItemLastUsedDate: Date?
 
-    public var mdItemNamedLocation: String?
+    open var mdItemNamedLocation: String?
 
-    public var mdItemOrganizations: [String]?
+    open var mdItemOrganizations: [String]?
 
-    public var mdItemParticipants: [String]?
+    open var mdItemParticipants: [String]?
 
-    public var mdItemPhoneNumbers: [String]?
+    open var mdItemPhoneNumbers: [String]?
 
-    public var mdItemProjects: [String]?
+    open var mdItemProjects: [String]?
 
-    public var mdItemPublishers: [String]?
+    open var mdItemPublishers: [String]?
 
-    public var mdItemRecipients: [String]?
+    open var mdItemRecipients: [String]?
 
-    public var mdItemRecipientAddresses: [String]?
+    open var mdItemRecipientAddresses: [String]?
 
-    public var mdItemRecipientEmailAddresses: [String]?
+    open var mdItemRecipientEmailAddresses: [String]?
 
-    public var mdItemRights: String?
+    open var mdItemRights: String?
 
-    public var mdItemSecurityMethod: String?
+    open var mdItemSecurityMethod: String?
 
-    public var mdItemStarRating: Double?
+    open var mdItemStarRating: Double?
 
-    public var mdItemStateOrProvince: String?
+    open var mdItemStateOrProvince: String?
 
-    public var mdItemSubject: String?
+    open var mdItemSubject: String?
 
-    public var mdItemTextContent: String?
+    open var mdItemTextContent: String?
 
-    public var mdItemTheme: String?
+    open var mdItemTheme: String?
 
-    public var mdItemTitle: String?
+    open var mdItemTitle: String?
 
-    public var mdItemUrl: String?
+    open var mdItemUrl: String?
 
-    public var mdItemVersion: String?
+    open var mdItemVersion: String?
 
-    public var mdItemWhereFroms: [String]?
+    open var mdItemWhereFroms: [String]?
 
-    public var mdItemFSContentChangeDate: Date?
+    open var mdItemFSContentChangeDate: Date?
 
-    public var mdItemFSCreationDate: Date?
+    open var mdItemFSCreationDate: Date?
 
-    public var mdItemFSHasCustomIcon: Bool?
+    open var mdItemFSHasCustomIcon: Bool?
 
-    public var mdItemFSInvisible: Bool?
+    open var mdItemFSInvisible: Bool?
 
-    public var mdItemFSIsExtensionHidden: Bool?
+    open var mdItemFSIsExtensionHidden: Bool?
 
-    public var mdItemFSIsStationery: Bool?
+    open var mdItemFSIsStationery: Bool?
 
-    public var mdItemFSLabel: Int?
+    open var mdItemFSLabel: Int?
 
-    public var mdItemFSName: String?
+    open var mdItemFSName: String?
 
-    public var mdItemFSNodeCount: Int?
+    open var mdItemFSNodeCount: Int?
 
-    public var mdItemFSOwnerGroupID: Int?
+    open var mdItemFSOwnerGroupID: Int?
 
-    public var mdItemFSOwnerUserID: Int?
+    open var mdItemFSOwnerUserID: Int?
 
-    public var mdItemFSPath: String?
+    open var mdItemFSPath: String?
 
-    public var mdItemFSSize: Int?
+    open var mdItemFSSize: Int?
 
-    public var mdItemAcquisitionMake: String?
+    open var mdItemAcquisitionMake: String?
 
-    public var mdItemAcquisitionModel: String?
+    open var mdItemAcquisitionModel: String?
 
-    public var mdItemAlbum: String?
+    open var mdItemAlbum: String?
 
-    public var mdItemAltitude: Double?
+    open var mdItemAltitude: Double?
 
-    public var mdItemAperture: Double?
+    open var mdItemAperture: Double?
 
-    public var mdItemBitsPerSample: Int?
+    open var mdItemBitsPerSample: Int?
 
-    public var mdItemCameraOwner: String?
+    open var mdItemCameraOwner: String?
 
-    public var mdItemColorSpace: String?
+    open var mdItemColorSpace: String?
 
-    public var mdItemExifVersion: String?
+    open var mdItemExifVersion: String?
 
-    public var mdItemExposureMode: Int?
+    open var mdItemExposureMode: Int?
 
-    public var mdItemExposureProgram: Int?
+    open var mdItemExposureProgram: Int?
 
-    public var mdItemExposureTimeSeconds: Double?
+    open var mdItemExposureTimeSeconds: Double?
 
-    public var mdItemExposureTimeString: String?
+    open var mdItemExposureTimeString: String?
 
-    public var mdItemFNumber: Double?
+    open var mdItemFNumber: Double?
 
-    public var mdItemFlashOnOff: Int?
+    open var mdItemFlashOnOff: Int?
 
-    public var mdItemFocalLength: Double?
+    open var mdItemFocalLength: Double?
 
-    public var mdItemFocalLength35mm: Double?
+    open var mdItemFocalLength35mm: Double?
 
-    public var mdItemGPSAreaInformation: String?
+    open var mdItemGPSAreaInformation: String?
 
-    public var mdItemGPSDateStamp: String?
+    open var mdItemGPSDateStamp: String?
 
-    public var mdItemGPSDestBearing: Double?
+    open var mdItemGPSDestBearing: Double?
 
-    public var mdItemGPSDestDistance: Double?
+    open var mdItemGPSDestDistance: Double?
 
-    public var mdItemGPSDestLatitude: Double?
+    open var mdItemGPSDestLatitude: Double?
 
-    public var mdItemGPSDestLongitude: Double?
+    open var mdItemGPSDestLongitude: Double?
 
-    public var mdItemGPSDifferental: Int?
+    open var mdItemGPSDifferental: Int?
 
-    public var mdItemGPSDop: Double?
+    open var mdItemGPSDop: Double?
 
-    public var mdItemGPSMapDatum: String?
+    open var mdItemGPSMapDatum: String?
 
-    public var mdItemGPSMeasureMode: String?
+    open var mdItemGPSMeasureMode: String?
 
-    public var mdItemGPSProcessingMethod: String?
+    open var mdItemGPSProcessingMethod: String?
 
-    public var mdItemGPSStatus: String?
+    open var mdItemGPSStatus: String?
 
-    public var mdItemGPSTrack: Double?
+    open var mdItemGPSTrack: Double?
 
-    public var mdItemHasAlphaChannel: Bool?
+    open var mdItemHasAlphaChannel: Bool?
 
-    public var mdItemImageDirection: Double?
+    open var mdItemImageDirection: Double?
 
-    public var mdItemISOSpeed: Int?
+    open var mdItemISOSpeed: Int?
 
-    public var mdItemLatitude: Double?
+    open var mdItemLatitude: Double?
 
-    public var mdItemLayerNames: [String]?
+    open var mdItemLayerNames: [String]?
 
-    public var mdItemLensModel: String?
+    open var mdItemLensModel: String?
 
-    public var mdItemLongitude: Double?
+    open var mdItemLongitude: Double?
 
-    public var mdItemMaxAperture: Double?
+    open var mdItemMaxAperture: Double?
 
-    public var mdItemMeteringMode: Int?
+    open var mdItemMeteringMode: Int?
 
-    public var mdItemOrientation: Int?
+    open var mdItemOrientation: Int?
 
-    public var mdItemPixelCount: Int?
+    open var mdItemPixelCount: Int?
 
-    public var mdItemPixelHeight: Int?
+    open var mdItemPixelHeight: Int?
 
-    public var mdItemPixelWidth: Int?
+    open var mdItemPixelWidth: Int?
 
-    public var mdItemProfileName: String?
+    open var mdItemProfileName: String?
 
-    public var mdItemRedEyeOnOff: Int?
+    open var mdItemRedEyeOnOff: Int?
 
-    public var mdItemResolutionHeightDpi: Int?
+    open var mdItemResolutionHeightDpi: Int?
 
-    public var mdItemResolutionWidthDpi: Int?
+    open var mdItemResolutionWidthDpi: Int?
 
-    public var mdItemSpeed: Double?
+    open var mdItemSpeed: Double?
 
-    public var mdItemTimestamp: Date?
+    open var mdItemTimestamp: Date?
 
-    public var mdItemWhiteBalance: Int?
+    open var mdItemWhiteBalance: Int?
 
-    public var mdItemXMPCredit: String?
+    open var mdItemXMPCredit: String?
 
-    public var mdItemXMPDigitalSourceType: String?
+    open var mdItemXMPDigitalSourceType: String?
 
-    public var mdItemAudioBitRate: Int?
+    open var mdItemAudioBitRate: Int?
 
-    public var mdItemAudioChannelCount: Int?
+    open var mdItemAudioChannelCount: Int?
 
-    public var mdItemAudioSampleRate: Int?
+    open var mdItemAudioSampleRate: Int?
 
-    public var mdItemAudioTrackNumber: Int?
+    open var mdItemAudioTrackNumber: Int?
 
-    public var mdItemCodecs: [String]?
+    open var mdItemCodecs: [String]?
 
-    public var mdItemComposer: String?
+    open var mdItemComposer: String?
 
-    public var mdItemDeliveryType: String?
+    open var mdItemDeliveryType: String?
 
-    public var mdItemDirector: String?
+    open var mdItemDirector: String?
 
-    public var mdItemGenre: String?
+    open var mdItemGenre: String?
 
-    public var mdItemIsGeneralMIDISequence: Bool?
+    open var mdItemIsGeneralMIDISequence: Bool?
 
-    public var mdItemKeySignature: String?
+    open var mdItemKeySignature: String?
 
-    public var mdItemLyricist: String?
+    open var mdItemLyricist: String?
 
-    public var mdItemMediaTypes: [String]?
+    open var mdItemMediaTypes: [String]?
 
-    public var mdItemMusicalGenre: String?
+    open var mdItemMusicalGenre: String?
 
-    public var mdItemOriginalFormat: String?
+    open var mdItemOriginalFormat: String?
 
-    public var mdItemOriginalSource: String?
+    open var mdItemOriginalSource: String?
 
-    public var mdItemPerformers: [String]?
+    open var mdItemPerformers: [String]?
 
-    public var mdItemProducer: String?
+    open var mdItemProducer: String?
 
-    public var mdItemRecordingDate: Date?
+    open var mdItemRecordingDate: Date?
 
-    public var mdItemRecordingYear: Int?
+    open var mdItemRecordingYear: Int?
 
-    public var mdItemStreamable: Bool?
+    open var mdItemStreamable: Bool?
 
-    public var mdItemTempo: Double?
+    open var mdItemTempo: Double?
 
-    public var mdItemTimeSignature: String?
+    open var mdItemTimeSignature: String?
 
-    public var mdItemTotalBitRate: Int?
+    open var mdItemTotalBitRate: Int?
 
-    public var mdItemVideoBitRate: Int?
+    open var mdItemVideoBitRate: Int?
 
-    public var mdItemApplicationCategories: [String]?
+    open var mdItemApplicationCategories: [String]?
 
-    public var mdItemCFBundleIdentifier: String?
+    open var mdItemCFBundleIdentifier: String?
 
-    public var mdItemExecutableArchitectures: [String]?
+    open var mdItemExecutableArchitectures: [String]?
 
-    public var mdItemExecutablePlatform: String?
+    open var mdItemExecutablePlatform: String?
 
-    public var mdItemIsApplicationManaged: Bool?
+    open var mdItemIsApplicationManaged: Bool?
 
-    public var mdItemIsLikelyJunk: Bool?
+    open var mdItemIsLikelyJunk: Bool?
 
-    public var mdItemAppleLoopDescriptors: [String]?
+    open var mdItemAppleLoopDescriptors: [String]?
 
-    public var mdItemAppleLoopsKeyFilterType: String?
+    open var mdItemAppleLoopsKeyFilterType: String?
 
-    public var mdItemAppleLoopsLoopMode: String?
+    open var mdItemAppleLoopsLoopMode: String?
 
-    public var mdItemAppleLoopsRootKey: String?
+    open var mdItemAppleLoopsRootKey: String?
 
-    public var mdItemAudioEncodingApplication: String?
+    open var mdItemAudioEncodingApplication: String?
 
-    public var mdItemEXIFGPSVersion: String?
+    open var mdItemEXIFGPSVersion: String?
 
-    public var mdItemGPSVersion: String?
+    open var mdItemGPSVersion: String?
 
-    public var mdItemMediaExtensions: [String]?
+    open var mdItemMediaExtensions: [String]?
 
-    public var mdItemMusicalInstrumentCategory: String?
+    open var mdItemMusicalInstrumentCategory: String?
 
-    public var mdItemMusicalInstrumentName: String?
+    open var mdItemMusicalInstrumentName: String?
 
-    public var mdItemHTMLContent: String?
+    open var mdItemHTMLContent: String?
 
-    public var mdItemNumberOfPages: Int?
+    open var mdItemNumberOfPages: Int?
 
-    public var mdItemPageHeight: Double?
+    open var mdItemPageHeight: Double?
 
-    public var mdItemPageWidth: Double?
+    open var mdItemPageWidth: Double?
 
     public init(fromMetadataItem metadataItem: NSMetadataProtocol) {
         // Document related
