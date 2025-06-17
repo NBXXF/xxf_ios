@@ -218,4 +218,60 @@ public extension Process {
             return false
         }
     }
+
+    /// 检查指定端口是否可以在本地连接（连接成功即认为端口开放）
+    ///
+    /// - Parameter port: 要检查的本地端口号（如 8080）
+    /// - Returns: 如果端口可连接，返回 true；否则返回 false
+    private static func isPortOpen(_ port: Int) -> Bool {
+        // 构造 IPv4 地址结构体
+        var sin = sockaddr_in()
+        sin.sin_family = sa_family_t(AF_INET) // 使用 IPv4
+        sin.sin_port = in_port_t(UInt16(port).bigEndian) // 设置端口（注意使用大端序）
+        sin.sin_addr.s_addr = inet_addr("127.0.0.1") // 设置本地地址（127.0.0.1）
+
+        // 创建 socket，参数含义：
+        // AF_INET：IPv4
+        // SOCK_STREAM：TCP 连接
+        // 0：默认协议（TCP）
+        let sock = socket(AF_INET, SOCK_STREAM, 0)
+        guard sock >= 0 else {
+            // socket 创建失败，直接返回 false
+            return false
+        }
+        defer {
+            // 函数退出时关闭 socket 释放资源
+            close(sock)
+        }
+
+        // 调用 connect() 尝试连接该端口
+        let result = withUnsafePointer(to: &sin) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                connect(sock, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+
+        // connect 返回 0 表示连接成功，即端口开放
+        return result == 0
+    }
+
+    /// 等待某个端口在本地变为可连接状态（用于判断进程是否成功启动监听）
+    ///
+    /// - Parameters:
+    ///   - port: 目标端口号（如 8082）
+    ///   - timeout: 最长等待时间（秒），默认 5 秒
+    ///   - interval: 每次尝试之间的间隔（秒），默认 0.1 秒
+    /// - Returns: 如果端口在 timeout 之前变为可连接，返回 true；否则返回 false
+    static func waitForPort(_ port: Int, timeout: TimeInterval = 5.0, interval: TimeInterval = 0.1) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout) // 计算超时时间点
+        while Date() < deadline {
+            if isPortOpen(port) {
+                return true
+            }
+            // 等待一段时间后再次尝试
+            Thread.sleep(forTimeInterval: interval)
+        }
+        // 超时仍未开放
+        return false
+    }
 }
