@@ -170,4 +170,84 @@ public extension Process {
 
         return results
     }
+
+    /// 按端口或者进程名字来杀掉进程
+    @discardableResult
+    static func killProcesses(processName: String? = nil, port: Int? = nil) -> [ProcessInfo] {
+        // 1. 验证输入
+        if let p = port, p <= 0 || p > 65535 {
+            print("Invalid port number: \(p)")
+            return []
+        }
+
+        // 2. 获取目标进程
+        let targets = getProcessInfo().filter { info in
+            var match = true
+            if let name = processName {
+                // 改进进程名匹配：支持基础名和路径
+                let baseName = (info.command as NSString).lastPathComponent
+                match = match && (info.command == name || baseName == name)
+            }
+            if let p = port {
+                match = match && info.port == p && info.port > 0 // 过滤无效端口
+            }
+            return match
+        }
+
+        // 3. 分组去重（避免重复杀同一PID）
+        let uniqueTargets = Dictionary(uniqueKeysWithValues:
+            targets.map { ($0.pid, $0) }).values
+
+        // 4. 尝试终止进程
+        var killed = [ProcessInfo]()
+        for info in uniqueTargets {
+            if killProcess(pid: info.pid) {
+                killed.append(info)
+            }
+        }
+
+        return killed
+    }
+
+    private static func killProcess(pid: Int) -> Bool {
+        // 先尝试正常终止
+        if sendSignal(pid: pid, signal: SIGTERM) {
+            // 等待1秒看进程是否退出
+            if !processExists(pid: pid) {
+                return true
+            }
+
+            // 等待超时后强制终止
+            Thread.sleep(forTimeInterval: 1.0)
+        }
+
+        // 强制终止
+        return sendSignal(pid: pid, signal: SIGKILL)
+    }
+
+    private static func sendSignal(pid: Int, signal: Int32) -> Bool {
+        #if os(macOS) || os(Linux)
+            // 使用POSIX函数更高效可靠
+            return kill(pid_t(pid), signal) == 0
+        #else
+            // 备用方案：使用kill命令
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/bin/kill")
+            task.arguments = ["-\(signal)", "\(pid)"]
+
+            do {
+                try task.run()
+                task.waitUntilExit()
+                return task.terminationStatus == 0
+            } catch {
+                print("Kill failed for PID \(pid): \(error)")
+                return false
+            }
+        #endif
+    }
+
+    private static func processExists(pid: Int) -> Bool {
+        // 检查进程是否存在
+        return sendSignal(pid: pid, signal: 0)
+    }
 }
