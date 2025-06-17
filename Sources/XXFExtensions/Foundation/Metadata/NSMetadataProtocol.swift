@@ -12,7 +12,20 @@ public protocol NSMetadataOperationProtocol {
 }
 
 /// 文件元数据协议（包含所有 Spotlight 支持的元数据）
-/// 目前实现类有MDItem, URL, NSMetadataItem, NSMetadataQueryResult
+/// 目前实现类有MDItem, URL, NSMetadataItem, NSMetadataQueryResult(字典方式),NSMetadataItemResult(纯字段方式)
+/**
+ | 特性                       | `MDItem`                        | `URL.resourceValues` | `NSMetadataItem`       |
+ | --------------------- | --------------------------------- | --------------------------- | ---------------------------------------- |
+ | 是否异步                | 否（同步）                             | 否（同步）                     | 是（异步查询结果）                         |
+ | 数据源                    | Spotlight 索引                        | 文件系统原始属性          | Spotlight 查询结果                            |
+ | 属性丰富度             | ⭐️⭐️⭐️⭐️⭐️（非常丰富） | ⭐️⭐️（基础属性）        | ⭐️⭐️⭐️⭐️⭐️（等同于 MDItem） |
+ | 是否依赖 Spotlight | ✅ 是                                     | ❌ 否                              | ✅ 是                                                |
+ | 准确度（索引前）   | ❌ 低（可能为空）              | ✅ 高                               | ❌ 低（需匹配结果）                      |
+ | 准确度（索引后）   | ✅ 高                                    | ✅ 高                               | ✅ 高                                               |
+ | 性能                         | ✅ 快                                    | ✅ 一般（少量访问快）  | ❌ 慢（首次返回慢）                     |
+ | 实时监听                  | ❌ 无                                    | ❌ 无                               | ✅ 有                                              |
+ | 适合场景                  | 元数据提取                           | 扫描真实属性                   | 搜索与监听,有严重内存缓存问题    |
+ */
 public protocol NSMetadataProtocol {
     // MARK: - 通用基础属性
 
