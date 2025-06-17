@@ -58,10 +58,11 @@ public extension Process {
     }
 
     /// 判断指定端口是否被占用
-    static func isPortInUse(_ port: Int) -> Bool {
-        return isPortAvailable(port) || !getProcessesListening(onPort: port).isEmpty
+    static func isPortInUsing(_ port: Int) -> Bool {
+        return !isPortAvailable(port) || !getProcessesListening(onPort: port).isEmpty
     }
 
+    /// 端口是否可用
     private static func isPortAvailable(_ port: Int) -> Bool {
         var addr = sockaddr_in()
         addr.sin_len = __uint8_t(MemoryLayout<sockaddr_in>.size)
