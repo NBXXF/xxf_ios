@@ -836,4 +836,9 @@ public enum MDKey {
     /// 1点 = 1/72英寸
     /// 用法示例: value(forAttribute: MDKey.pageWidth) as? Double ?? 0.0
     public static let pageWidth = kMDItemPageWidth as String
+
+    /// 文件tags
+    /// ["Red", "Blue", "重要🔴", "自定义标签🟢"]
+    /// 用法示例: value(forAttribute: MDKey.userTags) as? [String]
+    public static let userTags = "kMDItemUserTags"
 }

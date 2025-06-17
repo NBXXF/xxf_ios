@@ -342,6 +342,7 @@ open class NSMetadataItemResult: NSMetadataProtocol {
 
     open var mdItemPageWidth: Double?
 
+    open var mdItemUserTags: [String]?
     public init(fromMetadataItem metadataItem: NSMetadataProtocol) {
         // Document related
         mdItemTitle = metadataItem.mdItemTitle
@@ -513,5 +514,7 @@ open class NSMetadataItemResult: NSMetadataProtocol {
         mdItemMusicalInstrumentCategory = metadataItem.mdItemMusicalInstrumentCategory
         mdItemMusicalInstrumentName = metadataItem.mdItemMusicalInstrumentName
         mdItemHTMLContent = metadataItem.mdItemHTMLContent
+
+        mdItemUserTags = metadataItem.mdItemUserTags
     }
 }

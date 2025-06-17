@@ -535,4 +535,9 @@ extension MDItem: NSMetadataProtocol, NSMetadataOperationProtocol {
 
     /// 页面宽度 (格式: Double) - 文档页面的宽度(点)
     public var mdItemPageWidth: Double? { value(forMetadataItem: MDKey.pageWidth) }
+
+    /// 文件tag (格式：["Red", "Blue", "重要🔴", "自定义标签🟢"]）
+    public var mdItemUserTags: [String]? {
+        value(forMetadataItem: MDKey.userTags)
+    }
 }

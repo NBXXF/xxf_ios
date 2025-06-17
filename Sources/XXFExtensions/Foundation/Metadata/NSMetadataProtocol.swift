@@ -220,4 +220,8 @@ public protocol NSMetadataProtocol {
     var mdItemNumberOfPages: Int? { get } // 页数
     var mdItemPageHeight: Double? { get } // 页面高度
     var mdItemPageWidth: Double? { get } // 页面宽度
+
+    // MARK: - 其他
+
+    var mdItemUserTags: [String]? { get } // 文件tags
 }

@@ -553,4 +553,11 @@ extension URL: NSMetadataProtocol, NSMetadataOperationProtocol {
 
     /// 页面宽度 (格式: Double?) - 文档页面的宽度(点)
     public var mdItemPageWidth: Double? { mdItem?.mdItemPageWidth }
+
+    // MARK: - 其他
+
+    /// 文件tags
+    public var mdItemUserTags: [String]? {
+        value(forMetadataItem: MDKey.userTags)
+    }
 }
