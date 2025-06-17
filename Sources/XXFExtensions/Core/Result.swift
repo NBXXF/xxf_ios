@@ -8,6 +8,7 @@
 import Foundation
 
 // 顶层函数，捕获抛异常代码，返回 Result
+@discardableResult
 public func runCatching<T>(_ block: () throws -> T) -> Result<T, Error> {
     do {
         return try .success(block())
