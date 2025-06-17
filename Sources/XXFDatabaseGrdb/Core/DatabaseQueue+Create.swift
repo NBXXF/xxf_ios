@@ -14,6 +14,7 @@ import GRDB
 public extension DatabaseQueue {
     class Builder {
         private nonisolated(unsafe) static var cache: [String: DatabaseQueue] = [:]
+        private static let defaultDbDir = "GRDB"
 
         private var dbNamed: String?
         private var path: String?
@@ -73,6 +74,7 @@ public extension DatabaseQueue {
         private func ensurePathed() throws {
             if let dbNamed {
                 let dbURL = FileManager.default.applicationSupportDirectory()
+                    .appendingPathComponent(Self.defaultDbDir)
                     .appendingPathComponent(dbNamed)
                 try FileManager.default.createDirectory(at: dbURL.deletingLastPathComponent(), withIntermediateDirectories: true)
                 if #available(iOS 16, macOS 13, *) {
