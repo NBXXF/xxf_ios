@@ -11,6 +11,7 @@ open class UserDefaultsPreferenceProvider: PreferenceProvider {
         return UserDefaults.standard
     }
 
+    public init() {}
 //
 //    /// 非可选值，必须提供默认值
 //    @PreferenceBinding<Int, PreferencesDemo>("loginCount", default: 0)
