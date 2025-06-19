@@ -82,7 +82,11 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject, @uncheck
             return defaultValue
         }
 
-        if let data = rawValue as? Data, !isDirectlyStorableType() {
+        if isDirectlyStorableType() {
+            return rawValue as? T ?? defaultValue
+        }
+
+        if let data = rawValue as? Data {
             return _decodeIfConforming(to: T.self, from: data) ?? defaultValue
         }
 
