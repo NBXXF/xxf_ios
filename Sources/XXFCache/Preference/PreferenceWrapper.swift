@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - 属性包装器
 
-/// 用法参考`PreferencesDemo`
+/// 用法参考 `PreferencesDemo`
 @propertyWrapper
 public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
     /// UserDefaults 或其它偏好存储的 key
@@ -34,13 +34,16 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
     private var cache: T? = nil
     /// UserDefaults 监听通知观察者
     private var notificationObserver: NSObjectProtocol?
+    /// 是否已经完成延迟初始化
+    private var didInitialize = false
 
     /// 公开 Combine 事件流
     public var projectedValue: AnyPublisher<T?, Never> {
-        subject.eraseToAnyPublisher()
+        ensureInitialized()
+        return subject.eraseToAnyPublisher()
     }
 
-    /// 初始化方法
+    /// 属性包装器初始化方法
     /// - Parameters:
     ///   - wrappedValue: 默认值（可选）
     ///   - key: 偏好存储键
@@ -60,6 +63,20 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
         self.cacheEnabled = cacheEnabled
         subject = CurrentValueSubject(defaultValue)
         super.init()
+        // 不在这里调用 loadValue 或 setupNotification，延迟到 ensureInitialized()
+    }
+
+    deinit {
+        if let observer = notificationObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
+    /// 第一次读或写时调用，完成订阅和首次加载
+    private func ensureInitialized() {
+        guard !didInitialize else { return }
+        didInitialize = true
+
         setupNotification()
 
         if cacheEnabled {
@@ -67,12 +84,6 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
             subject.send(cache)
         } else {
             subject.send(loadValue())
-        }
-    }
-
-    deinit {
-        if let observer = notificationObserver {
-            NotificationCenter.default.removeObserver(observer)
         }
     }
 
@@ -144,15 +155,13 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
     /// 属性包装器读写接口
     public var wrappedValue: T? {
         get {
-            queue.sync {
-                if cacheEnabled {
-                    return cache ?? loadValue()
-                } else {
-                    return loadValue()
-                }
+            ensureInitialized()
+            return queue.sync {
+                cacheEnabled ? (cache ?? loadValue()) : loadValue()
             }
         }
         set {
+            ensureInitialized()
             queue.async(flags: .barrier) { [weak self] in
                 guard let self = self else { return }
                 let storage = self.owner.storage

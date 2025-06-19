@@ -4,6 +4,7 @@
 //
 //  Created by xxf on /5/27.
 //
+@_exported import XXFCache
 @_exported import XXFDatabase
 @_exported import XXFDi
 @_exported import XXFExtensions
@@ -12,4 +13,3 @@
 @_exported import XXFHud
 @_exported import XXFLog
 @_exported import XXFSpeed
-@_exported import XXFCache
