@@ -2,7 +2,7 @@
 //  NSMetadataQuery.swift
 //  xxf_ios
 //  可作为字典工具,业务快速索引
-//  Created by trl on 6/12.
+//  Created by xxf on 6/12.
 //
 import Foundation
 

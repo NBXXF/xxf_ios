@@ -2,7 +2,7 @@
 //  Process+Extension.swift
 //  xxf_ios
 //  进程相关拓展
-//  Created by trl on 6/17.
+//  Created by xxf on 6/17.
 //
 
 import Darwin

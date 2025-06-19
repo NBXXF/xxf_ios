@@ -2,7 +2,7 @@
 //  NSMetadataItemResult.swift
 //  xxf_ios
 //  避免内存缓存的模型
-//  Created by trl on 6/12.
+//  Created by xxf on 6/12.
 //
 import Foundation
 

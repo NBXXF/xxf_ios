@@ -2,7 +2,7 @@
 //  LRUCache.swift
 //  xxf_ios
 //  内存缓存LRU
-//  Created by trl on 6/19.
+//  Created by xxf on 6/19.
 //
 
 import Foundation

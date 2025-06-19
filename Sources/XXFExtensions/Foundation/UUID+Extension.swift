@@ -2,7 +2,7 @@
 //  UUID+Extension.swift
 //  xxf_ios
 //  增加uuid拓展
-//  Created by trl on 6/19.
+//  Created by xxf on 6/19.
 //
 
 import Foundation

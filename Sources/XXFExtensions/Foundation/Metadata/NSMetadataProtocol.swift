@@ -2,7 +2,7 @@
 //  NSMetadataProtocol.swift
 //  xxf_ios
 //
-//  Created by trl on 6/12.
+//  Created by xxf on 6/12.
 //
 
 import Foundation

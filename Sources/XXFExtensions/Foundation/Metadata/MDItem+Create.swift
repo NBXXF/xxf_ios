@@ -2,7 +2,7 @@
 //  MDItem+Create.swift
 //  xxf_ios
 //  增加创建拓展
-//  Created by trl on 6/17.
+//  Created by xxf on 6/17.
 //
 import CoreServices
 import Foundation
