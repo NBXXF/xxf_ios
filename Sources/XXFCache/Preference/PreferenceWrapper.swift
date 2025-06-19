@@ -10,6 +10,7 @@ import Foundation
 
 // MARK: - 属性包装器
 
+/// 用法参考`PreferencesDemo`
 @propertyWrapper
 public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
     /// UserDefaults 或其它偏好存储的 key
@@ -18,17 +19,17 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
     private let defaultValue: T?
     /// 偏好存储提供者实例（无主引用）
     private unowned let owner: Owner
-    
+
     /// 并发队列，保证读写安全
     private let queue = DispatchQueue(label: "com.xxf.preference", attributes: .concurrent)
     /// Combine 发布者，发布偏好值变化
     private let subject: CurrentValueSubject<T?, Never>
-    
+
     /// 是否同步写入（UserDefaults.synchronize 已废弃，一般忽略，但这里保留兼容）
     private let useSyncWrite: Bool
     /// 是否开启缓存，默认开启提高性能
     private let cacheEnabled: Bool
-    
+
     /// 缓存的值
     private var cache: T? = nil
     /// UserDefaults 监听通知观察者
@@ -57,10 +58,10 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
         self.owner = owner
         self.useSyncWrite = useSyncWrite
         self.cacheEnabled = cacheEnabled
-        self.subject = CurrentValueSubject(defaultValue)
+        subject = CurrentValueSubject(defaultValue)
         super.init()
         setupNotification()
-        
+
         if cacheEnabled {
             cache = loadValue()
             subject.send(cache)
@@ -101,7 +102,8 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
         let storage = owner.storage
 
         if let data = storage.object(forKey: key) as? Data,
-           !isDirectlyStorableType() {
+           !isDirectlyStorableType()
+        {
             return _decodeIfConforming(to: T.self, data: data)
         }
 
@@ -154,7 +156,7 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
             queue.async(flags: .barrier) { [weak self] in
                 guard let self = self else { return }
                 let storage = self.owner.storage
-                
+
                 if newValue == nil {
                     storage.removeObject(forKey: self.key)
                     if self.cacheEnabled {
@@ -166,11 +168,11 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
                         self.cache = newValue
                     }
                 }
-                
+
                 if self.useSyncWrite, let ud = storage as? UserDefaults {
                     ud.synchronize()
                 }
-                
+
                 self.subject.send(newValue)
             }
         }
@@ -185,7 +187,7 @@ private func _decodeIfConforming<T: Decodable>(to type: T.Type, data: Data) -> T
 }
 
 /// 默认 fallback（T 不是 Decodable），返回 nil
-private func _decodeIfConforming<T>(to type: T.Type, data: Data) -> T? {
+private func _decodeIfConforming<T>(to _: T.Type, data _: Data) -> T? {
     nil
 }
 
@@ -196,7 +198,7 @@ private struct AnyEncodable: Encodable {
     private let encodeFunc: (Encoder) throws -> Void
 
     init(_ encodable: Encodable) {
-        self.encodeFunc = { encoder in
+        encodeFunc = { encoder in
             try encodable.encode(to: encoder)
         }
     }
