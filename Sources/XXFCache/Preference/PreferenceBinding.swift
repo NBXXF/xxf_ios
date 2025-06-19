@@ -7,7 +7,7 @@
 
 import Combine
 
-/// 用法参考`PreferencesDemo`
+/// 用法参考`UserDefaultsPreferenceProvider`
 @propertyWrapper
 public struct PreferenceBinding<T, Owner: PreferenceProvider> {
     private var wrapper: PreferenceWrapper<T?, Owner>
@@ -23,11 +23,10 @@ public struct PreferenceBinding<T, Owner: PreferenceProvider> {
             .eraseToAnyPublisher()
     }
 
-    public init(_ key: String, default defaultValue: T?, useSyncWrite: Bool = true, cacheEnabled: Bool = true) {
+    public init(_ key: String, default defaultValue: T?, useSyncWrite: Bool = true, cacheEnabled: Bool = false) {
         wrapper = PreferenceWrapper(
             wrappedValue: defaultValue,
             key,
-            ownerProvider: { Owner.shared },
             useSyncWrite: useSyncWrite,
             cacheEnabled: cacheEnabled
         )

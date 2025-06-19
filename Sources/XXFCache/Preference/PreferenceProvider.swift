@@ -7,8 +7,7 @@
 
 // MARK: - 持有者协议
 
-/// 用法参考`PreferencesDemo`
+/// 用法参考`UserDefaultsPreferenceProvider`
 public protocol PreferenceProvider: AnyObject {
-    static var shared: Self { get }
-    var storage: PreferencesStorage { get }
+    static var storage: PreferencesStorage { get }
 }

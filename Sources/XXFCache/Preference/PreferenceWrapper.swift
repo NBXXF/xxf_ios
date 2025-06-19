@@ -9,19 +9,19 @@ import Foundation
 
 // MARK: - 属性包装器内部实现
 
-/// 用法参考 `PreferencesDemo`
+/// 用法参考 `UserDefaultsPreferenceProvider`
 @propertyWrapper
-public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
+public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject, @unchecked Sendable {
     /// UserDefaults 或其它偏好存储的 key
     private let key: String
     /// 默认值（可选）
     private let defaultValue: T?
-    private let ownerProvider: () -> Owner
-    /// 偏好存储提供者实例（无主引用）
-    private var owner: Owner { ownerProvider() }
+    private let storage: PreferencesStorage
 
     /// 并发队列，保证读写安全
     private let queue = DispatchQueue(label: "com.xxf.preference", attributes: .concurrent)
+    /// 锁保证初始化安全
+    private let lock = NSLock()
     /// Combine 发布者，发布偏好值变化
     private let subject: CurrentValueSubject<T?, Never>
 
@@ -31,7 +31,7 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
     private let cacheEnabled: Bool
 
     /// 缓存的值
-    private var cache: T? = nil
+    private var cache: T?
     /// UserDefaults 监听通知观察者
     private var notificationObserver: NSObjectProtocol?
     /// 是否已经完成延迟初始化
@@ -47,23 +47,20 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
     /// - Parameters:
     ///   - wrappedValue: 默认值（可选）
     ///   - key: 偏好存储键
-    ///   - owner: 偏好存储提供者实例
     ///   - useSyncWrite: 是否同步写入（废弃，但保留调用，默认 true）
-    ///   - cacheEnabled: 是否启用缓存，默认 true
+    ///   - cacheEnabled: 是否启用缓存，默认 false
     public init(wrappedValue defaultValue: T?,
                 _ key: String,
-                ownerProvider: @escaping () -> Owner,
                 useSyncWrite: Bool = true,
-                cacheEnabled: Bool = true)
+                cacheEnabled: Bool = false)
     {
         self.key = key
+        storage = Owner.storage
         self.defaultValue = defaultValue
-        self.ownerProvider = ownerProvider
         self.useSyncWrite = useSyncWrite
         self.cacheEnabled = cacheEnabled
         subject = CurrentValueSubject(defaultValue)
         super.init()
-        // 延迟初始化，首次 ensureInitialized 时执行 setupNotification/loadValue
     }
 
     deinit {
@@ -74,35 +71,37 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
 
     /// 第一次读或写时调用，完成订阅和首次加载
     private func ensureInitialized() {
+        lock.lock()
+        defer { lock.unlock() }
+
         guard !didInitialize else { return }
         didInitialize = true
 
         setupNotification()
 
+        let initialValue = loadValue()
         if cacheEnabled {
-            cache = loadValue()
-            subject.send(cache)
-        } else {
-            subject.send(loadValue())
+            cache = initialValue
         }
+        subject.send(initialValue)
     }
 
     /// 监听 UserDefaults 改变通知
     private func setupNotification() {
-        guard let ud = owner.storage as? UserDefaults else { return }
+        guard let ud = storage as? UserDefaults else { return }
+
         notificationObserver = NotificationCenter.default.addObserver(
             forName: UserDefaults.didChangeNotification,
             object: ud,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
-            let newValue = self.loadValue()
-            if self.cacheEnabled {
-                self.queue.async(flags: .barrier) {
+            self?.queue.async(flags: .barrier) {
+                guard let self = self else { return }
+                let newValue = self.loadValue()
+
+                if self.cacheEnabled {
                     self.cache = newValue
-                    self.subject.send(newValue)
                 }
-            } else {
                 self.subject.send(newValue)
             }
         }
@@ -110,18 +109,19 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
 
     /// 读取值（优先尝试解码 Data，其次基础类型，失败返回默认值）
     private func loadValue() -> T? {
-        let storage = owner.storage
-
-        if let data = storage.object(forKey: key) as? Data,
-           !isDirectlyStorableType()
-        {
-            return _decodeIfConforming(to: T.self, from: data)
+        // 1. 尝试读取原始值
+        if let rawValue = storage.object(forKey: key) {
+            // 2. 如果是 Data 且需要解码
+            if let data = rawValue as? Data, !isDirectlyStorableType() {
+                return _decodeIfConforming(to: T.self, from: data) ?? defaultValue
+            }
+            // 3. 如果是兼容类型直接返回
+            else if let value = rawValue as? T {
+                return value
+            }
         }
 
-        if let directValue = storage.object(forKey: key) as? T {
-            return directValue
-        }
-
+        // 4. 返回默认值（可能为 nil）
         return defaultValue
     }
 
@@ -157,32 +157,39 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
         get {
             ensureInitialized()
             return queue.sync {
-                cacheEnabled ? (cache ?? loadValue()) : loadValue()
+                cacheEnabled ? cache : loadValue()
             }
         }
         set {
             ensureInitialized()
             queue.async(flags: .barrier) { [weak self] in
                 guard let self = self else { return }
-                let storage = self.owner.storage
 
                 if newValue == nil {
+                    // 移除存储并重置为默认值
                     storage.removeObject(forKey: self.key)
+                    let resetValue = self.loadValue()
+
                     if self.cacheEnabled {
-                        self.cache = nil
+                        self.cache = resetValue
                     }
+                    self.subject.send(resetValue)
                 } else if let encoded = self.encodeIfNeeded(newValue!) {
+                    // 成功编码的值
                     storage.set(encoded, forKey: self.key)
+
                     if self.cacheEnabled {
                         self.cache = newValue
                     }
+                    self.subject.send(newValue)
+                } else {
+                    // 编码失败时不更新存储和发送事件
+                    print("[Preference] Encode failed for key: \(self.key), type: \(T.self)")
                 }
 
                 if self.useSyncWrite, let ud = storage as? UserDefaults {
                     ud.synchronize()
                 }
-
-                self.subject.send(newValue)
             }
         }
     }
