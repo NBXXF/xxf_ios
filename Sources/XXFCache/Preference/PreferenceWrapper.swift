@@ -44,10 +44,10 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject, @uncheck
     }
 
     private func initializeIfNeeded() {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             guard !self.didInitialize else { return }
             self.didInitialize = true
-
             self.setupNotification()
 
             let initialValue = self.loadValue()
@@ -64,7 +64,7 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject, @uncheck
         notificationObserver = NotificationCenter.default.addObserver(
             forName: UserDefaults.didChangeNotification,
             object: ud,
-            queue: .main // 保持主线程更新 UI 友好
+            queue: .main // 主线程更新UI安全
         ) { [weak self] _ in
             guard let self = self else { return }
             self.queue.async(flags: .barrier) {
@@ -116,12 +116,8 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject, @uncheck
 
     public var wrappedValue: T? {
         get {
-            if !didInitialize {
-                initializeIfNeeded()
-                // 立即返回默认缓存或nil，异步加载后会更新 subject 和缓存
-                return cache ?? defaultValue
-            }
-            return cacheEnabled ? cache : loadValue()
+            // 直接返回缓存（缓存可能为 nil），异步初始化后缓存更新
+            return cache ?? defaultValue
         }
         set {
             initializeIfNeeded()
