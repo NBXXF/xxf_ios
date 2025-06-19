@@ -1,5 +1,5 @@
 //
-//  FileManager+Cache.swift
+//  FileManager+Extension.swift
 //  xxf_ios
 //  文件存储位置
 //  Created by xxf on /6/2.

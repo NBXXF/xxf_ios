@@ -1,5 +1,5 @@
 //
-//  DispatchTimeInterval+TimeUnit.swift
+//  DispatchTimeInterval+Extension.swift
 //  xxf_ios
 //  时间戳转换,借鉴Java TimeUnit类
 //  Created by xxf on 6/6.
