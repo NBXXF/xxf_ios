@@ -103,8 +103,15 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject, @uncheck
         return nil
     }
 
-    private func isDirectlyStorableType() -> Bool {
-        switch T.self {
+    /// 判断类型是否是 UserDefaults 等支持的原生类型（递归判断 Optional 包裹类型）
+    private func isDirectlyStorableType(_ type: Any.Type = T.self) -> Bool {
+        // 如果是 Optional<T>，递归判断 Wrapped 是否可存储
+        if let optional = type as? OptionalUnwrappable.Type {
+            return isDirectlyStorableType(optional.wrappedType)
+        }
+
+        // 判断基础类型
+        switch type {
         case is String.Type,
              is Int.Type,
              is Bool.Type,
