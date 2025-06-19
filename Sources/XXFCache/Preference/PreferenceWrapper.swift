@@ -116,8 +116,11 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject, @uncheck
 
     public var wrappedValue: T? {
         get {
-            // 直接返回缓存（缓存可能为 nil），异步初始化后缓存更新
-            return cache ?? defaultValue
+            if cacheEnabled {
+                return cache ?? defaultValue
+            } else {
+                return loadValue()
+            }
         }
         set {
             initializeIfNeeded()
