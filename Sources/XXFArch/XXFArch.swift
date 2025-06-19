@@ -12,3 +12,4 @@
 @_exported import XXFHud
 @_exported import XXFLog
 @_exported import XXFSpeed
+@_exported import XXFCache

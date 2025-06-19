@@ -170,6 +170,7 @@ let package = Package(
                 "XXFHud",
                 "XXFPerformance",
                 "XXFSpeed",
+                "XXFCache",
             ]
         ),
         .target(
