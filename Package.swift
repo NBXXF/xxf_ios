@@ -44,6 +44,10 @@ let package = Package(
             targets: ["XXFDatabaseGrdb"]
         ),
         .library(
+            name: "XXFCache",
+            targets: ["XXFCache"]
+        ),
+        .library(
             name: "XXFDi",
             targets: ["XXFDi"]
         ),
@@ -136,6 +140,9 @@ let package = Package(
                 "XXFExtensions",
                 .product(name: "GRDB", package: "GRDB.swift"),
             ]
+        ),
+        .target(
+            name: "XXFCache"
         ),
         .target(
             name: "XXFDi",

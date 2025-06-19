@@ -4,6 +4,7 @@
 //
 //  Created by xxf on 6/19.
 //
+import Foundation
 
 // MARK: - 存储接口抽象，默认使用 UserDefaults
 
@@ -13,4 +14,4 @@ public protocol PreferencesStorage: AnyObject {
     func removeObject(forKey key: String)
 }
 
-public extension UserDefaults: PreferencesStorage {}
+extension UserDefaults: PreferencesStorage {}

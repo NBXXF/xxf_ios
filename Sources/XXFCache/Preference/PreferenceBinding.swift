@@ -11,42 +11,25 @@ import Combine
 public struct PreferenceBinding<T, Owner: PreferenceProvider> {
     private var wrapper: PreferenceWrapper<T?, Owner>
 
-    var wrappedValue: T? {
-        get { wrapper.wrappedValue }
+    public var wrappedValue: T? {
+        get { wrapper.wrappedValue ?? nil }
         set { wrapper.wrappedValue = newValue }
     }
 
-    var projectedValue: AnyPublisher<T?, Never> {
+    public var projectedValue: AnyPublisher<T?, Never> {
         wrapper.projectedValue
+            .map { $0 ?? nil } // 把 T?? 转成 T?
+            .eraseToAnyPublisher()
     }
 
-    /// 显式指定默认值
-    init(wrappedValue defaultValue: T?, _ key: String) {
+    
+    public init(_ key: String, default defaultValue: T?, useSyncWrite: Bool = true,cacheEnabled:Bool=true) {
         wrapper = PreferenceWrapper(
             wrappedValue: defaultValue,
             key,
             owner: Owner.shared,
-            useSyncWrite: true
-        )
-    }
-
-    /// 可自定义 useSyncWrite
-    init(_ key: String, default defaultValue: T?, useSyncWrite: Bool = true) {
-        wrapper = PreferenceWrapper(
-            wrappedValue: defaultValue,
-            key,
-            owner: Owner.shared,
-            useSyncWrite: useSyncWrite
-        )
-    }
-
-    /// 可选类型自动推导 nil
-    init(_ key: String) where T: ExpressibleByNilLiteral {
-        wrapper = PreferenceWrapper(
-            wrappedValue: nil,
-            key,
-            owner: Owner.shared,
-            useSyncWrite: true
+            useSyncWrite: useSyncWrite,
+            cacheEnabled:cacheEnabled
         )
     }
 }
