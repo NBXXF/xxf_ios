@@ -27,7 +27,7 @@ public struct PreferenceBinding<T, Owner: PreferenceProvider> {
         wrapper = PreferenceWrapper(
             wrappedValue: defaultValue,
             key,
-            owner: Owner.shared,
+            ownerProvider: { Owner.shared },
             useSyncWrite: useSyncWrite,
             cacheEnabled: cacheEnabled
         )

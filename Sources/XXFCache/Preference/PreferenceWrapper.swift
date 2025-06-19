@@ -1,14 +1,13 @@
+// PreferenceWrapper.swift
+// xxf_ios
 //
-//  PreferenceWrapper.swift
-//  xxf_ios
-//
-//  Created by xxf on 6/19.
+// Created by xxf on 6/19.
 //
 
 import Combine
 import Foundation
 
-// MARK: - 属性包装器
+// MARK: - 属性包装器内部实现
 
 /// 用法参考 `PreferencesDemo`
 @propertyWrapper
@@ -17,8 +16,9 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
     private let key: String
     /// 默认值（可选）
     private let defaultValue: T?
+    private let ownerProvider: () -> Owner
     /// 偏好存储提供者实例（无主引用）
-    private unowned let owner: Owner
+    private var owner: Owner { ownerProvider() }
 
     /// 并发队列，保证读写安全
     private let queue = DispatchQueue(label: "com.xxf.preference", attributes: .concurrent)
@@ -52,18 +52,18 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
     ///   - cacheEnabled: 是否启用缓存，默认 true
     public init(wrappedValue defaultValue: T?,
                 _ key: String,
-                owner: Owner,
+                ownerProvider: @escaping () -> Owner,
                 useSyncWrite: Bool = true,
                 cacheEnabled: Bool = true)
     {
         self.key = key
         self.defaultValue = defaultValue
-        self.owner = owner
+        self.ownerProvider = ownerProvider
         self.useSyncWrite = useSyncWrite
         self.cacheEnabled = cacheEnabled
         subject = CurrentValueSubject(defaultValue)
         super.init()
-        // 不在这里调用 loadValue 或 setupNotification，延迟到 ensureInitialized()
+        // 延迟初始化，首次 ensureInitialized 时执行 setupNotification/loadValue
     }
 
     deinit {
@@ -115,7 +115,7 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
         if let data = storage.object(forKey: key) as? Data,
            !isDirectlyStorableType()
         {
-            return _decodeIfConforming(to: T.self, data: data)
+            return _decodeIfConforming(to: T.self, from: data)
         }
 
         if let directValue = storage.object(forKey: key) as? T {
@@ -191,12 +191,12 @@ public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject {
 // MARK: - 类型擦除支持 Decodable 解码
 
 /// 仅当 T 符合 Decodable 时，才调用此版本进行解码
-private func _decodeIfConforming<T: Decodable>(to type: T.Type, data: Data) -> T? {
-    try? JSONDecoder().decode(type, from: data)
+private func _decodeIfConforming<T: Decodable>(to _: T.Type, from data: Data) -> T? {
+    try? JSONDecoder().decode(T.self, from: data)
 }
 
 /// 默认 fallback（T 不是 Decodable），返回 nil
-private func _decodeIfConforming<T>(to _: T.Type, data _: Data) -> T? {
+private func _decodeIfConforming<T>(to _: T.Type, from _: Data) -> T? {
     nil
 }
 
