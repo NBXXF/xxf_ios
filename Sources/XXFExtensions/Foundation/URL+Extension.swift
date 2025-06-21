@@ -77,11 +77,10 @@ public extension URL {
         guard isFileURL else { return false }
         return (try? resourceValues(forKeys: [.isAliasFileKey]))?.isAliasFile == true
     }
-    
-    
-    ///文件深度
+
+    /// 文件深度
     func calculateFileDepth() -> Int {
-        let components = self.standardizedFileURL.pathComponents
+        let components = standardizedFileURL.pathComponents
         // 根目录 '/' 的 depth 设为 0，其它路径层数为 components 数减1
         return max(0, components.count - 1)
     }
