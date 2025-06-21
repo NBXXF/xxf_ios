@@ -1,5 +1,5 @@
 //
-//  BaseColumnCodingKey+Extension.swift
+//  BaseColumnCodingKey+Names.swift
 //  xxf_ios
 //
 //  Created by xxf on 6/21.
