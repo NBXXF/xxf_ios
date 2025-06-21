@@ -10,7 +10,7 @@ import XXFDatabase
 import XXFExtensions
 
 open class BaseDaoImpl<PK: DatabaseValueConvertible,
-    Entity: BaseEntity>: XXFDatabase.BaseDao
+    Entity: BaseEntity>: XXFDatabase.BaseDao, XXFDatabase.SqlDao
 {
     public typealias PK = PK
     public typealias Entity = Entity
@@ -157,5 +157,18 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     public func contains(where block: QueryBlock) throws -> Bool {
         let result: Bool = try selectFirst(where: block) != nil
         return result
+    }
+
+    public func executeUpdate(sql: String) throws {
+        try dbQueue.write { db in
+            try db.execute(sql: sql)
+        }
+    }
+
+    public func executeQuery(sql: String) throws -> [any XXFDatabase.BaseRow] {
+        let rows = try dbQueue.read { db in
+            try Row.fetchAll(db, sql: sql)
+        }
+        return rows
     }
 }

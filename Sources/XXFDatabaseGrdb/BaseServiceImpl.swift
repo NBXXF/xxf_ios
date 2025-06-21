@@ -15,8 +15,7 @@ open class BaseServiceImpl<PK: DatabaseValueConvertible,
 {
     public typealias Query = QueryInterfaceRequest<Entity>
     public typealias ErrorConsumer = (Error) -> Void
-    /// 尽可能私有化,避免业务子类直接使用这个api
-    private let dao: DAO
+    public let dao: DAO
     private let errorConsumer: ErrorConsumer?
     public init(dao: DAO, errorConsumer: ErrorConsumer?) {
         self.dao = dao
