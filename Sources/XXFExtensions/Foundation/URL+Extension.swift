@@ -9,6 +9,22 @@ import Foundation
 import XXFSpeed
 
 public extension URL {
+    #if os(macOS)
+        /// 获取主目录所在卷的 st_dev 设备号（仅计算一次）
+        private static let homeVolumeDeviceID: Int32 = {
+            var statbuf = stat()
+            let homePath = FileManager.default.homeDirectoryForCurrentUser.path
+            _ = homePath.withCString { lstat($0, &statbuf) }
+            return statbuf.st_dev
+        }()
+
+        /// 获取主目录所在卷的 UUID（仅计算一次）
+        private static let homeVolumeUUID: String? = {
+            let homeURL = FileManager.default.homeDirectoryForCurrentUser
+            return (try? homeURL.resourceValues(forKeys: [.volumeUUIDStringKey]))?.volumeUUIDString
+        }()
+    #endif
+
     /// 返回当前平台下尽可能唯一、稳定的文件 ID，适用于 macOS / iOS。
     ///
     /// 结构类似于：
@@ -40,8 +56,13 @@ public extension URL {
 
         // macOS 上尝试 volumeUUID（iOS 上这段通常会失败）
         #if os(macOS)
-            if let values = try? resourceValues(forKeys: [.volumeUUIDStringKey]),
-               let uuid = values.volumeUUIDString
+            // 比较 st_dev 是否属于主卷
+            if statbuf.st_dev == Self.homeVolumeDeviceID,
+               let uuid = Self.homeVolumeUUID
+            {
+                volumeID = "vol:\(uuid)"
+            } else if let values = try? resourceValues(forKeys: [.volumeUUIDStringKey]),
+                      let uuid = values.volumeUUIDString
             {
                 volumeID = "vol:\(uuid)"
             } else {
@@ -73,8 +94,10 @@ public extension URL {
     }
 
     /// 是否是 Finder 替身（Alias 文件）（仅本地文件 URL）
-    func isAliasFile() -> Bool {
+    func isAliasFileOptimized() -> Bool {
         guard isFileURL else { return false }
+        // 先用扩展名快速过滤，避免大量调用 resourceValues
+        guard pathExtension.lowercased() == "alias" else { return false }
         return (try? resourceValues(forKeys: [.isAliasFileKey]))?.isAliasFile == true
     }
 
