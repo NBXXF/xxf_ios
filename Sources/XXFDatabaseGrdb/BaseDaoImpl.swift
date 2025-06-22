@@ -159,13 +159,13 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
         return result
     }
 
-    public func executeUpdate(sql: String, params: XXFDatabase.StatementParams?) throws {
+    public func executeUpdate(sql: String, params: XXFDatabase.StatementParams? = []) throws {
         try dbQueue.write { db in
             try db.execute(sql: sql, arguments: (params?.toStatementArguments() ?? StatementArguments()))
         }
     }
 
-    public func executeQuery(sql: String, params: XXFDatabase.StatementParams?) throws -> [any XXFDatabase.BaseRow] {
+    public func executeQuery(sql: String, params: XXFDatabase.StatementParams? = []) throws -> [any XXFDatabase.BaseRow] {
         let rows = try dbQueue.read { db in
             try Row.fetchAll(db, sql: sql, arguments: (params?.toStatementArguments() ?? StatementArguments()))
         }
