@@ -19,17 +19,21 @@ public final class DatabaseQueueProxy {
 
     /// 读取，禁止主线程调用（除非 allowMainThread == true）
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        if !allowMainThread && Thread.isMainThread {
-            assertionFailure("Database read is not allowed on main thread")
-        }
+        #if DEBUG
+            if !allowMainThread, Thread.isMainThread {
+                assertionFailure("Database read is not allowed on main thread")
+            }
+        #endif
         return try dbQueue.read(block)
     }
 
     /// 写入，禁止主线程调用（除非 allowMainThread == true）
     public func write<T>(_ block: (Database) throws -> T) throws -> T {
-        if !allowMainThread && Thread.isMainThread {
-            assertionFailure("Database write is not allowed on main thread")
-        }
+        #if DEBUG
+            if !allowMainThread, Thread.isMainThread {
+                assertionFailure("Database write is not allowed on main thread")
+            }
+        #endif
         return try dbQueue.write(block)
     }
 }
