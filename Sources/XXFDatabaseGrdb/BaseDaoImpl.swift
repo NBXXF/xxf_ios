@@ -18,9 +18,13 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     public typealias QueryBlock = (Query) -> Query
 
     /// 尽可能私有化,避免业务子类直接使用这个api
-    private let dbQueue: DatabaseQueue
+    private let dbQueue: DatabaseQueueProxy
     public init(dbQueue: DatabaseQueue) {
-        self.dbQueue = dbQueue
+        self.dbQueue = DatabaseQueueProxy(dbQueue: dbQueue, allowMainThread: false)
+    }
+
+    public init(dbQueue: DatabaseQueue, allowMainThread: Bool) {
+        self.dbQueue = DatabaseQueueProxy(dbQueue: dbQueue, allowMainThread: allowMainThread)
     }
 
     public func insert(_ entity: Entity) throws {
