@@ -1,5 +1,5 @@
 //
-//  Debug.swift
+//  Timing.swift
 //  xxf_ios
 //  debug工具
 //  Created by xxf on 6/11.
@@ -26,13 +26,13 @@ let timebaseInfo: mach_timebase_info_data_t = {
 @inline(__always)
 func measureTime(onlyDebug: Bool = true, _ block: () -> Void) -> TimeInterval {
     #if DEBUG
-        return measureBlock(block)
+        return measureTime(of: block)
     #else
         if onlyDebug {
             block()
             return 0
         } else {
-            return measureBlock(block)
+            return measureTime(of: block)
         }
     #endif
 }
@@ -40,7 +40,7 @@ func measureTime(onlyDebug: Bool = true, _ block: () -> Void) -> TimeInterval {
 /// 真正的 mach 时间测量逻辑
 @inlinable
 @inline(__always)
-func measureBlock(_ block: () -> Void) -> TimeInterval {
+func measureTime(of block: () -> Void) -> TimeInterval {
     let start = mach_absolute_time()
     block()
     let end = mach_absolute_time()
