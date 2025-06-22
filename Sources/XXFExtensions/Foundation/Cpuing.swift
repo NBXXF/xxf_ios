@@ -2,7 +2,7 @@
 //  Cpuing.swift
 //  xxf_ios
 //
-//  Created by trl on 6/11.
+//  Created by xxf on 6/11.
 //
 import Darwin
 import Foundation
