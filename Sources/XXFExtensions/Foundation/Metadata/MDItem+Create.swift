@@ -7,7 +7,7 @@
 import CoreServices
 import Foundation
 
-extension MDItem {
+public extension MDItem {
     static func create(fromPath path: String) -> MDItem? {
         return MDItemCreate(kCFAllocatorDefault, path as CFString)
     }

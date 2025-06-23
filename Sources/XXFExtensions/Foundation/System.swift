@@ -17,6 +17,15 @@ public enum System {
         #endif
     }
 
+    ///文件分割符
+    public static var fileSeparator: String {
+        #if os(Windows)
+            return "\\"
+        #else
+            return "/"
+        #endif
+    }
+
     /// ProcessInfo.processInfo.operatingSystemVersionString  不能识别 iPadOS/visionOS watchOS
     public static var osName: String {
         #if os(macOS)
