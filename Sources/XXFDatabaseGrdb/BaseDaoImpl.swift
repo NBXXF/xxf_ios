@@ -88,6 +88,13 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
         }
     }
 
+    public func delete(where block: (GRDB.QueryInterfaceRequest<Entity>) -> GRDB.QueryInterfaceRequest<Entity>) throws {
+        try dbQueue.write { db in
+            let request = block(Entity.all())
+            try request.deleteAll(db)
+        }
+    }
+
     public func selectById(_ id: PK) throws -> Entity? {
         let result: Entity? = try dbQueue.read { db in
             try Entity.fetchOne(db, key: id)

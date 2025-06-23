@@ -21,6 +21,7 @@ public protocol BaseDao {
 
     func delete(id: PK) throws
     func delete(ids: [PK]) throws
+    func delete(where block: (Query) -> Query) throws
 
     func selectById(_ id: PK) throws -> Entity?
     func selectByIds(_ ids: [PK]) throws -> [Entity]

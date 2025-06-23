@@ -64,6 +64,12 @@ open class BaseServiceImpl<PK: DatabaseValueConvertible,
         }, errorConsumer: errorConsumer).getOrNull()
     }
 
+    public func delete(where block: (GRDB.QueryInterfaceRequest<Entity>) -> GRDB.QueryInterfaceRequest<Entity>) {
+        _ = runOperation({
+            try dao.delete(where: block)
+        }, errorConsumer: errorConsumer).getOrNull()
+    }
+
     public func delete(ids: [PK]) {
         _ = runOperation({
             try dao.delete(ids: ids)

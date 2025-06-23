@@ -21,6 +21,7 @@ public protocol BaseService {
 
     func delete(id: PK)
     func delete(ids: [PK])
+    func delete(where block: (Query) -> Query)
 
     func selectById(_ id: PK) -> Entity?
     func selectByIds(_ ids: [PK]) -> [Entity]
