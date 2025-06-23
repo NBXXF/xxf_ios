@@ -107,4 +107,12 @@ public extension URL {
         // 根目录 '/' 的 depth 设为 0，其它路径层数为 components 数减1
         return max(0, components.count - 1)
     }
+
+    /// 是否在同一层级
+    func isInSameDirectory(_ url: URL) -> Bool {
+        // 获取父目录路径（去掉最后一个路径组件）
+        let parent1 = url.deletingLastPathComponent().standardizedFileURL.path
+        let parent2 = deletingLastPathComponent().standardizedFileURL.path
+        return parent1 == parent2
+    }
 }

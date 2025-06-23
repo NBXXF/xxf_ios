@@ -17,7 +17,7 @@ public enum System {
         #endif
     }
 
-    ///文件分割符
+    /// 文件分割符
     public static var fileSeparator: String {
         #if os(Windows)
             return "\\"
