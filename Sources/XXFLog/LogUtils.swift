@@ -23,8 +23,10 @@ public class LogUtils {
     }()
 
     private nonisolated(unsafe) static var isInitialized = false
+
     /// 初始化 目前有gui 监听,必须最早初始化,而且只能初始化一次
-    public static func initialize() {
+    /// - Parameter enableProxy: 是否开启代理
+    public static func initialize(enableProxy: Bool = true) {
         guard !isInitialized else { return }
         isInitialized = true
         LoggingSystem.bootstrap { label in
@@ -56,9 +58,9 @@ public class LogUtils {
             return MultiplexLogHandler(handlers)
         }
 
-        #if DEBUG
+        if enableProxy {
             NetworkLogger.enableProxy()
-        #endif
+        }
     }
 
     /// 获取日志目录（iOS/macOS 通用）
