@@ -28,6 +28,21 @@ private final class OnceTracker {
             }
         }
     }
+
+    func performOrThrow(token: String, block: () throws -> Void) throws {
+        var tokenExists = false
+        queue.sync {
+            tokenExists = tokens.contains(token)
+        }
+        guard !tokenExists else { return }
+
+        try queue.sync(flags: .barrier) {
+            if !self.tokens.contains(token) {
+                try block()
+                self.tokens.insert(token)
+            }
+        }
+    }
 }
 
 /// 整个进程只执行一次
@@ -36,7 +51,19 @@ private final class OnceTracker {
 ///   - block: 执行单元
 public func runOnce(
     token: String = "\(#file):\(#line):\(#function)",
-    block: @escaping () -> Void
+    block: () -> Void
 ) {
     OnceTracker.shared.perform(token: token, block: block)
+}
+
+/// 整个进程只执行一次
+/// - Parameters:
+///   - token: 标识
+///   - block: 执行单元
+/// - Throws: description
+public func runOnceOrThrow(
+    token: String = "\(#file):\(#line):\(#function)",
+    block: () throws -> Void
+) throws {
+    try OnceTracker.shared.performOrThrow(token: token, block: block)
 }
