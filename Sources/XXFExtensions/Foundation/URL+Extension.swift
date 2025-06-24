@@ -115,4 +115,9 @@ public extension URL {
         let parent2 = deletingLastPathComponent().standardizedFileURL.path
         return parent1 == parent2
     }
+
+    /// 父路径
+    var parentDirectory: URL {
+        return deletingLastPathComponent()
+    }
 }
