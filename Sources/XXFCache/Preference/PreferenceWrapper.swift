@@ -2,7 +2,7 @@ import Combine
 import Foundation
 
 @propertyWrapper
-public class PreferenceWrapper<T, Owner: PreferenceProvider>: NSObject, @unchecked Sendable {
+public class PreferenceWrapper<T: Sendable, Owner: PreferenceProvider>: NSObject, @unchecked Sendable {
     private let key: String
     private let defaultValue: T?
     private let storage: PreferencesStorage

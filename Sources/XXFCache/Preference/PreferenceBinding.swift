@@ -9,7 +9,7 @@ import Combine
 
 /// 用法参考`UserDefaultsPreferenceProvider`
 @propertyWrapper
-public struct PreferenceBinding<T, Owner: PreferenceProvider> {
+public struct PreferenceBinding<T: Sendable, Owner: PreferenceProvider> {
     private var wrapper: PreferenceWrapper<T?, Owner>
 
     public var wrappedValue: T? {
