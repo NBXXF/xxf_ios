@@ -50,10 +50,14 @@ private final class OnceTracker {
 ///   - token: 唯一标识
 ///   - block: 执行单元
 public func runOnce(
-    token: String = "\(#file):\(#line):\(#function)",
+    token: String? = nil,
+    file: StaticString = #file,
+    line: Int = #line,
+    function: StaticString = #function,
     block: () -> Void
 ) {
-    OnceTracker.shared.perform(token: token, block: block)
+    let defaultToken = "\(file):\(line):\(function)"
+    OnceTracker.shared.perform(token: token ?? defaultToken, block: block)
 }
 
 /// 整个进程只执行一次
@@ -62,8 +66,12 @@ public func runOnce(
 ///   - block: 执行单元
 /// - Throws: description
 public func runOnceOrThrow(
-    token: String = "\(#file):\(#line):\(#function)",
+    token: String? = nil,
+    file: StaticString = #file,
+    line: Int = #line,
+    function: StaticString = #function,
     block: () throws -> Void
 ) throws {
-    try OnceTracker.shared.performOrThrow(token: token, block: block)
+    let defaultToken = "\(file):\(line):\(function)"
+    try OnceTracker.shared.performOrThrow(token: token ?? defaultToken, block: block)
 }
