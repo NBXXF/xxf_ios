@@ -2,18 +2,18 @@
 //  DatabaseQueueProxy.swift
 //  xxf_ios
 //
-//  Created by trl on 6/22.
+//  Created by xxf on 6/05.
 //
 import Foundation
 import GRDB
 
-/// DatabaseQueue 的代理封装，增加禁止主线程访问的判断
-public final class DatabaseQueueProxy {
-    private let dbQueue: DatabaseQueue
+/// Database的代理封装，增加禁止主线程访问的判断
+public final class DatabaseProxy {
+    private let database: DatabaseReader & DatabaseWriter
     private let allowMainThread: Bool
 
-    init(dbQueue: DatabaseQueue, allowMainThread: Bool = false) {
-        self.dbQueue = dbQueue
+    init(database: DatabaseReader & DatabaseWriter, allowMainThread: Bool = false) {
+        self.database = database
         self.allowMainThread = allowMainThread
     }
 
@@ -24,7 +24,7 @@ public final class DatabaseQueueProxy {
                 assertionFailure("Database read is not allowed on main thread")
             }
         #endif
-        return try dbQueue.read(block)
+        return try database.read(block)
     }
 
     /// 写入，禁止主线程调用（除非 allowMainThread == true）
@@ -34,6 +34,6 @@ public final class DatabaseQueueProxy {
                 assertionFailure("Database write is not allowed on main thread")
             }
         #endif
-        return try dbQueue.write(block)
+        return try database.write(block)
     }
 }

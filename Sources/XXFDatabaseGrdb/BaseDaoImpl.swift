@@ -18,23 +18,27 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     public typealias QueryBlock = (Query) -> Query
 
     /// 尽可能私有化,避免业务子类直接使用这个api
-    private let dbQueue: DatabaseQueueProxy
-    public init(dbQueue: DatabaseQueue) {
-        self.dbQueue = DatabaseQueueProxy(dbQueue: dbQueue, allowMainThread: false)
+    private let proxy: DatabaseProxy
+    public init(proxy: DatabaseProxy) {
+        self.proxy = proxy
     }
 
-    public init(dbQueue: DatabaseQueue, allowMainThread: Bool) {
-        self.dbQueue = DatabaseQueueProxy(dbQueue: dbQueue, allowMainThread: allowMainThread)
+    public init(database: DatabaseQueue, allowMainThread: Bool = false) {
+        proxy = DatabaseProxy(database: database, allowMainThread: allowMainThread)
+    }
+
+    public init(database: DatabasePool, allowMainThread: Bool = false) {
+        proxy = DatabaseProxy(database: database, allowMainThread: allowMainThread)
     }
 
     public func insert(_ entity: Entity) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             try entity.insert(db)
         }
     }
 
     public func insert(_ entities: [Entity]) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             for e in entities {
                 try e.insert(db)
             }
@@ -42,14 +46,14 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func insertOrUpdate(_ entity: Entity) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             /// 自增主键 会变
             try entity.insert(db, onConflict: .replace)
         }
     }
 
     public func insertOrUpdate(_ entities: [Entity]) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             /// 自增主键 会变
             for e in entities {
                 try e.insert(db, onConflict: .replace)
@@ -58,13 +62,13 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func update(_ entity: Entity) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             try entity.update(db)
         }
     }
 
     public func update(_ entities: [Entity]) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             for e in entities {
                 try e.update(db)
             }
@@ -72,7 +76,7 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func delete(id: PK) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             /// 效率稍低,主要是现在没办法知道pk 的名字,不想在模型上加更多协议
             if let entity = try Entity.fetchOne(db, key: id) {
                 try entity.delete(db)
@@ -81,7 +85,7 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func delete(ids: [PK]) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             for id in ids {
                 _ = try Entity.deleteOne(db, key: id)
             }
@@ -89,28 +93,28 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func delete(where block: (GRDB.QueryInterfaceRequest<Entity>) -> GRDB.QueryInterfaceRequest<Entity>) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             let request = block(Entity.all())
             try request.deleteAll(db)
         }
     }
 
     public func selectById(_ id: PK) throws -> Entity? {
-        let result: Entity? = try dbQueue.read { db in
+        let result: Entity? = try proxy.read { db in
             try Entity.fetchOne(db, key: id)
         }
         return result
     }
 
     public func selectByIds(_ ids: [PK]) throws -> [Entity] {
-        let result: [Entity] = try dbQueue.read { db in
+        let result: [Entity] = try proxy.read { db in
             try Entity.fetchAll(db, keys: ids)
         }
         return result
     }
 
     public func selectAll() throws -> [Entity] {
-        let result: [Entity] = try dbQueue.read { db in
+        let result: [Entity] = try proxy.read { db in
             try Entity.fetchAll(db)
         }
         return result
@@ -125,7 +129,7 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func selectFirst(where block: QueryBlock) throws -> Entity? {
-        let result: Entity? = try dbQueue.read { db in
+        let result: Entity? = try proxy.read { db in
             let request = block(Entity.all())
             return try request.fetchOne(db)
         }
@@ -133,7 +137,7 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func selectList(where block: QueryBlock) throws -> [Entity] {
-        let result: [Entity] = try dbQueue.read { db in
+        let result: [Entity] = try proxy.read { db in
             let request = block(Entity.all())
             return try request.fetchAll(db)
         }
@@ -141,7 +145,7 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func selectPage(page: Int, pageSize: Int, where block: QueryBlock) throws -> BasePageInfoDTO<Entity> {
-        return try dbQueue.read { db in
+        return try proxy.read { db in
             let request = block(Entity.all())
             let total = try request.fetchCount(db)
             let pagedRequest = request.limit(pageSize, offset: (page - 1) * pageSize)
@@ -158,7 +162,7 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func count(where block: QueryBlock) throws -> Int {
-        let result = try dbQueue.read { db in
+        let result = try proxy.read { db in
             let request = block(Entity.all())
             return try request.fetchCount(db)
         }
@@ -171,13 +175,13 @@ open class BaseDaoImpl<PK: DatabaseValueConvertible,
     }
 
     public func executeUpdate(sql: String, params: XXFDatabase.StatementParams? = []) throws {
-        try dbQueue.write { db in
+        try proxy.write { db in
             try db.execute(sql: sql, arguments: (params?.toStatementArguments() ?? StatementArguments()))
         }
     }
 
     public func executeQuery(sql: String, params: XXFDatabase.StatementParams? = []) throws -> [any XXFDatabase.BaseRow] {
-        let rows = try dbQueue.read { db in
+        let rows = try proxy.read { db in
             try Row.fetchAll(db, sql: sql, arguments: (params?.toStatementArguments() ?? StatementArguments()))
         }
         return rows
