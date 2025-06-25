@@ -164,31 +164,35 @@ public class PreferenceWrapper<T: Sendable, Owner: PreferenceProvider>: NSObject
 }
 
 // MARK: - 解码辅助
-/// 1️⃣ 专门给 Optional<Wrapped: Decodable> 的重载，只解码一次，返回 Wrapped?
-private func _decodeIfConforming<Wrapped: Decodable>(
-    to type: Wrapped?.Type,
-    from data: Data
-) -> Wrapped? {
-    return try? JSONDecoder().decode(Wrapped?.self, from: data)
-}
-
-/// 2️⃣ 所有非 Optional，但符合 Decodable 的类型（包括 Array<Decodable>、Dictionary<String,Decodable>）
-///    返回 T?
-private func _decodeIfConforming<T: Decodable>(
-    to type: T.Type,
-    from data: Data
-) -> T? {
-    return try? JSONDecoder().decode(T.self, from: data)
-}
-
-/// 3️⃣ 其它一切类型（[String: Any]、[Any]、Int、String、以及任何未声明 Decodable 的类型）
-///    用 JSONSerialization → as? T
 private func _decodeIfConforming<T>(
     to type: T.Type,
     from data: Data
 ) -> T? {
-    return (try? JSONSerialization.jsonObject(with: data, options: [])) as? T
+    // 1. 尝试直接作为 Decodable 类型解码
+    if let decodableType = T.self as? any Decodable.Type {
+        do {
+            let decoded = try JSONDecoder().decode(decodableType, from: data)
+            return decoded as? T
+        } catch {
+            print("[Preference] Decoding error for \(T.self): \(error)")
+        }
+    }
+    
+    // 2. 尝试可选类型的特殊处理
+    if let optionalType = T.self as? OptionalUnwrappable.Type {
+        if let wrappedType = optionalType.wrappedType as? any Decodable.Type {
+            do {
+                let decoded = try JSONDecoder().decode(wrappedType, from: data)
+                return optionalType.createOptional(with: decoded) as? T
+            } catch {
+                print("[Preference] Optional decoding error for \(wrappedType): \(error)")
+            }
+        }
+    }
+    
+    return nil
 }
+
 
 // MARK: - 类型擦除 Encodable
 
