@@ -164,13 +164,22 @@ public class PreferenceWrapper<T: Sendable, Owner: PreferenceProvider>: NSObject
 }
 
 // MARK: - 解码辅助
-
-private func _decodeIfConforming<T: Decodable>(to _: T.Type, from data: Data) -> T? {
-    try? JSONDecoder().decode(T.self, from: data)
-}
-
-private func _decodeIfConforming<T>(to _: T.Type, from _: Data) -> T? {
-    nil
+/// 通用 JSON 解码：
+/// - 如果 T（静态类型）符合 Decodable，就动态走 JSONDecoder → as? T；
+/// - 否则走 JSONSerialization → as? T。
+func _decodeIfConforming<T>(to type: T.Type, from data: Data) -> T? {
+    // —— 动态判断 T.self 是否是一个 Decodable.Type ——
+    if let decType = T.self as? Decodable.Type {
+        // JSONDecoder.decode(_ type: Decodable.Type, from:) 返回一个 Decodable
+        if let decoded = try? JSONDecoder().decode(decType, from: data) as? T {
+            return decoded
+        }
+    }
+    // —— Fallback：字典/数组/基础类型 ——
+    if let obj = try? JSONSerialization.jsonObject(with: data, options: []) as? T {
+        return obj
+    }
+    return nil
 }
 
 // MARK: - 类型擦除 Encodable
