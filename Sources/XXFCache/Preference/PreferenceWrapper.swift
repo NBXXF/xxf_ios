@@ -164,22 +164,30 @@ public class PreferenceWrapper<T: Sendable, Owner: PreferenceProvider>: NSObject
 }
 
 // MARK: - 解码辅助
-/// 通用 JSON 解码：
-/// - 如果 T（静态类型）符合 Decodable，就动态走 JSONDecoder → as? T；
-/// - 否则走 JSONSerialization → as? T。
-func _decodeIfConforming<T>(to type: T.Type, from data: Data) -> T? {
-    // —— 动态判断 T.self 是否是一个 Decodable.Type ——
-    if let decType = T.self as? Decodable.Type {
-        // JSONDecoder.decode(_ type: Decodable.Type, from:) 返回一个 Decodable
-        if let decoded = try? JSONDecoder().decode(decType, from: data) as? T {
-            return decoded
-        }
-    }
-    // —— Fallback：字典/数组/基础类型 ——
-    if let obj = try? JSONSerialization.jsonObject(with: data, options: []) as? T {
-        return obj
-    }
-    return nil
+/// 1️⃣ 专门给 Optional<Wrapped: Decodable> 的重载，只解码一次，返回 Wrapped?
+private func _decodeIfConforming<Wrapped: Decodable>(
+    to type: Wrapped?.Type,
+    from data: Data
+) -> Wrapped? {
+    return try? JSONDecoder().decode(Wrapped?.self, from: data)
+}
+
+/// 2️⃣ 所有非 Optional，但符合 Decodable 的类型（包括 Array<Decodable>、Dictionary<String,Decodable>）
+///    返回 T?
+private func _decodeIfConforming<T: Decodable>(
+    to type: T.Type,
+    from data: Data
+) -> T? {
+    return try? JSONDecoder().decode(T.self, from: data)
+}
+
+/// 3️⃣ 其它一切类型（[String: Any]、[Any]、Int、String、以及任何未声明 Decodable 的类型）
+///    用 JSONSerialization → as? T
+private func _decodeIfConforming<T>(
+    to type: T.Type,
+    from data: Data
+) -> T? {
+    return (try? JSONSerialization.jsonObject(with: data, options: [])) as? T
 }
 
 // MARK: - 类型擦除 Encodable
