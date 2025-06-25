@@ -61,6 +61,8 @@ public class LogUtils {
         if enableProxy {
             NetworkLogger.enableProxy()
         }
+
+        CrashReporterManager.shared.start()
     }
 
     /// 获取日志目录（iOS/macOS 通用）

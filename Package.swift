@@ -80,6 +80,7 @@ let package = Package(
         .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "7.0.0")),
         .package(url: "https://github.com/NBXXF/XXFHighwayHash.swift.git", from: "1.0.0"),
         .package(url: "https://github.com/NBXXF/XXFXXHash.swift.git", from: "1.0.0"),
+        .package(url: "https://github.com/kstenerud/KSCrash.git", from: "2.2.0"),
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
@@ -112,6 +113,7 @@ let package = Package(
                 .product(name: "PulseUI", package: "PulseCompat"),
                 .product(name: "PulseLogHandler", package: "PulseCompat"),
                 .product(name: "PulseProxy", package: "PulseCompat"),
+                .product(name: "Installations", package: "KSCrash"),
             ]
         ),
         .target(
