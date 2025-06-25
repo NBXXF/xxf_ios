@@ -12,10 +12,4 @@ import XXFDatabase
 /// - PersistableRecord: 支持写入数据库
 /// - PersistableRecord: 支持写入数据库
 /// - TableRecord:     支持自动生成查询请求和表名  eg. static var databaseTableName: String { get }
-public protocol BaseEntity: BaseTable, BuiltinTable, PersistableRecord, FetchableRecord, TableRecord {}
-
-extension BaseEntity {
-    static var builtinRecords: [Self] {
-        return []
-    }
-}
+public protocol BaseEntity: BaseTable, PersistableRecord, FetchableRecord, TableRecord {}
