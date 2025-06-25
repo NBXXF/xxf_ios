@@ -168,31 +168,47 @@ private func _decodeIfConforming<T>(
     to type: T.Type,
     from data: Data
 ) -> T? {
-    // 1. 尝试直接作为 Decodable 类型解码
-    if let decodableType = T.self as? any Decodable.Type {
-        do {
-            let decoded = try JSONDecoder().decode(decodableType, from: data)
-            return decoded as? T
-        } catch {
-            print("[Preference] Decoding error for \(T.self): \(error)")
-        }
-    }
-    
-    // 2. 尝试可选类型的特殊处理
+    // 1. 首先处理可选类型
     if let optionalType = T.self as? OptionalUnwrappable.Type {
+        print("[Preference] Detected optional type: \(T.self)")
+        
         if let wrappedType = optionalType.wrappedType as? any Decodable.Type {
+            print("[Preference] Wrapped type is Decodable: \(wrappedType)")
+            
             do {
+                // 尝试解码非可选版本
                 let decoded = try JSONDecoder().decode(wrappedType, from: data)
                 return optionalType.createOptional(with: decoded) as? T
             } catch {
-                print("[Preference] Optional decoding error for \(wrappedType): \(error)")
+                print("[Preference] Optional decoding error: \(error)")
             }
         }
     }
     
+    // 2. 处理非可选 Decodable 类型
+    if let decodableType = T.self as? any Decodable.Type {
+        print("[Preference] Trying as non-optional Decodable: \(decodableType)")
+        
+        do {
+            let decoded = try JSONDecoder().decode(decodableType, from: data)
+            return decoded as? T
+        } catch {
+            print("[Preference] Non-optional decoding error: \(error)")
+        }
+    }
+    
+    // 3. 最后尝试 JSONSerialization
+    do {
+        let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+        if let value = jsonObject as? T {
+            return value
+        }
+    } catch {
+        print("[Preference] JSONSerialization error: \(error)")
+    }
+    
     return nil
 }
-
 
 // MARK: - 类型擦除 Encodable
 
