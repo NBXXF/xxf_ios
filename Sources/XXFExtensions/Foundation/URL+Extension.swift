@@ -120,4 +120,28 @@ public extension URL {
     var parentDirectory: URL {
         return deletingLastPathComponent()
     }
+
+    /// 判断当前路径是否是 `other` 的祖先（父路径或更上层）
+    func isAncestor(of other: URL) -> Bool {
+        let selfComponents = standardized.pathComponents
+        let otherComponents = other.standardized.pathComponents
+        return otherComponents.starts(with: selfComponents) && selfComponents.count < otherComponents.count
+    }
+
+    /// 判断当前路径是否是 `other` 的直接父路径
+    func isDirectParent(of other: URL) -> Bool {
+        let selfComponents = standardized.pathComponents
+        let otherComponents = other.standardized.pathComponents
+        return otherComponents.count == selfComponents.count + 1 && otherComponents.starts(with: selfComponents)
+    }
+
+    /// 判断当前路径是否是 `other` 的子路径或子子路径
+    func isDescendant(of other: URL) -> Bool {
+        return other.isAncestor(of: self)
+    }
+
+    /// 判断当前路径是否是 `other` 的直接子路径
+    func isDirectChild(of other: URL) -> Bool {
+        return other.isDirectParent(of: self)
+    }
 }
