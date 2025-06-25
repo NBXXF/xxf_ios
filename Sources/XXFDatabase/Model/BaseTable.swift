@@ -5,4 +5,13 @@
 //  Created by xxf on /6/4.
 //
 
-public protocol BaseTable: Codable {}
+public protocol BaseTable: Codable {
+    /// 返回所有内置记录（通常是静态写死）
+    static var builtinRecords: [Self] { get }
+}
+
+extension BaseTable {
+    static var builtinRecords: [Self] {
+        return []
+    }
+}
