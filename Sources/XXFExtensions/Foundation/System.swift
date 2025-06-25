@@ -49,17 +49,17 @@ public enum System {
     }
 
     /// 示例：macOS 14.4.1、iOS 17.5
-    public static var osVersion: String {
+    public static let osVersion: String = {
         let version = ProcessInfo.processInfo.operatingSystemVersion
         return "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)"
-    }
+    }()
 
     public static var timestampMillis: Int {
         Int(Date().timeIntervalSince1970 * 1000)
     }
 
-    /// 是否 被调试器（debugger）附加（attach）
-    public func isDebuggerAttached() -> Bool {
+    /// 是否 被调试器（debugger）附加（attach),不能lazy,可能在程序过程中挂上
+    public static var isDebuggerAttached: Bool {
         var info = kinfo_proc()
         let mib = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
         var size = MemoryLayout<kinfo_proc>.stride
@@ -84,7 +84,7 @@ public enum System {
     }
 
     /// 是否是从单元测试中启动
-    public func isRunningUnitTests() -> Bool {
+    public static let isRunningUnitTests: Bool = {
         let env = ProcessInfo.processInfo.environment
         let args = ProcessInfo.processInfo.arguments
 
@@ -105,5 +105,5 @@ public enum System {
         // 这里示例暂不实现
 
         return false
-    }
+    }()
 }
