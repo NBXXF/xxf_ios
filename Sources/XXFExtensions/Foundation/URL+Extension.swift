@@ -72,6 +72,11 @@ public extension URL {
         return "\(volumeID)-\(inodeID)".toXXH3()
     }
 
+    /// 文件id 字符串类型,场景sql不支持UInt64
+    func getFileIdString() -> String {
+        return String(getFileId())
+    }
+
     // 是否是文件夹（仅本地文件 URL）
     func isDirectory() -> Bool {
         guard isFileURL else { return false }
