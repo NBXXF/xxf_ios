@@ -180,7 +180,7 @@ let package = Package(
         ),
         .testTarget(
             name: "xxf_iosTests",
-            dependencies: ["XXFLog","XXFCache"]
+            dependencies: ["XXFLog", "XXFCache"]
         ),
     ]
 )

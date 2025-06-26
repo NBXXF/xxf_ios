@@ -128,9 +128,14 @@ public class PreferenceWrapper<T: Sendable, Owner: PreferenceProvider>: NSObject
     public var wrappedValue: T? {
         get {
             if cacheEnabled {
-                return cache ?? defaultValue
+                if let cache = cache {
+                    return cache
+                } else {
+                    cache = loadValue()
+                    return cache ?? defaultValue
+                }
             } else {
-                return loadValue()
+                return loadValue() ?? defaultValue
             }
         }
         set {
@@ -164,17 +169,18 @@ public class PreferenceWrapper<T: Sendable, Owner: PreferenceProvider>: NSObject
 }
 
 // MARK: - 解码辅助
+
 private func _decodeIfConforming<T>(
-    to type: T.Type,
+    to _: T.Type,
     from data: Data
 ) -> T? {
     // 1. 首先处理可选类型
     if let optionalType = T.self as? OptionalUnwrappable.Type {
-        print("[Preference] Detected optional type: \(T.self)")
-        
+        /// print("[Preference] Detected optional type: \(T.self)")
+
         if let wrappedType = optionalType.wrappedType as? any Decodable.Type {
-            print("[Preference] Wrapped type is Decodable: \(wrappedType)")
-            
+            /// print("[Preference] Wrapped type is Decodable: \(wrappedType)")
+
             do {
                 // 尝试解码非可选版本
                 let decoded = try JSONDecoder().decode(wrappedType, from: data)
@@ -184,11 +190,11 @@ private func _decodeIfConforming<T>(
             }
         }
     }
-    
+
     // 2. 处理非可选 Decodable 类型
     if let decodableType = T.self as? any Decodable.Type {
-        print("[Preference] Trying as non-optional Decodable: \(decodableType)")
-        
+        /// print("[Preference] Trying as non-optional Decodable: \(decodableType)")
+
         do {
             let decoded = try JSONDecoder().decode(decodableType, from: data)
             return decoded as? T
@@ -196,7 +202,7 @@ private func _decodeIfConforming<T>(
             print("[Preference] Non-optional decoding error: \(error)")
         }
     }
-    
+
     // 3. 最后尝试 JSONSerialization
     do {
         let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
@@ -206,7 +212,7 @@ private func _decodeIfConforming<T>(
     } catch {
         print("[Preference] JSONSerialization error: \(error)")
     }
-    
+
     return nil
 }
 

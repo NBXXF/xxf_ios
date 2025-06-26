@@ -13,7 +13,7 @@ import Foundation
 protocol OptionalUnwrappable {
     /// 返回 Optional 包装的内部类型
     static var wrappedType: Any.Type { get }
-    
+
     static func createOptional(with value: Any) -> Any?
 }
 
@@ -21,7 +21,8 @@ extension Optional: OptionalUnwrappable {
     static var wrappedType: Any.Type {
         return Wrapped.self
     }
+
     static func createOptional(with value: Any) -> Any? {
-         value as? Wrapped
-     }
+        value as? Wrapped
+    }
 }
