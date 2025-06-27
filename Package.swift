@@ -67,6 +67,10 @@ let package = Package(
             name: "XXFPerformance",
             targets: ["XXFPerformance"]
         ),
+        .library(
+            name: "XXFServer",
+            targets: ["XXFServer"]
+        ),
     ],
     dependencies: [
         // 第三方依赖写这里
@@ -81,6 +85,13 @@ let package = Package(
         .package(url: "https://github.com/NBXXF/XXFHighwayHash.swift.git", from: "1.0.0"),
         .package(url: "https://github.com/NBXXF/XXFXXHash.swift.git", from: "1.0.0"),
         .package(url: "https://github.com/kstenerud/KSCrash.git", from: "2.2.0"),
+
+        /// 服务器开发框架
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.115.0"),
+        .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.16.1"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.26.1"),
+
+        /// hud组件
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
     ],
     targets: [
@@ -177,6 +188,18 @@ let package = Package(
         ),
         .target(
             name: "XXFPerformance"
+        ),
+        .target(
+            name: "XXFServer",
+            dependencies: [
+                // 接收http请求
+                .product(name: "Vapor", package: "vapor"),
+                // 接收socket
+                .product(name: "WebSocketKit", package: "websocket-kit"),
+                // 高并发请求其他http
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+            ]
+
         ),
         .testTarget(
             name: "xxf_iosTests",

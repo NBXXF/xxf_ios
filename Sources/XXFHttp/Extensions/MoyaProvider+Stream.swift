@@ -9,7 +9,7 @@ import Alamofire
 import Foundation
 @preconcurrency import Moya
 
-public extension MoyaProvider {
+public extension MoyaProvider where Target: Sendable {
     /// 发起流式请求，返回 Alamofire 的 DataStreamRequest
     ///
     /// - Parameters:
@@ -29,6 +29,8 @@ public extension MoyaProvider {
             for plugin in plugins {
                 urlReq = plugin.prepare(urlReq, target: target)
             }
+
+            let urlReqCopy = urlReq
 
             // 3. 发起 streamRequest
             let streamRequest = session.streamRequest(urlReq)
@@ -51,7 +53,7 @@ public extension MoyaProvider {
                         let moyaResp = Response(
                             statusCode: completion.response?.statusCode ?? -1,
                             data: Data(),
-                            request: urlReq,
+                            request: urlReqCopy,
                             response: completion.response
                         )
                         let result: Result<Response, MoyaError> = .failure(.underlying(afError, moyaResp))

@@ -10,7 +10,7 @@ import Foundation
 import Moya
 @preconcurrency import RxSwift
 
-public extension Reactive where Base: MoyaProviderType {
+public extension Reactive where Base: MoyaProviderType, Base.Target: Sendable {
     /// 原始 Data 流 Observable
     func requestStream(_ target: Base.Target,
                        callbackQueue: DispatchQueue = .main) -> Observable<Data>
