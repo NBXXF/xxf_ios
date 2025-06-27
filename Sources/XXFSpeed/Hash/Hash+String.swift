@@ -19,6 +19,11 @@ public extension String {
         return ThreadLocalXXH3.hash(self)
     }
 
+    /// 返回字符串
+    func toXXH3String() -> String {
+        return String(ThreadLocalXXH3.hash(self))
+    }
+
     func toXXH32() -> UInt32 {
         return ThreadLocalXXH32.hash(self)
     }
