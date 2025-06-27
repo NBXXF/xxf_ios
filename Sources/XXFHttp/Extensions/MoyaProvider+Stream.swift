@@ -7,7 +7,7 @@
 
 import Alamofire
 import Foundation
-import Moya
+@preconcurrency import Moya
 
 public extension MoyaProvider {
     /// 发起流式请求，返回 Alamofire 的 DataStreamRequest
@@ -15,11 +15,55 @@ public extension MoyaProvider {
     /// - Parameters:
     ///   - target: 请求 Target
     /// - Returns: DataStreamRequest
-    private func requestStream(_ target: Target) -> DataStreamRequest {
+    @preconcurrency
+    private func requestStream(
+        callbackQueue: DispatchQueue = .main,
+        _ target: Target
+    ) -> DataStreamRequest {
         do {
-            let urlRequest = try endpoint(target).urlRequest()
-            // 用 MoyaProvider 的 session 来调用 streamRequest
-            return session.streamRequest(urlRequest)
+            // 1. 构建 URLRequest（非可选）
+            let endpoint = self.endpoint(target)
+            var urlReq = try endpoint.urlRequest()
+
+            // 2. 调用插件的 prepare
+            for plugin in plugins {
+                urlReq = plugin.prepare(urlReq, target: target)
+            }
+
+            // 3. 发起 streamRequest
+            let streamRequest = session.streamRequest(urlReq)
+
+            // 4. 调用 willSend，传入 DataStreamRequest
+            for plugin in plugins {
+                plugin.willSend(streamRequest, target: target)
+            }
+
+            // 5. 换成 responseStream，监听 .complete(.failure)
+            streamRequest.responseStream(on: callbackQueue) { streamEvent in
+                switch streamEvent.event {
+                case .stream:
+                    // 处理中间数据
+                    break
+
+                case let .complete(completion):
+                    if let afError = completion.error {
+                        // 构造 Moya.Response
+                        let moyaResp = Response(
+                            statusCode: completion.response?.statusCode ?? -1,
+                            data: Data(),
+                            request: urlReq,
+                            response: completion.response
+                        )
+                        let result: Result<Response, MoyaError> = .failure(.underlying(afError, moyaResp))
+                        for plugin in self.plugins {
+                            plugin.didReceive(result, target: target)
+                        }
+                    }
+                    // 如果没有 error，就是流正常结束，不用回调 didReceive
+                }
+            }
+
+            return streamRequest
         } catch {
             fatalError("构造 URLRequest 失败: \(error)")
         }
@@ -40,7 +84,7 @@ public extension MoyaProvider {
                        callbackQueue: DispatchQueue = .main,
                        completion: @escaping DataStreamRequest.Handler<Data, Never>) -> DataStreamRequest
     {
-        let streamRequest = requestStream(target)
+        let streamRequest = requestStream(callbackQueue: callbackQueue, target)
         streamRequest.responseStream(on: callbackQueue, stream: completion)
         return streamRequest
     }
@@ -58,7 +102,7 @@ public extension MoyaProvider {
                              callbackQueue: DispatchQueue = .main,
                              completion: @escaping DataStreamRequest.Handler<String, Never>) -> DataStreamRequest
     {
-        let streamRequest = requestStream(target)
+        let streamRequest = requestStream(callbackQueue: callbackQueue, target)
         streamRequest.responseStreamString(on: callbackQueue, stream: completion)
         return streamRequest
     }
@@ -78,7 +122,7 @@ public extension MoyaProvider {
                                                          callbackQueue: DispatchQueue = .main,
                                                          completion: @escaping DataStreamRequest.Handler<Serializer.SerializedObject, AFError>) -> DataStreamRequest
     {
-        let streamRequest = requestStream(target)
+        let streamRequest = requestStream(callbackQueue: callbackQueue, target)
         streamRequest.responseStream(using: serializer, on: callbackQueue, stream: completion)
         return streamRequest
     }
@@ -108,7 +152,7 @@ public extension MoyaProvider {
         preprocessor: any DataPreprocessor = PassthroughPreprocessor(),
         completion: @escaping DataStreamRequest.Handler<T, AFError>
     ) -> DataStreamRequest {
-        let streamRequest = requestStream(target)
+        let streamRequest = requestStream(callbackQueue: callbackQueue, target)
         streamRequest.responseStreamDecodable(of: type, on: callbackQueue, using: decoder, preprocessor: preprocessor, stream: completion)
         return streamRequest
     }
