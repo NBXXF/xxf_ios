@@ -2,7 +2,7 @@
 //  UserAPI.swift
 //  xxf_ios
 //  将请求平摊到各个Controller里面,分而治之
-//  Created by trl on 2025/6/27.
+//  Created by xxf on /6/2.
 //
 import Vapor
 
@@ -12,13 +12,10 @@ public protocol BaseApiController: CaseIterable, Sendable {
     var pathComponent: String { get }
 
     @Sendable
-    func dispatch(req: Request) -> EventLoopFuture<Response>
-
-    @Sendable
     func onRequest(req: Request) throws -> Response
 }
 
-extension BaseApiController {
+public extension BaseApiController {
     @Sendable
     func dispatch(req: Request) -> EventLoopFuture<Response> {
         do {
@@ -28,7 +25,7 @@ extension BaseApiController {
         }
     }
 
-    public static func registerAll(on app: Application) {
+    static func registerAll(on app: Application) {
         for api in allCases {
             let fullPath: [PathComponent] = [api.basePath, api.pathComponent].map(toPathComponent)
 

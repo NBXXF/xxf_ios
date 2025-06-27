@@ -16,9 +16,9 @@ public final class ServerApplication {
 
     public init(onCreated: (Application) -> Void) {
         #if DEBUG
-            app = Application(.development)
+            app = Application(Environment(name: "development", arguments: ["vapor", "serve"]))
         #else
-            app = Application(.production)
+            app = Application(Environment(name: "production", arguments: ["vapor", "serve"]))
         #endif
         onCreated(app)
     }
