@@ -26,7 +26,9 @@ public class LogUtils {
 
     /// 初始化 目前有gui 监听,必须最早初始化,而且只能初始化一次
     /// - Parameter enableProxy: 是否开启代理
-    public static func initialize(enableProxy: Bool = true) {
+    public static func initialize(enableProxy: Bool = true,
+                                  enableCacheFile: Bool = false)
+    {
         guard !isInitialized else { return }
         isInitialized = true
         LoggingSystem.bootstrap { label in
@@ -36,24 +38,25 @@ public class LogUtils {
             persistentLogHandler.logLevel = .debug // ✅ 设置最低等级为 debug
             var handlers: [LogHandler] = [persistentLogHandler, // UI 实时查看
                                           streamLogHandler] // 控制台
-
-            // 获取日志目录并确保目录存在
-            let logDirectory = getLogDirectoryURL()
-            do {
-                try FileManager.default.createDirectory(at: logDirectory, withIntermediateDirectories: true)
-                handlers.append(FileLogHandler(
-                    label: label,
-                    logDirectory: logDirectory,
-                    fileExtension: "log",
-                    maxFileSizeMB: 10, // 单文件最大10MB
-                    maxRetentionDays: 7, // 保留7天日志，自动清理
-                    logLevel: .debug, // 记录最低日志级别
-                    bufferMaxSize: 16 * 1024, // 缓存16KB才写磁盘
-                    flushInterval: 2.0 // 最多2秒写一次
-                ))
-            } catch {
-                // 如果目录创建失败，可以打印或做其他处理
-                print("⚠️ Failed to create log directory: \(error)")
+            if enableCacheFile {
+                // 获取日志目录并确保目录存在
+                let logDirectory = getLogDirectoryURL()
+                do {
+                    try FileManager.default.createDirectory(at: logDirectory, withIntermediateDirectories: true)
+                    handlers.append(FileLogHandler(
+                        label: label,
+                        logDirectory: logDirectory,
+                        fileExtension: "log",
+                        maxFileSizeMB: 10, // 单文件最大10MB
+                        maxRetentionDays: 7, // 保留7天日志，自动清理
+                        logLevel: .debug, // 记录最低日志级别
+                        bufferMaxSize: 16 * 1024, // 缓存16KB才写磁盘
+                        flushInterval: 2.0 // 最多2秒写一次
+                    ))
+                } catch {
+                    // 如果目录创建失败，可以打印或做其他处理
+                    print("⚠️ Failed to create log directory: \(error)")
+                }
             }
             return MultiplexLogHandler(handlers)
         }
