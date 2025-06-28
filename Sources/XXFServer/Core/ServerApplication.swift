@@ -17,9 +17,9 @@ public final class ServerApplication {
         onCreated: @Sendable (Application) -> Void
     ) async throws {
         #if DEBUG
-            let env: Environment = .development
+            let env = Environment(name: "development", arguments: ["vapor", "serve"])
         #else
-            let env: Environment = .production
+            let env = Environment(name: "production", arguments: ["vapor", "serve"])
         #endif
 
         let app = try await Application.make(env)
