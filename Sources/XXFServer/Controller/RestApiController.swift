@@ -8,8 +8,6 @@
 import Vapor
 
 public protocol RestApiController: RouteDispatcher, CaseIterable, Sendable {
-    /// 定义返回范型,业务类参考定义:  typealias ResponseDto = SimpleResponse<User>
-    associatedtype ResponseDto: BaseResponseDto
     /// 拦截器
     static var interceptors: [Interceptor] { get }
     /// 路由分组前缀，比如 "/api/users"
@@ -21,12 +19,12 @@ public protocol RestApiController: RouteDispatcher, CaseIterable, Sendable {
 
     /// 执行响应,通用响应,覆盖99%的场景,当然业务也可以覆盖onDispatch完全自定义
     @Sendable
-    func onRequest(req: Request) throws -> ResponseDto
+    func onRequest(req: Request) throws -> any BaseResponseDto
 }
 
-extension RestApiController {
+public extension RestApiController {
     /// 默认interceptors
-    static var interceptors: [Interceptor] {
+    static var interceptors: [any Interceptor] {
         []
     }
 
