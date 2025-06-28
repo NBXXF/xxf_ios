@@ -57,6 +57,35 @@ public extension Process {
         return allProcesses.filter { $0.port == port }
     }
 
+    /// 查找可用的端口
+    /// - Parameters:
+    ///   - range: 端口区间
+    ///   - count: 结果最大数量
+    /// - Returns: 可用的端口
+    static func findAvailablePorts(
+        in range: Range<Int> = 8081 ..< 65535,
+        count: Int
+    ) -> [Int] {
+        precondition(count > 0, "❌ count 必须大于 0")
+        let legalPortRange = 1 ..< 65536
+        precondition(
+            legalPortRange.overlaps(range),
+            "❌ The port range must intersect with 1..<65536"
+        )
+
+        var result: [Int] = []
+        /// shuffled 有助于业务的正确性
+        for port in range.shuffled() {
+            if !Process.isPortInUsing(port) {
+                result.append(port)
+            }
+            if result.count >= count {
+                break
+            }
+        }
+        return result
+    }
+
     /// 判断指定端口是否被占用
     static func isPortInUsing(_ port: Int) -> Bool {
         return !isPortAvailable(port) || !getProcessesListening(onPort: port).isEmpty
