@@ -63,6 +63,18 @@ public class LogUtils {
         }
 
         CrashReporterManager.shared.start()
+        
+        redirectPrintToPulse()
+    }
+    
+    private static func  redirectPrintToPulse() {
+        // 重写print方法
+//        Swift.print = { items, separator, terminator in
+//            let message = items.map { "\($0)" }.joined(separator: separator)
+//            pulseLogger.log(message)
+//            // 仍然打印到控制台
+//            Swift.print(message, terminator: terminator)
+//        }
     }
 
     /// 获取日志目录（iOS/macOS 通用）

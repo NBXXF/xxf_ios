@@ -80,7 +80,7 @@ let package = Package(
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.0.0"),
         .package(url: "https://github.com/SwifterSwift/SwifterSwift.git", from: "7.0.0"),
         .package(url: "https://github.com/Moya/Moya.git", from: "15.0.3"),
-        .package(url: "https://github.com/NBXXF/PulseCompat", .upToNextMajor(from: "4.2.7")),
+        .package(url: "https://github.com/NBXXF/PulseCompat", .upToNextMajor(from: "4.2.8")),
         .package(url: "https://github.com/hmlongco/Factory.git", from: "2.5.3"),
         .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "7.0.0")),
         .package(url: "https://github.com/NBXXF/XXFHighwayHash.swift.git", from: "1.0.0"),
