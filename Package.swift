@@ -12,49 +12,50 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "XXFExtensions",
-            targets: ["XXFExtensions"]
-        ),
-        .library(
             name: "XXFAppkit",
             targets: ["XXFAppkit"]
         ),
-        .library(
-            name: "XXFLog",
-            targets: ["XXFLog"]
-        ),
-        .library(
-            name: "XXFSpeed",
-            targets: ["XXFSpeed"]
-        ),
-        .library(
-            name: "XXFFlow",
-            targets: ["XXFFlow"]
-        ),
-        .library(
-            name: "XXFHttp",
-            targets: ["XXFHttp"]
-        ),
-        .library(
-            name: "XXFDatabase",
-            targets: ["XXFDatabase"]
-        ),
+        // 不对外暴露
+//        .library(
+//            name: "XXFExtensions",
+//            targets: ["XXFExtensions"]
+//        ),
+//        .library(
+//            name: "XXFLog",
+//            targets: ["XXFLog"]
+//        ),
+//        .library(
+//            name: "XXFSpeed",
+//            targets: ["XXFSpeed"]
+//        ),
+//        .library(
+//            name: "XXFFlow",
+//            targets: ["XXFFlow"]
+//        ),
+//        .library(
+//            name: "XXFHttp",
+//            targets: ["XXFHttp"]
+//        ),
+//        .library(
+//            name: "XXFDatabase",
+//            targets: ["XXFDatabase"]
+//        ),
         .library(
             name: "XXFDatabaseGrdb",
             targets: ["XXFDatabaseGrdb"]
         ),
-        .library(
-            name: "XXFCache",
-            targets: ["XXFCache"]
-        ),
-        .library(
-            name: "XXFDi",
-            targets: ["XXFDi"]
-        ),
-        .library(
-            name: "XXFHud",
-            targets: ["XXFHud"]
-        ),
+//        .library(
+//            name: "XXFCache",
+//            targets: ["XXFCache"]
+//        ),
+//        .library(
+//            name: "XXFDi",
+//            targets: ["XXFDi"]
+//        ),
+//        .library(
+//            name: "XXFHud",
+//            targets: ["XXFHud"]
+//        ),
         .library(
             name: "XXFHudMac",
             targets: ["XXFHudMac"]
@@ -63,10 +64,10 @@ let package = Package(
             name: "XXFArch",
             targets: ["XXFArch"]
         ),
-        .library(
-            name: "XXFPerformance",
-            targets: ["XXFPerformance"]
-        ),
+//        .library(
+//            name: "XXFPerformance",
+//            targets: ["XXFPerformance"]
+//        ),
         .library(
             name: "XXFServer",
             targets: ["XXFServer"]
@@ -89,7 +90,7 @@ let package = Package(
         /// 服务器开发框架
         .package(url: "https://github.com/vapor/vapor.git", from: "4.115.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.16.1"),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.26.1"),
+        // .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.26.1"),///大规模请求其他api,NIO实现
 
         /// hud组件
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
@@ -180,6 +181,7 @@ let package = Package(
                 "XXFLog",
                 "XXFFlow",
                 "XXFHttp",
+                "XXFDi",
                 "XXFHud",
                 "XXFPerformance",
                 "XXFSpeed",
@@ -197,7 +199,7 @@ let package = Package(
                 // 接收socket
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 // 高并发请求其他http
-                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                // .product(name: "AsyncHTTPClient", package: "async-http-client"),
             ]
 
         ),
