@@ -63,11 +63,11 @@ public class LogUtils {
         }
 
         CrashReporterManager.shared.start()
-        
+
         redirectPrintToPulse()
     }
-    
-    private static func  redirectPrintToPulse() {
+
+    private static func redirectPrintToPulse() {
         // 重写print方法
 //        Swift.print = { items, separator, terminator in
 //            let message = items.map { "\($0)" }.joined(separator: separator)
