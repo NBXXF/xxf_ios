@@ -32,7 +32,9 @@ extension RestApiController {
 
     /// 默认分组
     static var routeGroup: String? { return nil }
+}
 
+public extension RouteDispatcher where Self: RestApiController {
     func onDispatch(req: Request) -> EventLoopFuture<Response> {
         do {
             let dto = try onRequest(req: req)
