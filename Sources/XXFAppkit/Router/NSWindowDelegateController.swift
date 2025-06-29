@@ -44,13 +44,6 @@ open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
         Self.controllers.append(self)
     }
 
-    // MARK: - NSWindowDelegate
-
-    /// 窗口关闭时移除自己
-    open func windowWillClose(_: Notification) {
-        removeFromRegistry()
-    }
-
     // MARK: - Registry Management
 
     /// 从管理列表中移除自己
@@ -61,5 +54,93 @@ open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
     /// 获取所有活跃的窗口控制器
     public static var allControllers: [NSWindowDelegateController] {
         return controllers
+    }
+
+    /// 窗口即将关闭
+    open func windowWillClose(_: Notification) {
+        removeFromRegistry()
+    }
+
+    /// 窗口成为 key window（接收键盘输入）
+    open func windowDidBecomeKey(_: Notification) {}
+
+    /// 窗口失去 key window 状态
+    open func windowDidResignKey(_: Notification) {}
+
+    /// 窗口成为主窗口（应用主交互窗口）
+    open func windowDidBecomeMain(_: Notification) {}
+
+    /// 窗口失去主窗口状态
+    open func windowDidResignMain(_: Notification) {}
+
+    /// 窗口显示内容更新（用于刷新 UI）
+    open func windowDidUpdate(_: Notification) {}
+
+    /// 窗口状态将改变（最小化、最大化、全屏等）
+    open func windowWillMiniaturize(_: Notification) {}
+
+    /// 窗口已经最小化
+    open func windowDidMiniaturize(_: Notification) {}
+
+    /// 窗口已取消最小化
+    open func windowDidDeminiaturize(_: Notification) {}
+
+    /// 窗口是否应该关闭（return false 可阻止关闭）
+    open func windowShouldClose(_: NSWindow) -> Bool {
+        return true
+    }
+
+    /// 窗口是否可以变成 key window（默认 true）
+    open func windowShouldBecomeKey(_: NSWindow) -> Bool {
+        return true
+    }
+
+    /// 窗口是否可以变成 main window（默认 true）
+    open func windowShouldBecomeMain(_: NSWindow) -> Bool {
+        return true
+    }
+
+    /// 窗口大小改变前调用（返回新窗口尺寸）
+    open func windowWillResize(_: NSWindow, to frameSize: NSSize) -> NSSize {
+        return frameSize
+    }
+
+    /// 窗口移动时调用
+    open func windowDidMove(_: Notification) {}
+
+    /// 窗口大小改变后调用
+    open func windowDidResize(_: Notification) {}
+
+    /// 窗口开始 live resize（用户正在拖动）
+    open func windowWillStartLiveResize(_: Notification) {}
+
+    /// 窗口结束 live resize
+    open func windowDidEndLiveResize(_: Notification) {}
+
+    /// 窗口是否支持全屏（默认 true）
+    open func window(_: NSWindow, willUseFullScreenPresentationOptions proposedOptions: NSApplication.PresentationOptions) -> NSApplication.PresentationOptions {
+        return proposedOptions
+    }
+
+    /// 窗口进入全屏前
+    open func windowWillEnterFullScreen(_: Notification) {}
+
+    /// 窗口已进入全屏
+    open func windowDidEnterFullScreen(_: Notification) {}
+
+    /// 窗口即将退出全屏
+    open func windowWillExitFullScreen(_: Notification) {}
+
+    /// 窗口已退出全屏
+    open func windowDidExitFullScreen(_: Notification) {}
+
+    /// 窗口支持的最小尺寸（可选）
+    open func windowWillUseStandardFrame(_: NSWindow, defaultFrame newFrame: NSRect) -> NSRect {
+        return newFrame
+    }
+
+    /// 支持 tabbed 窗口切换（macOS 10.12+）
+    open func window(_: NSWindow, shouldDragDocumentWith _: NSEvent, from _: NSPoint, with _: NSPasteboard) -> Bool {
+        return true
     }
 }
