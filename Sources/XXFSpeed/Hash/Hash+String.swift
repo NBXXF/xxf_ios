@@ -40,7 +40,7 @@ public extension String {
         return ThreadLocalXXH128.hashString(self)
     }
 
-    func toHighwayHash64() -> UInt64 {
-        return ThreadLocalHighwayHash.hash(self)
-    }
+//    func toHighwayHash64() -> UInt64 {
+//        return ThreadLocalHighwayHash.hash(self)
+//    }
 }
