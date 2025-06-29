@@ -205,6 +205,7 @@ let package = Package(
             name: "XXFBus",
             dependencies: [
                 .product(name: "RxSwift", package: "RxSwift"),
+                .product(name: "RxRelay", package: "RxSwift"), // ✅ 这个必须单独写
             ]
         ),
         .target(
