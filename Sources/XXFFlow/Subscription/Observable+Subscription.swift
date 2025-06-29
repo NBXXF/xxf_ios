@@ -10,7 +10,7 @@ public extension ObservableType {
     func delaySubscription(_ delay: RxTimeInterval, scheduler: SchedulerType) -> Observable<Element> {
         return Observable.create { observer in
             let disposable = Disposables.create()
-            scheduler.scheduleRelative((), dueTime: delay) { _ in
+            _ = scheduler.scheduleRelative((), dueTime: delay) { _ in
                 let subscription = self.subscribe(observer)
                 return subscription
             }

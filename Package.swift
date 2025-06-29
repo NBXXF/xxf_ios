@@ -68,6 +68,14 @@ let package = Package(
 //            name: "XXFPerformance",
 //            targets: ["XXFPerformance"]
 //        ),
+//        .library(
+//            name: "XXFBus",
+//            targets: ["XXFBus"]
+//        ),
+//        .library(
+//            name: "XXFJson",
+//            targets: ["XXFJson"]
+//        ),
         .library(
             name: "XXFServer",
             targets: ["XXFServer"]
@@ -186,10 +194,21 @@ let package = Package(
                 "XXFPerformance",
                 "XXFSpeed",
                 "XXFCache",
+                "XXFBus",
+                "XXFJson",
             ]
         ),
         .target(
             name: "XXFPerformance"
+        ),
+        .target(
+            name: "XXFBus",
+            dependencies: [
+                .product(name: "RxSwift", package: "RxSwift"),
+            ]
+        ),
+        .target(
+            name: "XXFJson"
         ),
         .target(
             name: "XXFServer",
