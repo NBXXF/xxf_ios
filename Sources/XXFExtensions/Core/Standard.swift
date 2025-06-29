@@ -51,6 +51,7 @@ public func also<T>(_ value: T, _ block: (T) -> Void) -> T {
 
 // MARK: - with 函数
 
+@discardableResult
 public func with<T>(_ value: T, block: (inout T) -> Void) -> T {
     var copy = value
     block(&copy)
@@ -67,6 +68,7 @@ public extension StandardExtensible {
         block(self)
     }
 
+    @discardableResult
     func apply(_ block: (inout Self) -> Void) -> Self {
         var copy = self
         block(&copy)
@@ -85,6 +87,7 @@ public extension StandardExtensible {
         return self
     }
 
+    @discardableResult
     func with(_ block: (inout Self) -> Void) -> Self {
         var copy = self
         block(&copy)
