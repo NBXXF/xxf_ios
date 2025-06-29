@@ -5,7 +5,7 @@
 //  Created by xxf on 6/29.
 //
 
-public struct ActionTypeEvent<T> {
+public struct ActionTypeEvent<T>: Sendable where T: Sendable {
     public let action: String
     public let data: T?
 

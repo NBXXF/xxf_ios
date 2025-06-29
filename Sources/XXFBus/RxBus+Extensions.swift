@@ -8,17 +8,17 @@
 import RxSwift
 
 public extension RxBus {
-    func postAction<T>(_ action: String, data: T?) {
+    func postAction<T: Sendable>(_ action: String, data: T?) {
         post(ActionTypeEvent<T>.create(action: action, data: data))
     }
 
-    func observeAction<T>(_ action: String, type _: T.Type) -> Observable<T> {
+    func observeAction<T: Sendable>(_ action: String, type _: T.Type) -> Observable<T> {
         return observe(ActionTypeEvent<T>.self)
             .filter { $0.action == action }
             .compactMap { $0.data }
     }
 
-    func observeStickyAction<T>(_ action: String, type _: T.Type) -> Observable<T> {
+    func observeStickyAction<T: Sendable>(_ action: String, type _: T.Type) -> Observable<T> {
         return observeSticky(ActionTypeEvent<T>.self)
             .filter { $0.action == action }
             .compactMap { $0.data }
