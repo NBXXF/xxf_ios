@@ -4,6 +4,7 @@
 //  服务器app
 //  Created by xxf on /6/2.
 //
+
 import Atomics
 import Vapor
 
@@ -12,8 +13,15 @@ public final class ServerApplication {
     private var task: Task<Void, Error>?
     private let isRunning = ManagedAtomic(false)
 
+    /// 初始化
+    /// - Parameters:
+    ///   - port: 端口
+    ///   - eventLoopGroupProvider: 线程模型
+    ///   - backlog: 允许最多n个待处理的连接排队。
     public init(
         port: Int = 8080,
+        eventLoopGroupProvider: Application.EventLoopGroupProvider = .singleton,
+        backlog: Int = 16,
         onCreated: @Sendable (Application) -> Void
     ) async throws {
         #if DEBUG
@@ -21,11 +29,9 @@ public final class ServerApplication {
         #else
             let env = Environment(name: "production", arguments: ["vapor", "serve"])
         #endif
-
-        let app = try await Application.make(env)
+        let app = try await Application.make(env, eventLoopGroupProvider)
         app.http.server.configuration.port = port
-
-        // 这里 onCreated 已经是 @Sendable，不会捕获非 Sendable 的 self
+        app.http.server.configuration.backlog = backlog
         onCreated(app)
         self.app = app
     }
@@ -34,12 +40,11 @@ public final class ServerApplication {
         // 已经在跑就直接返回
         if isRunning.load(ordering: .relaxed) { return }
 
-        // 把要用到的实例都拉到局部常量，闭包里就不会捕获 self
         let app = self.app
         let runningFlag = isRunning
 
-        task = Task.detached(priority: .background) { @Sendable in
-            // 启动 HTTP
+        // 这里用普通 Task 继承上下文，方便日志和 actor 隔离等
+        task = Task(priority: .background) { @Sendable in
             runningFlag.store(true, ordering: .relaxed)
             do {
                 try await app.startup()
@@ -58,12 +63,11 @@ public final class ServerApplication {
     }
 
     public func stop() {
-        // 仅在真的运行时发关闭信号
         guard isRunning.load(ordering: .relaxed) else { return }
 
-        // 同样先把 app 拉到局部常量
         let app = self.app
-        Task.detached { @Sendable in
+        // 停止服务器信号，简单操作用普通 Task 即可
+        Task { @Sendable in
             app.running?.stop()
         }
     }
