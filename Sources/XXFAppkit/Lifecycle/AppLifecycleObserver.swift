@@ -22,10 +22,11 @@ public final class AppLifecycleObserver {
 
     // MARK: - 窗口相关事件回调
 
-    private var windowDidBecomeKeyCallbacks: [UUID: (Notification) -> Void] = [:]
-    private var windowDidResignKeyCallbacks: [UUID: (Notification) -> Void] = [:]
-    private var windowDidBecomeMainCallbacks: [UUID: (Notification) -> Void] = [:]
-    private var windowDidResignMainCallbacks: [UUID: (Notification) -> Void] = [:]
+    // 修改为接收 window 和 userInfo 两个参数
+    private var windowDidBecomeKeyCallbacks: [UUID: (NSWindow, [AnyHashable: Any]?) -> Void] = [:]
+    private var windowDidResignKeyCallbacks: [UUID: (NSWindow, [AnyHashable: Any]?) -> Void] = [:]
+    private var windowDidBecomeMainCallbacks: [UUID: (NSWindow, [AnyHashable: Any]?) -> Void] = [:]
+    private var windowDidResignMainCallbacks: [UUID: (NSWindow, [AnyHashable: Any]?) -> Void] = [:]
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -64,19 +65,39 @@ public final class AppLifecycleObserver {
 
         // 窗口相关事件
         nc.publisher(for: NSWindow.didBecomeKeyNotification)
-            .sink { [weak self] note in self?.windowDidBecomeKeyCallbacks.values.forEach { $0(note) } }
+            .sink { [weak self] note in
+                guard
+                    let window = note.object as? NSWindow
+                else { return }
+                self?.windowDidBecomeKeyCallbacks.values.forEach { $0(window, note.userInfo) }
+            }
             .store(in: &cancellables)
 
         nc.publisher(for: NSWindow.didResignKeyNotification)
-            .sink { [weak self] note in self?.windowDidResignKeyCallbacks.values.forEach { $0(note) } }
+            .sink { [weak self] note in
+                guard
+                    let window = note.object as? NSWindow
+                else { return }
+                self?.windowDidResignKeyCallbacks.values.forEach { $0(window, note.userInfo) }
+            }
             .store(in: &cancellables)
 
         nc.publisher(for: NSWindow.didBecomeMainNotification)
-            .sink { [weak self] note in self?.windowDidBecomeMainCallbacks.values.forEach { $0(note) } }
+            .sink { [weak self] note in
+                guard
+                    let window = note.object as? NSWindow
+                else { return }
+                self?.windowDidBecomeMainCallbacks.values.forEach { $0(window, note.userInfo) }
+            }
             .store(in: &cancellables)
 
         nc.publisher(for: NSWindow.didResignMainNotification)
-            .sink { [weak self] note in self?.windowDidResignMainCallbacks.values.forEach { $0(note) } }
+            .sink { [weak self] note in
+                guard
+                    let window = note.object as? NSWindow
+                else { return }
+                self?.windowDidResignMainCallbacks.values.forEach { $0(window, note.userInfo) }
+            }
             .store(in: &cancellables)
     }
 
@@ -157,40 +178,40 @@ public final class AppLifecycleObserver {
     }
 
     /// 添加一个回调，当任意窗口成为 Key 窗口时被调用。
-    /// - Parameter callback: 带通知参数的闭包，会在 `NSWindow.didBecomeKeyNotification` 触发时调用，通知中包含相关窗口信息。
+    /// - Parameter callback: 带窗口和 userInfo 参数的闭包，会在 `NSWindow.didBecomeKeyNotification` 触发时调用，通知中包含相关窗口信息和额外数据。
     /// - Returns: 返回一个 UUID 标识符，用于后续取消订阅。
     @discardableResult
-    public func doOnWindowDidBecomeKey(_ callback: @escaping (Notification) -> Void) -> UUID {
+    public func doOnWindowDidBecomeKey(_ callback: @escaping (NSWindow, [AnyHashable: Any]?) -> Void) -> UUID {
         let id = UUID()
         windowDidBecomeKeyCallbacks[id] = callback
         return id
     }
 
     /// 添加一个回调，当任意窗口失去 Key 窗口时被调用。
-    /// - Parameter callback: 带通知参数的闭包，会在 `NSWindow.didResignKeyNotification` 触发时调用，通知中包含相关窗口信息。
+    /// - Parameter callback: 带窗口和 userInfo 参数的闭包，会在 `NSWindow.didResignKeyNotification` 触发时调用，通知中包含相关窗口信息和额外数据。
     /// - Returns: 返回一个 UUID 标识符，用于后续取消订阅。
     @discardableResult
-    public func doOnWindowDidResignKey(_ callback: @escaping (Notification) -> Void) -> UUID {
+    public func doOnWindowDidResignKey(_ callback: @escaping (NSWindow, [AnyHashable: Any]?) -> Void) -> UUID {
         let id = UUID()
         windowDidResignKeyCallbacks[id] = callback
         return id
     }
 
     /// 添加一个回调，当任意窗口成为 Main 窗口时被调用。
-    /// - Parameter callback: 带通知参数的闭包，会在 `NSWindow.didBecomeMainNotification` 触发时调用，通知中包含相关窗口信息。
+    /// - Parameter callback: 带窗口和 userInfo 参数的闭包，会在 `NSWindow.didBecomeMainNotification` 触发时调用，通知中包含相关窗口信息和额外数据。
     /// - Returns: 返回一个 UUID 标识符，用于后续取消订阅。
     @discardableResult
-    public func doOnWindowDidBecomeMain(_ callback: @escaping (Notification) -> Void) -> UUID {
+    public func doOnWindowDidBecomeMain(_ callback: @escaping (NSWindow, [AnyHashable: Any]?) -> Void) -> UUID {
         let id = UUID()
         windowDidBecomeMainCallbacks[id] = callback
         return id
     }
 
     /// 添加一个回调，当任意窗口失去 Main 窗口时被调用。
-    /// - Parameter callback: 带通知参数的闭包，会在 `NSWindow.didResignMainNotification` 触发时调用，通知中包含相关窗口信息。
+    /// - Parameter callback: 带窗口和 userInfo 参数的闭包，会在 `NSWindow.didResignMainNotification` 触发时调用，通知中包含相关窗口信息和额外数据。
     /// - Returns: 返回一个 UUID 标识符，用于后续取消订阅。
     @discardableResult
-    public func doOnWindowDidResignMain(_ callback: @escaping (Notification) -> Void) -> UUID {
+    public func doOnWindowDidResignMain(_ callback: @escaping (NSWindow, [AnyHashable: Any]?) -> Void) -> UUID {
         let id = UUID()
         windowDidResignMainCallbacks[id] = callback
         return id
