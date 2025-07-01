@@ -2,8 +2,11 @@
 //  XattrWriter.swift
 //  xxf_ios
 //  支持任意类型
+//  macos验证命令 xattr /path/to/file
 //  Created by xxf 6/2.
 //
+
+import CoreGraphics // CGFloat
 import Foundation
 
 public final class XattrWriter {
@@ -17,45 +20,90 @@ public final class XattrWriter {
     ) throws {
         let data: Data
 
-        // 针对基础类型特殊处理，避免无谓 JSON 编码
         switch value {
         case let str as String:
             guard let d = str.data(using: .utf8) else { throw XattrError.encodingFailed }
             data = d
 
         case let int as Int:
-            data = withUnsafeBytes(of: int.bigEndian) { Data($0) }
+            var bigEndian = int.bigEndian
+            data = withUnsafeBytes(of: &bigEndian) { Data($0) }
+
+        case let int8 as Int8:
+            data = withUnsafeBytes(of: int8) { Data($0) }
+
+        case let int16 as Int16:
+            var bigEndian = int16.bigEndian
+            data = withUnsafeBytes(of: &bigEndian) { Data($0) }
+
+        case let int32 as Int32:
+            var bigEndian = int32.bigEndian
+            data = withUnsafeBytes(of: &bigEndian) { Data($0) }
 
         case let int64 as Int64:
-            data = withUnsafeBytes(of: int64.bigEndian) { Data($0) }
+            var bigEndian = int64.bigEndian
+            data = withUnsafeBytes(of: &bigEndian) { Data($0) }
+
+        case let uint as UInt:
+            var bigEndian = uint.bigEndian
+            data = withUnsafeBytes(of: &bigEndian) { Data($0) }
+
+        case let uint8 as UInt8:
+            data = withUnsafeBytes(of: uint8) { Data($0) }
+
+        case let uint16 as UInt16:
+            var bigEndian = uint16.bigEndian
+            data = withUnsafeBytes(of: &bigEndian) { Data($0) }
+
+        case let uint32 as UInt32:
+            var bigEndian = uint32.bigEndian
+            data = withUnsafeBytes(of: &bigEndian) { Data($0) }
+
+        case let uint64 as UInt64:
+            var bigEndian = uint64.bigEndian
+            data = withUnsafeBytes(of: &bigEndian) { Data($0) }
 
         case let float as Float:
-            data = withUnsafeBytes(of: float.bitPattern.bigEndian) { Data($0) }
+            var bitPattern = float.bitPattern.bigEndian
+            data = withUnsafeBytes(of: &bitPattern) { Data($0) }
 
         case let double as Double:
-            data = withUnsafeBytes(of: double.bitPattern.bigEndian) { Data($0) }
+            var bitPattern = double.bitPattern.bigEndian
+            data = withUnsafeBytes(of: &bitPattern) { Data($0) }
+
+        case let cgFloat as CGFloat:
+            #if arch(x86_64) || arch(arm64)
+                // CGFloat 实际是 Double
+                var bitPattern = Double(cgFloat).bitPattern.bigEndian
+                data = withUnsafeBytes(of: &bitPattern) { Data($0) }
+            #else
+                // 32位架构，CGFloat 是 Float
+                var bitPattern = Float(cgFloat).bitPattern.bigEndian
+                data = withUnsafeBytes(of: &bitPattern) { Data($0) }
+            #endif
 
         case let bool as Bool:
             data = Data([bool ? 1 : 0])
 
         case let date as Date:
-            let timestamp = date.timeIntervalSince1970
-            data = withUnsafeBytes(of: timestamp.bitPattern.bigEndian) { Data($0) }
+            var bitPattern = date.timeIntervalSince1970.bitPattern.bigEndian
+            data = withUnsafeBytes(of: &bitPattern) { Data($0) }
 
         case let array as [String]:
-            data = try encoder.encode(array)
+            // 用 plist（二进制格式）编码
+            data = try PropertyListSerialization.data(fromPropertyList: array, format: .binary, options: 0)
 
         case let dict as [String: Any]:
-            guard JSONSerialization.isValidJSONObject(dict) else {
+            guard PropertyListSerialization.propertyList(dict, isValidFor: .binary) else {
                 throw XattrError.encodingFailed
             }
-            data = try JSONSerialization.data(withJSONObject: dict, options: [])
+            data = try PropertyListSerialization.data(fromPropertyList: dict, format: .binary, options: 0)
 
         case let d as Data:
             data = d
 
         default:
-            // 泛型 Encodable fallback 到 JSON
+            // 其他泛型Encodable使用JSON编码
             data = try encoder.encode(value)
         }
 
