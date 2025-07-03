@@ -45,8 +45,13 @@ public protocol NSMetadataProtocol {
     var mdItemContactKeywords: [String]? { get } // 联系关键词
     var mdItemContentCreationDate: Date? { get } // 内容创建日期
     var mdItemContentModificationDate: Date? { get } // 内容修改日期
-    var mdItemContentType: String? { get } // 内容类型 (UTI)
-    var mdItemContentTypeTree: [String]? { get } // 内容类型树
+    var mdItemContentType: String? { get } // 内容类型 (UTI),eg. public.jpeg,public.folder,public.zip-archive
+    /**
+     ["public.jpeg","public.image", "public.data", "public.item","public.content"]
+     ["com.apple.application", "com.apple.bundle", "public.directory", "public.item", "public.content"]
+     ["public.plain-text", "public.text", "public.data", "public.item", "public.content"]
+     */
+    var mdItemContentTypeTree: [String]? { get } // 内容类型树,文件类型所“继承”的所有更通用的 Uniform Type Identifier（UTI）。
     var mdItemContributors: [String]? { get } // 贡献者
     var mdItemCopyright: String? { get } // 版权信息
     var mdItemCountry: String? { get } // 国家
@@ -69,7 +74,7 @@ public protocol NSMetadataProtocol {
     var mdItemInstantMessageAddresses: [String]? { get } // 即时消息地址
     var mdItemInstructions: String? { get } // 说明
     var mdItemKeywords: [String]? { get } // 关键词
-    var mdItemKind: String? { get } // 种类
+    var mdItemKind: String? { get } // 种类,kMDItemKind 是本地化字段，不同语言系统中值不同。eg.JPEG 图像,文件夹
     var mdItemLanguages: [String]? { get } // 语言
     var mdItemLastUsedDate: Date? { get } // 最后使用日期
     var mdItemNamedLocation: String? { get } // 命名位置

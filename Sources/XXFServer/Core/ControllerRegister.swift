@@ -7,8 +7,20 @@
 import Vapor
 
 enum ControllerRegister {
+    #if DEBUG
+        private nonisolated(unsafe) static var usedRouteGroups = Set<String>()
+    #endif
     /// 注册一个 RestApiController 类型的所有 API
     static func register<C: RestApiController>(on app: Application, type _: C.Type, dispatcher: ControllerDispatcher? = nil) {
+        /// 避免路径重复注册替换,debug模式校验就行了
+        #if DEBUG
+            if let group = C.routeGroup, !group.isEmpty {
+                if !usedRouteGroups.insert(group).inserted {
+                    fatalError("Duplicate routeGroup: '\(group)'. Please ensure each RestApiController has a unique routeGroup.")
+                }
+            }
+        #endif
+
         let dispatcher = dispatcher ?? DefaultControllerDispatcher()
         for api in C.allCases {
             let fullPath: [PathComponent] = {
