@@ -11,6 +11,11 @@ import PulseLogHandler
 import PulseProxy
 import XXFExtensions
 
+// 全局屏蔽 print
+public func print(_: Any..., separator _: String = " ", terminator _: String = "\n") {
+    // 不做任何事情，完全屏蔽
+}
+
 public class LogUtils {
     public static let config: Config = .init(logInterceptor: { _ in
         false
