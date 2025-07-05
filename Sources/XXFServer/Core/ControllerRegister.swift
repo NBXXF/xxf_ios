@@ -31,34 +31,36 @@ enum ControllerRegister {
                 }
             }()
             // 调度器中间件 dispatch
-            let handler: @Sendable (Request) -> EventLoopFuture<Response> = { req in
+            let handler: @Sendable (Request) async throws -> Response = { req in
                 let interceptors = C.interceptors
 
                 // 1. willSend 链处理
-                let requestFuture = interceptors.reduce(req.eventLoop.makeSucceededFuture(req)) { future, interceptor in
-                    future.flatMap { interceptor.willSend(request: $0) }
+                var currentReq = req
+                for interceptor in interceptors {
+                    currentReq = try await interceptor.willSend(request: currentReq)
                 }
 
-                return requestFuture.flatMap { finalReq in
-                    let responseFuture = dispatcher.onDispatch(req: finalReq, controller: api)
+                do {
+                    // 2. 调度器调用
+                    var response = try await dispatcher.onDispatch(req: currentReq, controller: api)
 
-                    return responseFuture
-                        // 成功响应时处理
-                        .flatMap { response in
-                            interceptors.reduce(req.eventLoop.makeSucceededFuture(response)) { future, interceptor in
-                                future.flatMap {
-                                    interceptor.didReceive(response: $0, error: nil, for: finalReq)
-                                }
-                            }
+                    // 3. didReceive 链处理成功响应
+                    for interceptor in interceptors {
+                        response = try await interceptor.didReceive(response: response, error: nil, for: currentReq)
+                    }
+
+                    return response
+                } catch {
+                    // 4. didReceive 链处理错误响应
+                    var handledError = error
+                    for interceptor in interceptors {
+                        do {
+                            _ = try await interceptor.didReceive(response: nil, error: handledError, for: currentReq)
+                        } catch {
+                            handledError = error
                         }
-                        // 错误响应时处理
-                        .flatMapError { error in
-                            interceptors.reduce(req.eventLoop.makeFailedFuture(error)) { future, interceptor in
-                                future.flatMapError { err in
-                                    interceptor.didReceive(response: nil, error: err, for: finalReq)
-                                }
-                            }
-                        }
+                    }
+                    throw handledError
                 }
             }
 

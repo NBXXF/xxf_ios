@@ -8,7 +8,7 @@
 
 public protocol Interceptor: Sendable {
     /// 即将请求
-    func willSend(request: Request) -> EventLoopFuture<Request>
+    func willSend(request: Request) async throws -> Request
     /// 已经收到,马上要返回到网络层了
-    func didReceive(response: Response?, error: Error?, for request: Request) -> EventLoopFuture<Response>
+    func didReceive(response: Response?, error: Error?, for request: Request) async throws -> Response
 }

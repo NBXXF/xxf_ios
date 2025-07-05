@@ -215,6 +215,7 @@ let package = Package(
         .target(
             name: "XXFServer",
             dependencies: [
+                "XXFJson",
                 // 接收http请求
                 .product(name: "Vapor", package: "vapor"),
                 // 接收socket

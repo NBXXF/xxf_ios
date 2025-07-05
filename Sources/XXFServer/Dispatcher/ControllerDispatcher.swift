@@ -6,5 +6,5 @@
 //
 public protocol ControllerDispatcher: Sendable {
     /// 使用场景,可以分发成多态, 比如获取正常笔记和笔记历史版本,一般用户用不到
-    func onDispatch<C: RestApiController>(req: Request, controller: C) -> EventLoopFuture<Response>
+    func onDispatch<C: RestApiController>(req: Request, controller: C) async throws -> Response
 }

@@ -8,5 +8,5 @@ import Vapor
 
 public protocol RouteDispatcher: Sendable {
     @Sendable
-    func onDispatch(req: Request) -> EventLoopFuture<Response>
+    func onDispatch(req: Request) async throws -> Response
 }

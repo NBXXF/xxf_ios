@@ -6,6 +6,7 @@
 //  Created by xxf on /6/2.
 //
 import Vapor
+import XXFJson
 
 public protocol RestApiController: RouteDispatcher, CaseIterable, Sendable {
     /// 拦截器
@@ -18,8 +19,10 @@ public protocol RestApiController: RouteDispatcher, CaseIterable, Sendable {
     var method: HTTPMethod { get }
 
     /// 执行响应,通用响应,覆盖99%的场景,当然业务也可以覆盖onDispatch完全自定义
+    /// 执行响应，建议使用 `async` 以支持客户端断开时自动中断, 前提是自己没有包装Task
+    /// 业务可选     try Task.checkCancellation() // 可选，响应 cancel 更敏感, 前提是自己没有包装Task
     @Sendable
-    func onRequest(req: Request) throws -> any BaseResponseDto
+    func onRequest(req: Request) async throws -> any BaseResponseDto
 }
 
 public extension RestApiController {
@@ -33,15 +36,11 @@ public extension RestApiController {
 }
 
 public extension RouteDispatcher where Self: RestApiController {
-    func onDispatch(req: Request) -> EventLoopFuture<Response> {
-        do {
-            let dto = try onRequest(req: req)
-            let encoded = try JSONEncoder().encode(dto)
-            let vaporResponse = Response(status: .ok, body: .init(data: encoded))
-            vaporResponse.headers.contentType = .json
-            return req.eventLoop.makeSucceededFuture(vaporResponse)
-        } catch {
-            return req.eventLoop.makeFailedFuture(error)
-        }
+    func onDispatch(req: Request) async throws -> Response {
+        let dto = try await onRequest(req: req)
+        let encoded = try Json.toJson(dto)
+        let vaporResponse = Response(status: .ok, body: .init(string: encoded))
+        vaporResponse.headers.contentType = .json
+        return vaporResponse
     }
 }

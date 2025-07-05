@@ -10,7 +10,7 @@ import Vapor
 public final class DefaultControllerDispatcher: ControllerDispatcher, @unchecked Sendable {
     public init() {}
 
-    public func onDispatch<C: RestApiController>(req: Request, controller: C) -> EventLoopFuture<Response> {
-        return controller.onDispatch(req: req)
+    public func onDispatch<C: RestApiController>(req: Request, controller: C) async throws -> Response {
+        return try await controller.onDispatch(req: req)
     }
 }
