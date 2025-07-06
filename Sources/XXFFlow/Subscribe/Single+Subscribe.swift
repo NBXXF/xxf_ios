@@ -10,7 +10,7 @@ public extension PrimitiveSequence where Trait == SingleTrait {
     /// 可用bindLifecycle 来绑定生命周期,这里忽略返回值
     /// 解决一致性的问题 onSuccess->onNext
     @discardableResult
-    func subscribeNext(
+    func subscribe(
         onNext: @escaping (Element) -> Void,
         onFailure: ((Swift.Error) -> Void)? = nil,
         onDisposed: (() -> Void)? = nil
