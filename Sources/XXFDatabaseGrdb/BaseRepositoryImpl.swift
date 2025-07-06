@@ -1,7 +1,7 @@
 //
-//  Untitled.swift
+//  BaseRepositoryImpl.swift
 //  xxf_ios
-//  GRDB 实现的BaseService
+//  GRDB 实现的BaseRepositoryImpl
 //  Created by xxfon /6/3.
 //
 import Foundation
@@ -9,9 +9,9 @@ import GRDB
 import XXFDatabase
 import XXFExtensions
 
-open class BaseServiceImpl<PK: DatabaseValueConvertible,
+open class BaseRepositoryImpl<PK: DatabaseValueConvertible,
     Entity: BaseEntity,
-    DAO: BaseDaoImpl<PK, Entity>>: XXFDatabase.BaseService
+    DAO: BaseDaoImpl<PK, Entity>>: XXFDatabase.BaseRepository
 {
     public typealias Query = QueryInterfaceRequest<Entity>
     public typealias ErrorConsumer = (Error) -> Void

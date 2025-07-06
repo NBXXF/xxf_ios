@@ -1,11 +1,11 @@
 //
-//  BaseService.swift
+//  BaseRepository.swift
 //  xxf_ios
-//  数据库通用service，无论底层数据库是objectbox 还是GRDB
+//  数据库通用Repository，无论底层数据库是objectbox 还是GRDB
 //  Created by xxfon /6/3.
 //
 
-public protocol BaseService {
+public protocol BaseRepository {
     associatedtype PK // 主键类型
     associatedtype Entity // 模型
     associatedtype Query // 查询条件构造器类型（这里简单用闭包）

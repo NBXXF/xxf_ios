@@ -4,8 +4,9 @@
 //
 //  Created by xxf on /6/4.
 //
+import XXFDataSource
 
-public protocol SqlDao {
+public protocol SqlDao: LocalDataSource {
     /// 插入/更新/删除 sql, 无返回值
     /// - Parameters:
     ///   - sql: sql description

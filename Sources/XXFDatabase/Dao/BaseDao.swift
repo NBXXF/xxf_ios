@@ -4,8 +4,9 @@
 //  提供通用的dao层
 //  Created by xxf on /6/4.
 //
+import XXFDataSource
 
-public protocol BaseDao {
+public protocol BaseDao: LocalDataSource {
     associatedtype PK // 主键类型
     associatedtype Entity // 模型
     associatedtype Query // 查询条件构造器类型（这里简单用闭包）

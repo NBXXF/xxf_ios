@@ -5,5 +5,6 @@
 //  Created by xxf on /6/9.
 //
 import Moya
+import XXFDataSource
 
-public protocol BaseApiService: TargetType, UserClientAdapterAnnotatable {}
+public protocol BaseApiService: TargetType, RemoteDataSource, UserClientAdapterAnnotatable {}

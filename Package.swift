@@ -149,12 +149,18 @@ let package = Package(
             dependencies: [
                 .product(name: "Moya", package: "Moya"),
                 .product(name: "RxMoya", package: "Moya"),
-                /// 流的拓展
+                "XXFDataSource",
                 "XXFFlow",
             ]
         ),
         .target(
-            name: "XXFDatabase"
+            name: "XXFDataSource"
+        ),
+        .target(
+            name: "XXFDatabase",
+            dependencies: [
+                "XXFDataSource",
+            ]
         ),
         .target(
             name: "XXFDatabaseGrdb",
@@ -165,7 +171,10 @@ let package = Package(
             ]
         ),
         .target(
-            name: "XXFCache"
+            name: "XXFCache",
+            dependencies: [
+                "XXFDataSource",
+            ]
         ),
         .target(
             name: "XXFDi",

@@ -1,11 +1,11 @@
 //
-//  BaseService+Result.swift
+//  BaseRepository+Result.swift
 //  xxf_ios
 //  增加安全性包裹
 //  Created by xxfon /6/4.
 //
 
-public extension BaseService {
+public extension BaseRepository {
     /// 包装安全性处理,建议自定义方法都加上这个,可以用于崩溃处理和全局监听错误或者上报日志
     func runOperation<T>(
         _ operation: () throws -> T?,
