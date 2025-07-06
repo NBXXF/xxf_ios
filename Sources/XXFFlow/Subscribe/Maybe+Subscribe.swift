@@ -23,7 +23,6 @@ public extension PrimitiveSequence where Trait == MaybeTrait {
     /// 可用bindLifecycle 来绑定生命周期,这里忽略返回值
     @discardableResult
     func subscribe() -> Disposable {
-        return subscribe { _ in
-        }
+        return subscribe(onSuccess: nil)
     }
 }
