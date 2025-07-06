@@ -9,7 +9,7 @@ import RxSwift
 public extension PrimitiveSequence where Trait == SingleTrait {
     /// 可用bindLifecycle 来绑定生命周期,这里忽略返回值
     @discardableResult
-    func subscribe(
+    func subscribeNext(
         _ onNext: @escaping (Element) -> Void
     ) -> Disposable {
         return subscribe(onSuccess: onNext)
