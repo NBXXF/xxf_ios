@@ -2,7 +2,7 @@
 //  LogUtils.swift
 //  xxf_ios
 //  底层用swift-log 比os.Logger 更好,生态更好,比如Pulse
-//  Created by xxf on /5/23.
+//  Created by xxf on 5/23.
 //
 import Foundation
 import Logging

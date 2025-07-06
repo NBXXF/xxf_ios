@@ -2,7 +2,7 @@
 //  NSStatusBar+Extension.swift
 //  xxf_ios
 //  NSStatusBar 系统托盘/状态栏
-//  Created by xxf on /5/28.
+//  Created by xxf on 5/28.
 //
 import AppKit
 import ObjectiveC.runtime

@@ -2,7 +2,7 @@
 //  LogInterceptor.swift
 //  xxf_ios
 //
-//  Created by xxf on /5/23.
+//  Created by xxf on 5/23.
 //
 
 /// 返回 true 表示该级别的日志会被拦截（不打印）

@@ -2,7 +2,7 @@
 //  NSLabel.swift
 //  xxf_ios
 //  和uikit 对齐 UILabel
-//  Created by xxf on /5/29.
+//  Created by xxf on 5/29.
 //
 
 import AppKit

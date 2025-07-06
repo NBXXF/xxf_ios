@@ -2,7 +2,7 @@
 //  ProgressHUDStyle.swift
 //  xxf_ios
 //
-//  Created by xxf on /5/27.
+//  Created by xxf on 5/27.
 //
 
 //

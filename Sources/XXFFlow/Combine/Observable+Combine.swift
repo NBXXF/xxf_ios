@@ -3,7 +3,7 @@
 //  Observable+Subscription.swift
 //  xxf_ios
 //
-//  Created by xxf on /5/26.
+//  Created by xxf on 5/26.
 //
 import RxSwift
 

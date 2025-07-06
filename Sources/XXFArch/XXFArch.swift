@@ -2,7 +2,7 @@
 //  XXFArch.swift
 //  xxf_ios
 //  对外暴露模块清单
-//  Created by xxf on /5/27.
+//  Created by xxf on 5/27.
 //
 @_exported import XXFBus
 @_exported import XXFCache
