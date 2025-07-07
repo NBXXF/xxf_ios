@@ -7,15 +7,15 @@
 import Foundation
 
 /// 记录操作行为时间
-/// 约定公共字段
+/// 约定公共字段,gpt主流数据库推荐created_at/updated_at
 public protocol TimeRecordTable: Codable {
     /**
      * 创建时间
      */
-    var createDate: Date { get set }
+    var createdAt: Date { get set }
 
     /**
      * 更新时间
      */
-    var updateDate: Date { get set }
+    var updateAt: Date { get set }
 }
