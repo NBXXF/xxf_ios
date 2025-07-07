@@ -1,5 +1,5 @@
 //
-//  Array+Extension.swift
+//  Array+XXFExtension.swift
 //  xxf_ios
 //  数组拓展
 //  Created by xxf on 7/7.
@@ -12,7 +12,7 @@ public extension Array {
     func mapNotNil<T>(_ transform: (Element) -> T?) -> [T] {
         compactMap(transform)
     }
-    
+
     /// Kotlin: associateBy { it.id } — 默认保留最后一个（覆盖重复 key）
     func associateBy<K: Hashable>(_ keySelector: (Element) -> K) -> [K: Element] {
         var result: [K: Element] = [:]
