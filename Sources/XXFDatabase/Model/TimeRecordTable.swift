@@ -17,5 +17,5 @@ public protocol TimeRecordTable: Codable {
     /**
      * 更新时间
      */
-    var updateAt: Date { get set }
+    var updatedAt: Date { get set }
 }
