@@ -1,5 +1,5 @@
 //
-//  Array+Associate.swift
+//  Array+Extension.swift
 //  xxf_ios
 //  数组拓展
 //  Created by xxf on 7/7.
@@ -8,6 +8,11 @@
 import Foundation
 
 public extension Array {
+    /// 类似 Kotlin 的 mapNotNull，映射并过滤 nil
+    func mapNotNil<T>(_ transform: (Element) -> T?) -> [T] {
+        compactMap(transform)
+    }
+    
     /// Kotlin: associateBy { it.id } — 默认保留最后一个（覆盖重复 key）
     func associateBy<K: Hashable>(_ keySelector: (Element) -> K) -> [K: Element] {
         var result: [K: Element] = [:]
