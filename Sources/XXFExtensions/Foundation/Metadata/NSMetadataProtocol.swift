@@ -35,6 +35,7 @@ public protocol NSMetadataOperationProtocol {
 public protocol NSMetadataProtocol {
     // MARK: - 通用基础属性
 
+    // 对应 st_ctimespec (ctime)
     var mdItemAttributeChangeDate: Date? { get } // 属性变更日期
     var mdItemAudiences: [String]? { get } // 受众群体
     var mdItemAuthors: [String]? { get } // 作者列表
@@ -100,8 +101,8 @@ public protocol NSMetadataProtocol {
 
     // MARK: - 文件系统属性
 
-    var mdItemFSContentChangeDate: Date? { get } // 文件内容变更日期
-    var mdItemFSCreationDate: Date? { get } // 文件创建日期
+    var mdItemFSContentChangeDate: Date? { get } // 文件内容变更日期,对应st_mtimespec (mtime)
+    var mdItemFSCreationDate: Date? { get } // 文件创建日期,对应st_birthtimespec (创建)
     var mdItemFSHasCustomIcon: Bool? { get } // 是否有自定义图标
     var mdItemFSInvisible: Bool? { get } // 是否隐藏
     var mdItemFSIsExtensionHidden: Bool? { get } // 是否隐藏扩展名
