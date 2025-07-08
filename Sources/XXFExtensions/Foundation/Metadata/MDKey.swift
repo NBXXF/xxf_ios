@@ -603,11 +603,13 @@ public enum MDKey {
 
     /// XMP作者署名 (CFString)
     /// 用法示例: value(forAttribute: MDKey.xmpCredit) as? String ?? ""
-    public static let xmpCredit = kMDItemXMPCredit as String
+    // public static let xmpCredit = kMDItemXMPCredit as String ///运行时 macOS 14.6 里已经去掉了这个符号
+    public static let xmpCredit = "kMDItemXMPCredit"
 
     /// XMP数字来源类型 (CFString)
     /// 用法示例: value(forAttribute: MDKey.xmpDigitalSourceType) as? String ?? ""
-    public static let xmpDigitalSourceType = kMDItemXMPDigitalSourceType as String
+    /// public static let xmpDigitalSourceType = kMDItemXMPDigitalSourceType as String  ///运行时 macOS 14.6 里已经去掉了这个符号
+    public static let xmpDigitalSourceType = "kMDItemXMPDigitalSourceType"
 
     // MARK: - 音频/视频属性
 
