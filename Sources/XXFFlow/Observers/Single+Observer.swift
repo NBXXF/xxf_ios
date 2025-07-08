@@ -30,4 +30,11 @@ public extension PrimitiveSequenceType where Trait == SingleTrait {
     func doOnDispose(_ onDispose: @escaping () -> Void) -> PrimitiveSequence<Trait, Element> {
         return self.do(onDispose: onDispose)
     }
+
+    func doOnFinal(_ final: @escaping () -> Void) -> PrimitiveSequence<Trait, Element> {
+        return self
+            .do(afterSuccess: { _ in final() })
+            .do(afterError: { _ in final() })
+            .do(onDispose: final)
+    }
 }

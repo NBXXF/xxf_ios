@@ -42,4 +42,12 @@ public extension ObservableType {
     func doOnDispose(_ onDispose: @escaping () -> Void) -> Observable<Element> {
         return self.do(onDispose: onDispose)
     }
+
+    /// RxJava `doFinally` 等效方法：无论成功、失败、取消，最终都会调用
+    func doOnFinal(_ final: @escaping () -> Void) -> Observable<Element> {
+        return self
+            .do(afterCompleted: final)
+            .do(afterError: { _ in final() })
+            .do(onDispose: final)
+    }
 }

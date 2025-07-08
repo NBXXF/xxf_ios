@@ -42,4 +42,12 @@ public extension PrimitiveSequenceType where Trait == MaybeTrait {
     func doOnDispose(_ onDispose: @escaping () -> Void) -> PrimitiveSequence<MaybeTrait, Element> {
         return self.do(onDispose: onDispose)
     }
+
+    /// RxJava `doFinally` 等效方法：无论成功、完成、失败、取消，最终都会调用
+    func doOnFinal(_ final: @escaping () -> Void) -> PrimitiveSequence<MaybeTrait, Element> {
+        return self
+            .do(afterCompleted: { final() })
+            .do(afterError: { _ in final() })
+            .do(onDispose: final)
+    }
 }
