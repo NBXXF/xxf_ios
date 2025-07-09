@@ -39,15 +39,27 @@ public final class CrashReporterManager {
     }
 
     public func sendAllReports(reports: [Any]?, error: Error?) {
+        let logDirectory = LogUtils.getLogDirectoryURL()
+        do {
+            try FileManager.default.createDirectory(at: logDirectory, withIntermediateDirectories: true)
+        } catch {}
+        let crashFileURL = logDirectory.appendingPathComponent("crash_\(getTimes()).log")
+
         // 1️⃣ Send failed, but we may still have reports to analyze
         if let error = error {
-            logE { "❌ Failed to send crash reports: \(error.localizedDescription)" }
+            let info = "❌ Failed to send crash reports: \(error.localizedDescription)"
+            logE { info }
+            info.writeSafe(to: crashFileURL, appending: true)
 
             if let reports = reports as? [[String: Any]], !reports.isEmpty {
-                logE { "⚠️ Send failed, but received \(reports.count) crash report(s). Printing..." }
+                let reportInfo = "⚠️ Send failed, but received \(reports.count) crash report(s). Printing..."
+                logE { reportInfo }
+                reportInfo.writeSafe(to: crashFileURL, appending: true)
+
                 let formatted = formatCrashReports(reports)
                 for line in formatted {
                     logE { line }
+                    line.writeSafe(to: crashFileURL, appending: true)
                 }
                 crashReportCallback?(formatted, error)
             }
@@ -66,6 +78,7 @@ public final class CrashReporterManager {
         let formatted = formatCrashReports(reports)
         for line in formatted {
             logE { line }
+            line.writeSafe(to: crashFileURL, appending: true)
         }
         crashReportCallback?(formatted, error)
     }
@@ -92,5 +105,48 @@ public final class CrashReporterManager {
         }
 
         return result
+    }
+
+    private func getTimes() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMddHHmmssSSS"
+        let timestamp = formatter.string(from: Date())
+        return timestamp
+    }
+}
+
+private extension Data {
+    /// 写入到指定 URL，如果 `appending == true` 则追加写入，否则覆盖
+    func write(to url: URL, appending: Bool) throws {
+        if appending, FileManager.default.fileExists(atPath: url.path) {
+            let fileHandle = try FileHandle(forWritingTo: url)
+            try fileHandle.seekToEnd()
+            try fileHandle.write(contentsOf: self)
+            try fileHandle.close()
+        } else {
+            try write(to: url)
+        }
+    }
+}
+
+private extension String {
+    private static var lineSeparator: String {
+        #if os(Windows)
+            return "\r\n"
+        #else
+            return "\n"
+        #endif
+    }
+
+    func writeSafe(to url: URL, appending: Bool, encoding: String.Encoding = .utf8) {
+        do {
+            try write(to: url, appending: appending, encoding: encoding)
+        } catch {}
+    }
+
+    /// 写入到指定 URL，如果 `appending == true` 则追加写入，否则覆盖
+    func write(to url: URL, appending: Bool, encoding: String.Encoding = .utf8) throws {
+        let data = "\(String.lineSeparator)\(self)".data(using: encoding) ?? Data()
+        try data.write(to: url, appending: appending)
     }
 }
