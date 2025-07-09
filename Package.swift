@@ -142,6 +142,7 @@ let package = Package(
             dependencies: [
                 .product(name: "RxSwift", package: "RxSwift"),
                 .product(name: "RxCocoa", package: "RxSwift"),
+                .product(name: "RxBlocking", package: "RxSwift"), // ✅ 加上这个
             ]
         ),
         .target(
