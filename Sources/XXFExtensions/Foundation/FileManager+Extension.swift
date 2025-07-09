@@ -62,4 +62,12 @@ public extension FileManager {
 
         return baseDir
     }
+
+    /// 更快的判断文件是不是存储
+    /// - Parameter path: 文件路径
+    /// - Returns: 文件是否存在
+    func fileExistsFast(atPath path: String) -> Bool {
+        var info = stat()
+        return path.withCString { stat($0, &info) == 0 }
+    }
 }
