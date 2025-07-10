@@ -4,7 +4,7 @@
 //  解析原始json
 //  Created by xxf on 7/10.
 //
-
+import Foundation
 public struct RawJsonCodable: Codable, Equatable, Hashable, CustomStringConvertible {
     public let rawJson: String
 
