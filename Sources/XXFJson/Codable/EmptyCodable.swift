@@ -5,4 +5,5 @@
 //  Created by xxf on 7/10.
 //
 import Foundation
+
 public struct EmptyCodable: Codable {}
