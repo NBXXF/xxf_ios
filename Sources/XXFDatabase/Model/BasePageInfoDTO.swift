@@ -21,7 +21,8 @@ open class BasePageInfoDTO<T> {
     /// 当前页数据
     public var list: [T]
 
-    public init(pageNum: Int, pageSize: Int, hasNextPage: Bool, total: Int? = nil, list: [T]) {
+    /// 必须用 required 标记，确保所有子类都实现该初始化器
+    public required init(pageNum: Int, pageSize: Int, hasNextPage: Bool, total: Int? = nil, list: [T]) {
         self.pageNum = pageNum
         self.pageSize = pageSize
         self.hasNextPage = hasNextPage
