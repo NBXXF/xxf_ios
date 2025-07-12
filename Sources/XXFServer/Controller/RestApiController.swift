@@ -8,6 +8,11 @@
 import Vapor
 import XXFJson
 
+/// 解决swift Task和Vapor Task 名字同名冲突
+import struct _Concurrency.Task // 这个导入是隐式的
+
+typealias SwiftTask = _Concurrency.Task
+
 public protocol RestApiController: RouteDispatcher, CaseIterable, Sendable {
     /// 拦截器
     static var interceptors: [Interceptor] { get }
@@ -20,7 +25,7 @@ public protocol RestApiController: RouteDispatcher, CaseIterable, Sendable {
 
     /// 执行响应,通用响应,覆盖99%的场景,当然业务也可以覆盖onDispatch完全自定义
     /// 执行响应，建议使用 `async` 以支持客户端断开时自动中断, 前提是自己没有包装Task
-    /// 业务可选     try Task.checkCancellation() // 可选，响应 cancel 更敏感, 前提是自己没有包装Task
+    /// 业务可选     try SwiftTask.checkCancellation() // 可选，响应 cancel 更敏感, 前提是自己没有包装Task
     @Sendable
     func onRequest(req: Request) async throws -> any BaseResponseDto
 }
