@@ -16,3 +16,4 @@
 @_exported import XXFLog
 @_exported import XXFPerformance
 @_exported import XXFSpeed
+@_exported import XXFTracker

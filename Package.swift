@@ -207,6 +207,7 @@ let package = Package(
                 "XXFCache",
                 "XXFBus",
                 "XXFJson",
+                "XXFTracker",
             ]
         ),
         .target(
@@ -234,6 +235,9 @@ let package = Package(
                 // .product(name: "AsyncHTTPClient", package: "async-http-client"),
             ]
 
+        ),
+        .target(
+            name: "XXFTracker"
         ),
         .testTarget(
             name: "xxf_iosTests",
