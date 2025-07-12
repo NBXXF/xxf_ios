@@ -7,6 +7,9 @@
 
 import Foundation
 
+// 增加命名冲突问题
+public typealias XXFTracer = Tracker
+
 /// 采集错误、日志等，支持同步 & 异步，多渠道并发安全上报
 public final class Tracker: @unchecked Sendable {
     public static let shared = Tracker()
