@@ -22,17 +22,18 @@ public enum LikeMatchMode {
 
 public extension SQLSpecificExpressible {
     /// 安全的 SQL LIKE 查询，支持 ESCAPE、大小写控制和多种匹配模式
-    /// 比自带的like更好用
+    /// 比自带的 like 更好用
+    ///
     /// - Parameters:
-    ///   - keyword:         要匹配的关键字，内部自动转义 `%`、`_` 和 `\`
-    ///   - escape:          ESCAPE 子句使用的 SQL 表达式，默认 `"\\"`（传入 `nil` 则不使用 ESCAPE）
-    ///   - caseInsensitive: 是否忽略大小写，默认 `true`
-    ///   - matchMode:       匹配模式，默认全模糊（%keyword%）
+    ///   - keyword:       要匹配的关键字，内部自动转义 `%`、`_` 和 `\`
+    ///   - escape:        ESCAPE 子句使用的 SQL 表达式，默认 `"\\"`（传入 `nil` 则不使用 ESCAPE）
+    ///   - caseSensitive: 是否区分大小写，默认 `true`（区分大小写）
+    ///   - matchMode:     匹配模式，默认全模糊（%keyword%）
     /// - Returns: 构建好的 `SQLExpression`
     func contains(
         _ keyword: String,
         escape: (any SQLExpressible)? = "\\",
-        caseInsensitive: Bool = true,
+        caseSensitive: Bool = true,
         matchMode: LikeMatchMode = .contains
     ) -> SQLExpression {
         // 1. 根据 escape 是否为 nil 决定 pattern 和 escapeExpr
@@ -51,9 +52,9 @@ public extension SQLSpecificExpressible {
         // 2. 将 self 转为 SQLExpression，并可选添加 COLLATE NOCASE
         let columnExpr: SQLExpression = {
             let base = self.sqlExpression
-            return caseInsensitive
-                ? base.collating(.nocase)
-                : base
+            return caseSensitive
+                ? base // 区分大小写：不加 COLLATE
+                : base.collating(.nocase) // 不区分大小写：加 NOCASE
         }()
 
         // 3. 调用对应的 like API
