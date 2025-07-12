@@ -1,0 +1,91 @@
+//  BugsnagTracker.swift
+//  xxf_ios
+//
+//  Created by xxf on 7/12.
+//
+
+import Bugsnag
+import Foundation
+import XXFTracker
+
+/// 使用 Bugsnag 作为上报渠道
+public final class BugsnagTracker: ChanelTracker {
+    public init(apiKey: String) {
+        guard !Bugsnag.isStarted() else { return }
+
+        let config = BugsnagConfiguration(apiKey)
+        config.releaseStage = Self.detectEnvironment()
+        config.appVersion = Self.detectAppVersion()
+        config.autoTrackSessions = true
+        config.enabledErrorTypes.appHangs = true
+        config.enabledBreadcrumbTypes = [.navigation, .user, .log, .state]
+
+        // 可选：自定义 beforeSend 逻辑
+        config.addOnSendError { _ in
+            // 过滤开发环境、或特定错误等
+            true
+        }
+
+        Bugsnag.start(with: config)
+    }
+
+    public init(config: BugsnagConfiguration) {
+        guard !Bugsnag.isStarted() else { return }
+        Bugsnag.start(with: config)
+    }
+
+    // MARK: - 可选辅助方法
+
+    private static func detectEnvironment() -> String {
+        #if DEBUG
+            return "development"
+        #else
+            return "production"
+        #endif
+    }
+
+    private static func detectAppVersion() -> String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+    }
+
+    /// 上报到 Bugsnag
+    /// - Parameters:
+    ///   - data: 转换器返回的字符串信息
+    ///   - extra: 附加的键值对信息
+    public func onTracking(data: String, extra: [AnyHashable: Any]) {
+        // 1. 判断 breadcrumb 类型
+        let breadcrumbType: BSGBreadcrumbType = {
+            let lower = data.lowercased()
+            if lower.contains("error") || lower.contains("exception") || lower.contains("fail") {
+                return .error
+            } else {
+                return .log
+            }
+        }()
+
+        // 2. 留下面包屑
+        Bugsnag.leaveBreadcrumb(
+            data,
+            metadata: extra,
+            type: breadcrumbType
+        )
+
+        // 3. 上报错误
+        if let errorName = extra[ErrorTrackerConverter.KEY_ERROR_NAME] as? String {
+            var userInfo = extra.reduce(into: [String: Any]()) { dict, pair in
+                let (key, value) = pair
+                dict[String(describing: key)] = value
+            }
+
+            // 设置错误描述，便于后台查看
+            userInfo[NSLocalizedDescriptionKey] = errorName
+
+            let nsError = NSError(
+                domain: "com.xxf.tracker",
+                code: 0,
+                userInfo: userInfo
+            )
+            Bugsnag.notifyError(nsError)
+        }
+    }
+}

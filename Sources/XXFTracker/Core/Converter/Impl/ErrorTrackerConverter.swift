@@ -7,7 +7,7 @@
 import Foundation
 
 public class ErrorTrackerConverter: TrackerConverter {
-    public static let KEY_THROWABLE_NAME = "error_name"
+    public static let KEY_ERROR_NAME = "error_name"
 
     public func convert(data: Any, extra: inout [AnyHashable: Any], chanel _: ChanelTracker) -> String? {
         // 判断 data 是否为 Error 类型（对应 Kotlin Throwable）
@@ -21,7 +21,7 @@ public class ErrorTrackerConverter: TrackerConverter {
 //                    result += " for body: \(bodyJson)"
 //                }
 
-            extra[ErrorTrackerConverter.KEY_THROWABLE_NAME] = String(describing: type(of: error))
+            extra[ErrorTrackerConverter.KEY_ERROR_NAME] = String(describing: type(of: error))
             return result
         }
         return nil

@@ -80,6 +80,10 @@ let package = Package(
             name: "XXFServer",
             targets: ["XXFServer"]
         ),
+        .library(
+            name: "XXFTrackerBugsnag",
+            targets: ["XXFTrackerBugsnag"]
+        ),
     ],
     dependencies: [
         // 第三方依赖写这里
@@ -103,6 +107,9 @@ let package = Package(
 
         /// hud组件
         // .package(url: "https://github.com/relatedcode/ProgressHUD", from: "14.1.3"),
+
+        /// 免费的错误统计
+        .package(url: "https://github.com/bugsnag/bugsnag-cocoa", from: "6.32.2"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -238,6 +245,14 @@ let package = Package(
         ),
         .target(
             name: "XXFTracker"
+        ),
+        .target(
+            name: "XXFTrackerBugsnag",
+            dependencies: [
+                "XXFTracker",
+                // 把 Bugsnag 框架添加到你的 Target
+                .product(name: "Bugsnag", package: "bugsnag-cocoa"),
+            ]
         ),
         .testTarget(
             name: "xxf_iosTests",
