@@ -93,22 +93,23 @@ public final class BugsnagTracker: ChanelTracker {
             type: breadcrumbType
         )
 
-        // 3. 上报错误
-        if let errorName = extra[ErrorTrackerConverter.KEY_ERROR_NAME] as? String {
-            var userInfo = extra.reduce(into: [String: Any]()) { dict, pair in
-                let (key, value) = pair
-                dict[String(describing: key)] = value
-            }
-
-            // 设置错误描述，便于后台查看
-            userInfo[NSLocalizedDescriptionKey] = errorName
-
-            let nsError = NSError(
-                domain: "com.xxf.tracker",
-                code: 0,
-                userInfo: userInfo
-            )
-            Bugsnag.notifyError(nsError)
+        // 3. 构造 userInfo
+        var userInfo = extra.reduce(into: [String: Any]()) { dict, pair in
+            let (key, value) = pair
+            dict[String(describing: key)] = value
         }
+
+        // 如果存在错误名，设置错误描述
+        if let errorName = extra[ErrorTrackerConverter.KEY_ERROR_NAME] as? String {
+            userInfo[NSLocalizedDescriptionKey] = errorName
+        }
+
+        // 4. 无论如何都上报错误
+        let nsError = NSError(
+            domain: "com.xxf.tracker",
+            code: 0,
+            userInfo: userInfo
+        )
+        Bugsnag.notifyError(nsError)
     }
 }
