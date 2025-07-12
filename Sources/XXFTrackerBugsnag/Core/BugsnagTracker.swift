@@ -5,14 +5,20 @@
 //
 
 import Bugsnag
+
+// import BugsnagPerformance
 import Foundation
 import XXFTracker
 
 /// 使用 Bugsnag 作为上报渠道
 public final class BugsnagTracker: ChanelTracker {
+    /// 初始化
+    /// - Parameters:
+    ///   - apiKey: appkey
     public init(apiKey: String) {
         guard !Bugsnag.isStarted() else { return }
 
+        // —— 1. 配置 Crash + Hang 检测 ——
         let config = BugsnagConfiguration(apiKey)
         config.releaseStage = Self.detectEnvironment()
         config.appVersion = Self.detectAppVersion()
@@ -26,12 +32,29 @@ public final class BugsnagTracker: ChanelTracker {
             true
         }
 
+        // 启动 Bugsnag（会自动捕获 Crash、Signal Crash、OOM、Hang）
         Bugsnag.start(with: config)
+
+//        // —— 2. 配置 Performance Monitoring ——
+//        // 如果你希望收集网络、UI 渲染等性能指标
+//        let perfConfig = BugsnagPerformanceConfiguration(apiKey: apiKey)
+//        // 可选：调整采样率或自定义事务埋点
+//        // perfConfig.sampleRate = 0.5  // 50% 采样
+//        BugsnagPerformance.start(configuration: perfConfig)
     }
 
-    public init(config: BugsnagConfiguration) {
+    public init(config: BugsnagConfiguration,
+                //   perfConfig: BugsnagPerformanceConfiguration? = nil
+    ) {
         guard !Bugsnag.isStarted() else { return }
+
+        // 启动 Bugsnag（会自动捕获 Crash、Signal Crash、OOM、Hang）
         Bugsnag.start(with: config)
+//
+//        // 如果你希望收集网络、UI 渲染等性能指标
+//        if let perfConfig = perfConfig {
+//            BugsnagPerformance.start(configuration: perfConfig)
+//        }
     }
 
     // MARK: - 可选辅助方法

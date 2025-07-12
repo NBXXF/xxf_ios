@@ -110,6 +110,8 @@ let package = Package(
 
         /// 免费的错误统计
         .package(url: "https://github.com/bugsnag/bugsnag-cocoa", from: "6.32.2"),
+        // 仅仅支持ios
+        // .package(url: "https://github.com/bugsnag/bugsnag-cocoa-performance.git", exact: "1.14.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -252,6 +254,7 @@ let package = Package(
                 "XXFTracker",
                 // 把 Bugsnag 框架添加到你的 Target
                 .product(name: "Bugsnag", package: "bugsnag-cocoa"),
+                // .product(name: "BugsnagPerformance", package: "bugsnag-cocoa-performance"),
             ]
         ),
         .testTarget(
