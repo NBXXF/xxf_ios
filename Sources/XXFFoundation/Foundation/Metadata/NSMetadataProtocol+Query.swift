@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+#if os(macOS)
 public extension NSMetadataOperationProtocol {
     // MARK: - 通用基础属性
 
@@ -534,3 +534,4 @@ public extension NSMetadataOperationProtocol {
         value(forMetadataItem: MDKey.userTags)
     }
 }
+#endif

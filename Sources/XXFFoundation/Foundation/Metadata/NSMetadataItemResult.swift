@@ -7,6 +7,7 @@
 import Foundation
 
 /// 字段信息 请查看协议里面的注释
+#if os(macOS)
 open class NSMetadataItemResult: NSMetadataProtocol {
     open var mdItemAttributeChangeDate: Date?
 
@@ -519,3 +520,4 @@ open class NSMetadataItemResult: NSMetadataProtocol {
         mdItemUserTags = metadataItem.mdItemUserTags
     }
 }
+#endif

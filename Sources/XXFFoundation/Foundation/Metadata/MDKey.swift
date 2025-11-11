@@ -11,6 +11,7 @@
  https://developer.apple.com/documentation/coreservices/file_metadata/mditem/common_metadata_attribute_keys
  https://developer.apple.com/library/archive/documentation/CoreServices/Reference/MetadataAttributesRef/Reference/CommonAttrs.html
  */
+#if os(macOS)
 import CoreServices
 
 public enum MDKey {
@@ -844,3 +845,4 @@ public enum MDKey {
     /// 用法示例: value(forAttribute: MDKey.userTags) as? [String]
     public static let userTags = "kMDItemUserTags"
 }
+#endif
