@@ -6,6 +6,7 @@
 //  Created by xxf on 6/12.
 //
 
+#if os(macOS)
 import CoreServices
 import Foundation
 
@@ -15,3 +16,4 @@ extension MDItem: NSMetadataOperationProtocol {
         MDItemCopyAttribute(self, key as CFString) as? T
     }
 }
+#endif

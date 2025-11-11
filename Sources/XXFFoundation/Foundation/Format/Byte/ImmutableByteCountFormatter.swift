@@ -82,12 +82,12 @@ public final class ImmutableByteCountFormatter {
             newFormatter.allowsNonnumericFormatting = configuration.allowsNonnumericFormatting
 
             // 高版本才支持的属性
-            #if compiler(>=5.9) && canImport(UIKit) // Swift 5.9 / Xcode 15+
-                if #available(iOS 17.0, macOS 14.0, *) {
-                    newFormatter.locale = configuration.locale
-                    newFormatter.includesApproximationPhrase = configuration.includesApproximationPhrase
-                }
-            #endif
+//            #if compiler(>=5.9) && canImport(UIKit) // Swift 5.9 / Xcode 15+
+//                if #available(iOS 17.0, macOS 14.0, *) {
+//                    newFormatter.locale = configuration.locale
+//                    newFormatter.includesApproximationPhrase = configuration.includesApproximationPhrase
+//                }
+//            #endif
 
             Thread.current.threadDictionary[cacheKey] = newFormatter
             formatter = newFormatter
