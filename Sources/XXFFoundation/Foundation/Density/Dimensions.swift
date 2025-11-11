@@ -15,13 +15,27 @@ import CoreGraphics
 /// 屏幕分辨率缩放参数
 public var screenScale: CGFloat {
     #if canImport(UIKit)
+    if #available(iOS 13.0, *) {
+        // 在主线程或 MainActor 上安全访问 UIScreen.main
+        return MainActor.assumeIsolated {
+            UIScreen.main.scale
+        }
+    } else {
         return UIScreen.main.scale
+    }
     #elseif canImport(AppKit)
+    if #available(macOS 10.15, *) {
+        return MainActor.assumeIsolated {
+            NSScreen.main?.backingScaleFactor ?? 2
+        }
+    } else {
         return NSScreen.main?.backingScaleFactor ?? 2
+    }
     #else
-        return 1 // 兜底：其他平台（Linux、server side Swift 等）
+    return 1 // 其他平台
     #endif
 }
+
 
 // 统一的适配系数，可以根据屏幕、设备动态设置
 public enum SizeAdapter {
