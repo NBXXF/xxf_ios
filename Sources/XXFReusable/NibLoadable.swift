@@ -15,7 +15,7 @@ public protocol NibLoadable: AnyObject {
 }
 
 // MARK: Default implementation
-
+@MainActor
 public extension NibLoadable {
   /// By default, use the nib which have the same name as the name of the class,
   /// and located in the bundle of that class
@@ -25,7 +25,7 @@ public extension NibLoadable {
 }
 
 // MARK: Support for instantiation from NIB
-
+@MainActor
 public extension NibLoadable where Self: UIView {
   /**
    Returns a `UIView` object instantiated from nib
