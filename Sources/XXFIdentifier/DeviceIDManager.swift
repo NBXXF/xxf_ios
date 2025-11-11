@@ -13,6 +13,10 @@ import XXFKeychain
 import IOKit
 #endif
 
+#if os(iOS)
+import UIKit
+#endif
+
 public enum DeviceIDManager {
     private nonisolated(unsafe) static var cachedID: String?
 
@@ -45,17 +49,26 @@ public enum DeviceIDManager {
             return id
         }
 
-        // 2. 硬件级 UUID
+        // 平台相关：macOS/Catalyst 使用 IOKit 常量获取硬件 UUID/序列号；iOS 使用 identifierForVendor
+        #if targetEnvironment(macCatalyst) || os(macOS)
+        // 2. 硬件级 UUID (macOS / Catalyst)
         if let uuid = ioPlatformProperty(kIOPlatformUUIDKey as CFString), isValidID(uuid) {
             writeToCache(uuid)
             return uuid
         }
 
-        // 3. 系列号
+        // 3. 系列号 (macOS / Catalyst)
         if let serial = ioPlatformProperty(kIOPlatformSerialNumberKey as CFString), isValidID(serial) {
             writeToCache(serial)
             return serial
         }
+        #elseif os(iOS)
+        // iOS: 使用 identifierForVendor 作为硬件级近似 ID（系统允许的接口）
+        if let idfv = UIDevice.current.identifierForVendor?.uuidString, isValidID(idfv) {
+            writeToCache(idfv)
+            return idfv
+        }
+        #endif
 
         // 4. 随机 UUID
         let randomID = UUID().uuidString
@@ -153,7 +166,7 @@ public enum DeviceIDManager {
     private static func ioPlatformProperty(_ key: CFString) -> String? {
         #if targetEnvironment(macCatalyst) || os(macOS)
         // macOS / Catalyst: 使用原始 IOKit
-        guard let iokitAvailable = NSClassFromString("IOService") else { return nil }
+        guard NSClassFromString("IOService") != nil else { return nil }
         let service = IOServiceGetMatchingService(kIOMainPortDefault,
                                                   IOServiceMatching("IOPlatformExpertDevice"))
         defer { IOObjectRelease(service) }
@@ -168,16 +181,8 @@ public enum DeviceIDManager {
             return nil
         }
         return value
-        #elseif os(iOS)
-        // iOS: 使用 identifierForVendor
-        if key as String == kIOPlatformUUIDKey as String {
-            if let idfv = UIDevice.current.identifierForVendor?.uuidString, !idfv.isEmpty {
-                return idfv
-            }
-        }
-        // iOS 不支持序列号获取
-        return nil
         #else
+        // 其他平台不支持 IOKit
         return nil
         #endif
     }
