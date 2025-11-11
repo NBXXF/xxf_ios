@@ -4,6 +4,7 @@
 //  ViewController级别的viewModel 存储器
 //  Created by xxf on 8/14.
 //
+#if os(macOS)
 import AppKit
 import Foundation
 
@@ -25,3 +26,4 @@ extension NSViewController: ViewModelStoreOwner {
         }
     }
 }
+#endif

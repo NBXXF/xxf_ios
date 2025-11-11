@@ -4,7 +4,7 @@
 //  日志界面
 //  Created by xxfon 5/30.
 //
-
+#if os(macOS)
 import Pulse
 import PulseUI
 import SwiftUI
@@ -21,3 +21,4 @@ public class LogViewController: NSHostingController<ConsoleView> {
         fatalError("init(coder:) has not been implemented")
     }
 }
+#endif

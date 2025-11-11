@@ -4,7 +4,7 @@
 //  window级别的viewModel装饰器
 //  Created by xxf on 8/14.
 //
-
+#if os(macOS)
 import AppKit
 import Foundation
 
@@ -42,3 +42,4 @@ public final class WindowViewModelBinding<VM: ViewModel> {
         value
     }
 }
+#endif
