@@ -4,7 +4,7 @@
 //  使用 URLResourceValues 填充 NSMetadataProtocol
 //  Created by xxf on 9/12.
 //
-
+#if os(macOS)
 import Foundation
 import UniformTypeIdentifiers
 
@@ -247,3 +247,4 @@ public class URLResourceMetadata: NSMetadataProtocol {
     public lazy var mdItemPageWidth: Double? = nil
     public lazy var mdItemUserTags: [String]? = nil
 }
+#endif

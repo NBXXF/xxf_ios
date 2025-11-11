@@ -4,7 +4,7 @@
 //  文件tag操作api
 //  Created by xxf on 6/12.
 //
-
+#if os(macOS)
 import Foundation
 
 /**
@@ -70,3 +70,4 @@ public extension URL {
         }
     }
 }
+#endif

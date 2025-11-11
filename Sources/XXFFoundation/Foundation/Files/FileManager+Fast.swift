@@ -242,6 +242,7 @@ public extension FileManager {
     /// 快速获取文件大小
     /// - Parameter path: 文件路径
     /// - Parameter recursive: 是否深度递归,默认true
+    @available(macOS 10.8, *)
     func fileSizeFast(atPath path: String, recursive: Bool = true) -> UInt64 {
         if recursive {
             return countFilesAndSizesFast(atPath: path).totalSize
