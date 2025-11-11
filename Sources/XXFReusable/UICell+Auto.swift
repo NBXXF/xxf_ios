@@ -8,6 +8,6 @@
 #if canImport(UIKit)
 import UIKit
 
-public extension UITableViewCell: Reusable {}
-public extension UICollectionViewCell: Reusable {}
+extension UITableViewCell: Reusable {}
+extension UICollectionViewCell: Reusable {}
 #endif
