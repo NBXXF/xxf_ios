@@ -104,7 +104,7 @@ public extension FileManager {
     }
 
     func isBundleFile(atPath path: String) -> Bool {
-        return isBundleFile(for: URL(filePath: path))
+        return isBundleFile(for: URL(fileURLWithPath: path))
     }
 
     /// 检查URL是否指向Bundle类型文件
