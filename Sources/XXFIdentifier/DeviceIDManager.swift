@@ -17,6 +17,7 @@ import IOKit
 import UIKit
 #endif
 
+@MainActor
 public enum DeviceIDManager {
     private nonisolated(unsafe) static var cachedID: String?
 
