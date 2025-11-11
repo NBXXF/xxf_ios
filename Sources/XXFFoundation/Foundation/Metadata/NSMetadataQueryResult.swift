@@ -5,7 +5,7 @@
 //  Created by xxf on 6/12.
 //
 import Foundation
-
+#if os(macOS)
 /// Spotlight 支持的字段
 public struct NSMetadataQueryResult: NSMetadataProtocol, NSMetadataOperationProtocol {
     public var metadataDict: [String: Any]
@@ -747,3 +747,4 @@ extension NSMetadataQueryResult {
             .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
     }
 }
+#endif
