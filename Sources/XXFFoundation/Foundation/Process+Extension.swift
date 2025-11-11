@@ -5,6 +5,7 @@
 //  Created by xxf on 6/17.
 //
 
+#if os(macOS)
 import Darwin
 import Foundation
 
@@ -331,3 +332,4 @@ public extension Process {
         return false
     }
 }
+#endif
