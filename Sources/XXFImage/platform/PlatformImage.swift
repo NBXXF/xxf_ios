@@ -10,11 +10,12 @@
         import UIKit
 
         public typealias PlatformImage = UIImage
-        @usableFromInline let kUTTypeJPEG = "public.jpeg" as CFString
-        @usableFromInline let kUTTypePNG = "public.png" as CFString
-        @usableFromInline let kUTTypeTIFF = "public.tiff" as CFString
-        @usableFromInline let kUTTypeGIF = "com.compuserve.gif" as CFString
-        @usableFromInline let kUTTypePDF = "com.adobe.pdf" as CFString
+        
+        @usableFromInline nonisolated(unsafe) let kUTTypeJPEG = "public.jpeg" as CFString
+        @usableFromInline nonisolated(unsafe) let kUTTypePNG = "public.png" as CFString
+        @usableFromInline nonisolated(unsafe) let kUTTypeTIFF = "public.tiff" as CFString
+        @usableFromInline nonisolated(unsafe) let kUTTypeGIF = "com.compuserve.gif" as CFString
+        @usableFromInline nonisolated(unsafe) let kUTTypePDF = "com.adobe.pdf" as CFString
     #endif
 
     // HEIC definition.
