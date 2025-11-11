@@ -6,7 +6,7 @@ import Foundation
 //
 //  Created by xxf on 6/12.
 //
-
+#if os(macOS)
 import CoreServices
 import Foundation
 
@@ -561,3 +561,4 @@ extension URL: NSMetadataProtocol, NSMetadataOperationProtocol {
         value(forMetadataItem: MDKey.userTags)
     }
 }
+#endif
