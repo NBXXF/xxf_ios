@@ -40,10 +40,10 @@ let package = Package(
 //            name: "XXFHttp",
 //            targets: ["XXFHttp"]
 //        ),
-        .library(
-            name: "XXFDatabase",
-            targets: ["XXFDatabase"]
-        ),
+//        .library(
+//            name: "XXFDatabase",
+//            targets: ["XXFDatabase"]
+//        ),
         .library(
             name: "XXFDatabaseGrdb",
             targets: ["XXFDatabaseGrdb"]
