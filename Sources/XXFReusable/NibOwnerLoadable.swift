@@ -16,6 +16,7 @@ public protocol NibOwnerLoadable: AnyObject {
 
 // MARK: Default implementation
 
+@MainActor
 public extension NibOwnerLoadable {
   /// By default, use the nib which have the same name as the name of the class,
   /// and located in the bundle of that class
@@ -25,7 +26,7 @@ public extension NibOwnerLoadable {
 }
 
 // MARK: Support for instantiation from NIB
-
+@MainActor
 public extension NibOwnerLoadable where Self: UIView {
   /**
    Adds content loaded from the nib to the end of the receiver's list of subviews and adds constraints automatically.
