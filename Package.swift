@@ -11,10 +11,10 @@ let package = Package(
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "XXFAppkit",
-            targets: ["XXFAppkit"]
-        ),
+//        .library(
+//            name: "XXFAppkit",
+//            targets: ["XXFAppkit"]
+//        ),
         .library(
             name: "XXFFoundation",
             targets: ["XXFFoundation"]
@@ -155,14 +155,14 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
             ]
         ),
-        .target(
-            name: "XXFAppkit",
-            dependencies: [
-                "XXFViewModel",
-                "XXFImageLoader",
-                "XXFImageNukeLoader",
-            ]
-        ),
+//        .target(
+//            name: "XXFAppkit",
+//            dependencies: [
+//                "XXFViewModel",
+//                "XXFImageLoader",
+//                "XXFImageNukeLoader",
+//            ]
+//        ),
         .target(
             name: "XXFViewModel",
             dependencies: [
@@ -326,13 +326,13 @@ let package = Package(
                 "XXFImage",
             ]
         ),
-        .target(
-            name: "XXFImageNukeLoader",
-            dependencies: [
-                "XXFImageLoader",
-                .product(name: "Nuke", package: "Nuke"),
-            ]
-        ),
+//        .target(
+//            name: "XXFImageNukeLoader",
+//            dependencies: [
+//                "XXFImageLoader",
+//                .product(name: "Nuke", package: "Nuke"),
+//            ]
+//        ),
         .target(
             name: "XXFTrackerBugsnag",
             dependencies: [
