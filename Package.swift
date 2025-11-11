@@ -270,7 +270,10 @@ let package = Package(
                 "XXFTracker",
                 "XXFKeychain",
                 "XXFIdentifier",
-                "XXFReusable"
+                "XXFReusable",
+                "XXFViewModel",
+                "XXFImageLoader",
+                "XXFImageNukeLoader",
             ]
         ),
         .target(
@@ -330,13 +333,13 @@ let package = Package(
                 "XXFImage",
             ]
         ),
-//        .target(
-//            name: "XXFImageNukeLoader",
-//            dependencies: [
-//                "XXFImageLoader",
-//                .product(name: "Nuke", package: "Nuke"),
-//            ]
-//        ),
+        .target(
+            name: "XXFImageNukeLoader",
+            dependencies: [
+                "XXFImageLoader",
+                .product(name: "Nuke", package: "Nuke"),
+            ]
+        ),
         .target(
             name: "XXFTrackerBugsnag",
             dependencies: [

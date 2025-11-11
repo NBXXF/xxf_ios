@@ -26,7 +26,8 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
         loaderQueue.maxConcurrentOperationCount = 8 // 限制并发
     }) {
         self.loaderQueue = loaderQueue
-        imageFectchers = [LocalFileThumbnailDataFetcher(), LocalResourceDataFetcher()]
+        imageFectchers = [//LocalFileThumbnailDataFetcher(),
+                          LocalResourceDataFetcher()]
         initNuke()
     }
 
