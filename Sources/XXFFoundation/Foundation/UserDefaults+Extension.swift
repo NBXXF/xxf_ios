@@ -28,11 +28,11 @@ public extension UserDefaults {
     /// - 兼容 iOS、macOS（包括非沙盒）
     func clearAll() {
         // 1. 在 iOS 或沙盒 macOS 下，先移除所有持久化域
-        #if !os(macOS)
-            for domain in persistentDomainNames() {
-                removePersistentDomain(forName: domain)
-            }
-        #endif
+//        #if !os(macOS)
+//            for domain in persistentDomainNames() {
+//                removePersistentDomain(forName: domain)
+//            }
+//        #endif
 
         // 2. 遍历删除所有残留键值
         for key in dictionaryRepresentation().keys {
