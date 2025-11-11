@@ -16,12 +16,21 @@ import CoreGraphics
 public var screenScale: CGFloat {
     #if canImport(UIKit)
     if #available(iOS 13.0, *) {
-        // 在主线程或 MainActor 上安全访问 UIScreen.main
+        // Swift 5.9+ 主线程隔离安全访问
         return MainActor.assumeIsolated {
             UIScreen.main.scale
         }
     } else {
-        return UIScreen.main.scale
+        // 旧系统版本 fallback：确保在主线程访问
+        var scale: CGFloat = 2
+        if Thread.isMainThread {
+            scale = UIScreen.main.scale
+        } else {
+            DispatchQueue.main.sync {
+                scale = UIScreen.main.scale
+            }
+        }
+        return scale
     }
     #elseif canImport(AppKit)
     if #available(macOS 10.15, *) {
@@ -29,12 +38,21 @@ public var screenScale: CGFloat {
             NSScreen.main?.backingScaleFactor ?? 2
         }
     } else {
-        return NSScreen.main?.backingScaleFactor ?? 2
+        var scale: CGFloat = 2
+        if Thread.isMainThread {
+            scale = NSScreen.main?.backingScaleFactor ?? 2
+        } else {
+            DispatchQueue.main.sync {
+                scale = NSScreen.main?.backingScaleFactor ?? 2
+            }
+        }
+        return scale
     }
     #else
     return 1 // 其他平台
     #endif
 }
+
 
 
 // 统一的适配系数，可以根据屏幕、设备动态设置
