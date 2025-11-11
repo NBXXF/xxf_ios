@@ -284,7 +284,12 @@ public extension URL {
     /// - Parameter percentEncoded: 是否进行特殊编码,一般网络请求才需要
     /// - Returns: 路径
     func standardizedFilePath(percentEncoded: Bool = false) -> String {
-        return standardizedFileURL.path(percentEncoded: percentEncoded)
+        if #available(iOS 16, *) {
+              return standardizedFileURL.path(percentEncoded: percentEncoded)
+          } else {
+              // fallback: iOS 16 以下只能使用 path（未编码）
+              return standardizedFileURL.path
+          }
     }
 
     enum HierarchyRelation: Equatable {
