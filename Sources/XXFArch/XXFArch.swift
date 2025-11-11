@@ -20,3 +20,5 @@
 @_exported import XXFPerformance
 @_exported import XXFSpeed
 @_exported import XXFTracker
+@_exported import XXFKeychain
+@_exported import XXFReusable
