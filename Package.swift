@@ -15,10 +15,10 @@ let package = Package(
 //            name: "XXFAppkit",
 //            targets: ["XXFAppkit"]
 //        ),
-        .library(
-            name: "XXFFoundation",
-            targets: ["XXFFoundation"]
-        ),
+//        .library(
+//            name: "XXFFoundation",
+//            targets: ["XXFFoundation"]
+//        ),
         // 不对外暴露
 //        .library(
 //            name: "XXFExtensions",
@@ -84,10 +84,10 @@ let package = Package(
             name: "XXFServer",
             targets: ["XXFServer"]
         ),
-        .library(
-            name: "XXFKeychain",
-            targets: ["XXFKeychain"]
-        ),
+//        .library(
+//            name: "XXFKeychain",
+//            targets: ["XXFKeychain"]
+//        ),
         .library(
             name: "XXFTrackerBugsnag",
             targets: ["XXFTrackerBugsnag"]
@@ -270,10 +270,14 @@ let package = Package(
                 "XXFTracker",
                 "XXFKeychain",
                 "XXFIdentifier",
+                "XXFReusable"
             ]
         ),
         .target(
             name: "XXFPerformance"
+        ),
+        .target(
+            name: "XXFReusable"
         ),
         .target(
             name: "XXFBus",
