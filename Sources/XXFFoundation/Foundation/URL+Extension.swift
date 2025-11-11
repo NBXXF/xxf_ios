@@ -4,7 +4,7 @@
 //
 //  Created by xxf on /6/15.
 //
-
+#if os(macOS)
 import Foundation
 import XXFSpeed
 
@@ -349,3 +349,4 @@ public extension URL {
         return .unrelated
     }
 }
+#endif
