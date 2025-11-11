@@ -5,6 +5,7 @@
 // MDItemCreate 容易闪退
 //  Created by xxf on 6/17.
 //
+#if os(macOS)
 import CoreServices
 import Foundation
 
@@ -31,3 +32,4 @@ public extension MDItem {
         return MDItemCreateWithURL(kCFAllocatorDefault, cfURL)
     }
 }
+#endif
