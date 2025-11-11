@@ -13,6 +13,7 @@ import CoreGraphics
 #endif
 
 /// 屏幕分辨率缩放参数
+@MainActor
 public var screenScale: CGFloat {
     #if canImport(UIKit)
     if #available(iOS 13.0, *) {
