@@ -7,8 +7,11 @@
 //
 
 import Foundation
-import IOKit
 import XXFKeychain
+
+#if os(macOS) || targetEnvironment(macCatalyst)
+import IOKit
+#endif
 
 public enum DeviceIDManager {
     private nonisolated(unsafe) static var cachedID: String?
@@ -148,6 +151,9 @@ public enum DeviceIDManager {
     }
 
     private static func ioPlatformProperty(_ key: CFString) -> String? {
+        #if targetEnvironment(macCatalyst) || os(macOS)
+        // macOS / Catalyst: 使用原始 IOKit
+        guard let iokitAvailable = NSClassFromString("IOService") else { return nil }
         let service = IOServiceGetMatchingService(kIOMainPortDefault,
                                                   IOServiceMatching("IOPlatformExpertDevice"))
         defer { IOObjectRelease(service) }
@@ -162,5 +168,18 @@ public enum DeviceIDManager {
             return nil
         }
         return value
+        #elseif os(iOS)
+        // iOS: 使用 identifierForVendor
+        if key as String == kIOPlatformUUIDKey as String {
+            if let idfv = UIDevice.current.identifierForVendor?.uuidString, !idfv.isEmpty {
+                return idfv
+            }
+        }
+        // iOS 不支持序列号获取
+        return nil
+        #else
+        return nil
+        #endif
     }
+
 }
