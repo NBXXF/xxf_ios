@@ -4,7 +4,7 @@
 //  app级别的viewModel装饰器
 //  Created by xxf on 2025/8/14.
 //
-
+#if os(macOS)
 import AppKit
 import Foundation
 
@@ -34,3 +34,4 @@ public final class AppViewModelBinding<VM: ViewModel> {
         value
     }
 }
+#endif
