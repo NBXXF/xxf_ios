@@ -5,6 +5,7 @@
 //  Created by xxf on 2025/8/14.
 //
 
+#if os(macOS)
 import AppKit
 import Foundation
 
@@ -40,3 +41,4 @@ public final class VCViewModelBinding<VM: ViewModel> {
 
     public var wrappedValue: VM { value }
 }
+#endif

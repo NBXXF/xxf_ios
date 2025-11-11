@@ -4,7 +4,7 @@
 //  图片转data
 //  Created by xxf on 8/19.
 //
-
+#if os(macOS)
 import AppKit
 import XXFImage
 
@@ -29,3 +29,4 @@ public extension NSImage {
         return data
     }
 }
+#endif
