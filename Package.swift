@@ -136,6 +136,9 @@ let package = Package(
     ],
     targets: [
         .target(
+             name: "XXFSwiftFormat"
+         ),
+        .target(
             name: "XXFAdapter",
             dependencies: [
                 .product(name: "Collections", package: "swift-collections"),
@@ -282,6 +285,7 @@ let package = Package(
                 "XXFImageLoader",
                 "XXFImageNukeLoader",
                 "XXFAdapter",
+                "XXFSwiftFormat",
             ]
         ),
         .target(

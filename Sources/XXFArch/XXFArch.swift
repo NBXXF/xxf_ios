@@ -26,3 +26,4 @@
 @_exported import XXFImageNukeLoader
 @_exported import XXFViewModel
 @_exported import XXFAdapter
+@_exported import XXFSwiftFormat

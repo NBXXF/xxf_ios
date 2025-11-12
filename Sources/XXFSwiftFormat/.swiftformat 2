@@ -1,0 +1,55 @@
+# 缩进相关
+
+--indent 4                      # 设置缩进为4个空格
+--indentcase true               # case语句中的代码也缩进
+--ifdef indent                  # 条件编译代码块内部也缩进
+--wraparguments before-first   # 函数调用或定义时参数换行，参数列表第一个之前换行
+--wrapcollections before-first # 数组、字典等集合类型换行时，元素列表第一个之前换行
+
+# 空格 & 空行控制
+
+--commas inline
+#--commas always                # 数组、字典等后面总是带逗号，方便后续添加元素
+--semicolons never             # 绝不使用分号结尾
+#--spaceaftercolon always       # 冒号后总是加空格（比如类型声明、字典键值）
+--stripunusedargs closure-only # 只移除闭包中未使用的参数，其他位置保留
+--trimwhitespace always        # 行尾自动删除多余空白
+#--insertblanklines true        # 在函数、属性、类型之间插入空行，增强可读性
+--insertlines true
+--linebreaks lf                # 强制使用LF换行符（Unix风格）
+# --maxwidth 120                 # 单行最大长度120字符，超过自动换行
+#--allowmultilinefunc true      # 允许多行函数定义，参数分多行写
+
+# 注释相关
+
+--header ignore                # 忽略文件头部注释格式，避免自动修改
+#--marktypes true               # 自动在类型定义间插入 // MARK: 标记
+#--markextensions true          # 自动在扩展间插入 // MARK: 标记
+
+# 禁用某些规则（可根据需求调整）
+
+--disable redundantSelf, redundantReturn, sortedImports, wrapArguments, redundantPublic
+                               # 关闭多余的self自动移除、冗余return自动移除、导入排序、参数换行规则
+
+# 关键字与结构控制
+
+--self insert                  # 必要时自动插入self前缀，避免歧义
+#--nospaceoperators true        # 运算符两边不添加多余空格（如自定义运算符）
+--modifierorder acl,mutators,override
+                               # 修饰符顺序：访问控制 -> 变异关键字 -> override
+--importgrouping testable-bottom
+                               # 导入分组，@testable导入放到最后
+
+# 文件成员排序相关
+
+--enable sortDeclarations      # 启用类/结构体成员排序，规范成员顺序
+#--enable sortProperties        # 启用属性排序，方便查找和统一风格
+--enable typeSugar             # 使用Swift语法糖（比如Array<Int>自动替换成[Int]）
+
+# 新增：排除 Pods 目录及其他不需要格式化的目录
+--exclude Pods/
+--exclude .git/
+--exclude Carthage/
+--exclude node_modules/
+--exclude build/
+--exclude DerivedData/
