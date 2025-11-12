@@ -23,25 +23,25 @@ public extension Reactive where Base: MoyaProviderType, Base.Target: Sendable {
             }
             let streamRequest = provider.requestStream(token, callbackQueue: callbackQueue) { wrapper in
                 switch wrapper.event {
-                case let .stream(result):
-                    switch result {
-                    case let .success(model):
-                        observer.onNext(model)
-                    case let .failure(err):
-                        observer.onError(err)
-                    }
-                case let .complete(result):
-                    /// 继续分发完成
-                    if let error = result.error {
-                        // 如果是取消，不当作错误
-                        if case AFError.explicitlyCancelled = error {
-                            observer.onCompleted()
-                        } else {
-                            observer.onError(error)
+                    case let .stream(result):
+                        switch result {
+                            case let .success(model):
+                                observer.onNext(model)
+                            case let .failure(err):
+                                observer.onError(err)
                         }
-                    } else {
-                        observer.onCompleted()
-                    }
+                    case let .complete(result):
+                        /// 继续分发完成
+                        if let error = result.error {
+                            // 如果是取消，不当作错误
+                            if case AFError.explicitlyCancelled = error {
+                                observer.onCompleted()
+                            } else {
+                                observer.onError(error)
+                            }
+                        } else {
+                            observer.onCompleted()
+                        }
                 }
             }
 
@@ -61,25 +61,25 @@ public extension Reactive where Base: MoyaProviderType, Base.Target: Sendable {
             }
             let streamRequest = provider.requestStreamString(token, callbackQueue: callbackQueue) { wrapper in
                 switch wrapper.event {
-                case let .stream(result):
-                    switch result {
-                    case let .success(model):
-                        observer.onNext(model)
-                    case let .failure(err):
-                        observer.onError(err)
-                    }
-                case let .complete(result):
-                    /// 继续分发完成
-                    if let error = result.error {
-                        // 如果是取消，不当作错误
-                        if case AFError.explicitlyCancelled = error {
-                            observer.onCompleted()
-                        } else {
-                            observer.onError(error)
+                    case let .stream(result):
+                        switch result {
+                            case let .success(model):
+                                observer.onNext(model)
+                            case let .failure(err):
+                                observer.onError(err)
                         }
-                    } else {
-                        observer.onCompleted()
-                    }
+                    case let .complete(result):
+                        /// 继续分发完成
+                        if let error = result.error {
+                            // 如果是取消，不当作错误
+                            if case AFError.explicitlyCancelled = error {
+                                observer.onCompleted()
+                            } else {
+                                observer.onError(error)
+                            }
+                        } else {
+                            observer.onCompleted()
+                        }
                 }
             }
 
@@ -109,25 +109,25 @@ public extension Reactive where Base: MoyaProviderType, Base.Target: Sendable {
                 preprocessor: preprocessor
             ) { wrapper in
                 switch wrapper.event {
-                case let .stream(result):
-                    switch result {
-                    case let .success(model):
-                        observer.onNext(model)
-                    case let .failure(err):
-                        observer.onError(err)
-                    }
-                case let .complete(result):
-                    /// 继续分发完成
-                    if let error = result.error {
-                        // 如果是取消，不当作错误
-                        if case AFError.explicitlyCancelled = error {
-                            observer.onCompleted()
-                        } else {
-                            observer.onError(error)
+                    case let .stream(result):
+                        switch result {
+                            case let .success(model):
+                                observer.onNext(model)
+                            case let .failure(err):
+                                observer.onError(err)
                         }
-                    } else {
-                        observer.onCompleted()
-                    }
+                    case let .complete(result):
+                        /// 继续分发完成
+                        if let error = result.error {
+                            // 如果是取消，不当作错误
+                            if case AFError.explicitlyCancelled = error {
+                                observer.onCompleted()
+                            } else {
+                                observer.onError(error)
+                            }
+                        } else {
+                            observer.onCompleted()
+                        }
                 }
             }
 

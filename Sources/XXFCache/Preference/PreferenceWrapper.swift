@@ -112,16 +112,16 @@ public class PreferenceWrapper<T: Sendable, Owner: PreferenceProvider>: NSObject
 
         // 判断基础类型
         switch type {
-        case is String.Type,
-             is Int.Type,
-             is Bool.Type,
-             is Double.Type,
-             is Float.Type,
-             is Data.Type,
-             is URL.Type:
-            return true
-        default:
-            return false
+            case is String.Type,
+                 is Int.Type,
+                 is Bool.Type,
+                 is Double.Type,
+                 is Float.Type,
+                 is Data.Type,
+                 is URL.Type:
+                return true
+            default:
+                return false
         }
     }
 

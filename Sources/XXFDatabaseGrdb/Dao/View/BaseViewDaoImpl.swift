@@ -14,12 +14,12 @@ open class BaseViewDaoImpl<PK: DatabaseValueConvertible,
     Entity: BaseEntity>: BaseMappedDaoImpl<PK, Entity>
 {
     @available(*, deprecated, message: "Views do not have the concept of primary keys")
-    override open func selectById(_: PK) throws -> Entity? {
+    open override func selectById(_: PK) throws -> Entity? {
         throw DatabaseParamError(underlyingErrorMsg: viewNoPrimaryError)
     }
 
     @available(*, deprecated, message: "Views do not have the concept of primary keys")
-    override open func selectByIds(_: [PK]) throws -> [Entity] {
+    open override func selectByIds(_: [PK]) throws -> [Entity] {
         throw DatabaseParamError(underlyingErrorMsg: viewNoPrimaryError)
     }
 }

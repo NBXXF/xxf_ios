@@ -14,9 +14,9 @@ public enum RepresentationType: Int {
 
     var rawTypes: QLThumbnailGenerator.Request.RepresentationTypes {
         switch self {
-        case .all: return QLThumbnailGenerator.Request.RepresentationTypes.all
-        case .thumbnail: return QLThumbnailGenerator.Request.RepresentationTypes.thumbnail
-        case .icon: return QLThumbnailGenerator.Request.RepresentationTypes.icon
+            case .all: return QLThumbnailGenerator.Request.RepresentationTypes.all
+            case .thumbnail: return QLThumbnailGenerator.Request.RepresentationTypes.thumbnail
+            case .icon: return QLThumbnailGenerator.Request.RepresentationTypes.icon
         }
     }
 }

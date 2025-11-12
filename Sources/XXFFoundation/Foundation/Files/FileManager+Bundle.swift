@@ -81,7 +81,7 @@ public extension FileManager {
         "mapset", // 地图数据集包
         "language", // 语言包
         "localization", // 本地化资源包
-        "translation", // 翻译资源包
+        "translation" // 翻译资源包
     ]
 
     /// 核心Bundle基础类型的UTI字符串（用于类型匹配，兼容各版本系统）
@@ -95,7 +95,7 @@ public extension FileManager {
         "com.apple.xcode.project", // Xcode项目 (.xcodeproj)
         "com.apple.xcode.workspace", // Xcode工作区 (.xcworkspace)
         "com.apple.audiounit", // 音频单元
-        "com.apple.system-extension", // 系统扩展
+        "com.apple.system-extension" // 系统扩展
     ]
 
     /// 预缓存UTI到UTType的映射（提高性能并处理空值）

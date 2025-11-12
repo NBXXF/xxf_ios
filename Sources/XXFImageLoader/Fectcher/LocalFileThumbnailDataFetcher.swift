@@ -4,17 +4,17 @@
 ////   支持获取本地文件的缩略图的api
 ////  Created by xx on 8/19.
 ////
-//import Foundation
-//import QuickLookThumbnailing
-//import XXFFoundation
+// import Foundation
+// import QuickLookThumbnailing
+// import XXFFoundation
 //
-//#if canImport(UIKit)
+// #if canImport(UIKit)
 //    import UIKit
-//#elseif canImport(AppKit)
+// #elseif canImport(AppKit)
 //    import AppKit
-//#endif
+// #endif
 //
-//public final class LocalFileThumbnailDataFetcher: ImageDataFetcher {
+// public final class LocalFileThumbnailDataFetcher: ImageDataFetcher {
 //    public init() {}
 //
 //    public func canHandle(request: URLRequest) -> Bool {
@@ -127,4 +127,4 @@
 //            cancelled = true
 //        }
 //    }
-//}
+// }

@@ -79,10 +79,10 @@ public extension SQLSpecificExpressible {
         }
         let escaped = keyword.sqlEscapedForLike(escapeChar: escapeChar)
         switch matchMode {
-        case .contains: return "%\(escaped)%"
-        case .startsWith: return "\(escaped)%"
-        case .endsWith: return "%\(escaped)"
-        case .exact: return escaped
+            case .contains: return "%\(escaped)%"
+            case .startsWith: return "\(escaped)%"
+            case .endsWith: return "%\(escaped)"
+            case .exact: return escaped
         }
     }
 

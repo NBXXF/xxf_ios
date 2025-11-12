@@ -88,15 +88,15 @@ public extension FileManager {
                 }
 
                 switch ftsInfo {
-                case FTS_F:
-                    count += 1
-                case FTS_DNR, FTS_ERR:
-                    if entry.pointee.fts_errno != 0 {
-                        let errorStr = String(cString: strerror(entry.pointee.fts_errno))
-                        print("Warning: Failed to read directory: \(errorStr)")
-                    }
-                default:
-                    break
+                    case FTS_F:
+                        count += 1
+                    case FTS_DNR, FTS_ERR:
+                        if entry.pointee.fts_errno != 0 {
+                            let errorStr = String(cString: strerror(entry.pointee.fts_errno))
+                            print("Warning: Failed to read directory: \(errorStr)")
+                        }
+                    default:
+                        break
                 }
             }
         }
@@ -138,19 +138,19 @@ public extension FileManager {
                 }
 
                 switch ftsInfo {
-                case FTS_F:
-                    count += 1
-                    var statbuf = stat()
-                    if stat(entry.pointee.fts_accpath, &statbuf) == 0 {
-                        totalSize += UInt64(statbuf.st_size)
-                    }
-                case FTS_DNR, FTS_ERR:
-                    if entry.pointee.fts_errno != 0 {
-                        let errorStr = String(cString: strerror(entry.pointee.fts_errno))
-                        print("Warning: Failed to read directory: \(errorStr)")
-                    }
-                default:
-                    break
+                    case FTS_F:
+                        count += 1
+                        var statbuf = stat()
+                        if stat(entry.pointee.fts_accpath, &statbuf) == 0 {
+                            totalSize += UInt64(statbuf.st_size)
+                        }
+                    case FTS_DNR, FTS_ERR:
+                        if entry.pointee.fts_errno != 0 {
+                            let errorStr = String(cString: strerror(entry.pointee.fts_errno))
+                            print("Warning: Failed to read directory: \(errorStr)")
+                        }
+                    default:
+                        break
                 }
             }
         }
@@ -190,32 +190,32 @@ public extension FileManager {
             if node.pointee.fts_level == 0 { continue }
 
             switch node.pointee.fts_info {
-            // 1. 处理目录（FTS_D）：Bundle 只可能是目录，需判断并决定是否跳过内部
-            case UInt16(FTS_D):
-                let filePath = String(cString: cPath)
-                // 仅对目录判断是否为 Bundle（符合 Bundle 本质）
-                if isBundleFile(atPath: filePath) {
-                    // 若是 Bundle，跳过内部内容（避免遍历 .app/.framework 内部的 Contents 等子目录）
-                    fts_set(tree, node, FTS_SKIP)
-                }
-                // 执行目录的访问逻辑
-                let shouldContinue = visit(filePath)
-                if !shouldContinue {
-                    return
-                }
+                // 1. 处理目录（FTS_D）：Bundle 只可能是目录，需判断并决定是否跳过内部
+                case UInt16(FTS_D):
+                    let filePath = String(cString: cPath)
+                    // 仅对目录判断是否为 Bundle（符合 Bundle 本质）
+                    if isBundleFile(atPath: filePath) {
+                        // 若是 Bundle，跳过内部内容（避免遍历 .app/.framework 内部的 Contents 等子目录）
+                        fts_set(tree, node, FTS_SKIP)
+                    }
+                    // 执行目录的访问逻辑
+                    let shouldContinue = visit(filePath)
+                    if !shouldContinue {
+                        return
+                    }
 
-            // 2. 处理普通文件（FTS_F）：不可能是 Bundle，无需判断，直接处理
-            case UInt16(FTS_F):
-                let filePath = String(cString: cPath)
-                // 冗余优化：普通文件不是 Bundle，直接跳过 isBundleFile 判断
-                let shouldContinue = visit(filePath)
-                if !shouldContinue {
-                    return
-                }
+                // 2. 处理普通文件（FTS_F）：不可能是 Bundle，无需判断，直接处理
+                case UInt16(FTS_F):
+                    let filePath = String(cString: cPath)
+                    // 冗余优化：普通文件不是 Bundle，直接跳过 isBundleFile 判断
+                    let shouldContinue = visit(filePath)
+                    if !shouldContinue {
+                        return
+                    }
 
-            // 3. 其他类型（如符号链接 FTS_L、已遍历目录 FTS_DP 等）：跳过
-            default:
-                continue
+                // 3. 其他类型（如符号链接 FTS_L、已遍历目录 FTS_DP 等）：跳过
+                default:
+                    continue
             }
         }
     }

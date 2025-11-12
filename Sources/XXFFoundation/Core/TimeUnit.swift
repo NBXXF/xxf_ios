@@ -23,13 +23,13 @@ public enum TimeUnit: Comparable, CustomStringConvertible {
 
     public var inSeconds: TimeInterval {
         switch self {
-        case let .nanoseconds(n): return n / 1_000_000_000
-        case let .microseconds(u): return u / 1_000_000
-        case let .milliseconds(m): return m / 1000
-        case let .seconds(s): return s
-        case let .minutes(m): return m * 60
-        case let .hours(h): return h * 3600
-        case let .days(d): return d * 24 * 3600
+            case let .nanoseconds(n): return n / 1_000_000_000
+            case let .microseconds(u): return u / 1_000_000
+            case let .milliseconds(m): return m / 1000
+            case let .seconds(s): return s
+            case let .minutes(m): return m * 60
+            case let .hours(h): return h * 3600
+            case let .days(d): return d * 24 * 3600
         }
     }
 
@@ -44,13 +44,13 @@ public enum TimeUnit: Comparable, CustomStringConvertible {
 
     public var description: String {
         switch self {
-        case let .nanoseconds(n): return "\(n) ns"
-        case let .microseconds(u): return "\(u) μs"
-        case let .milliseconds(m): return "\(m) ms"
-        case let .seconds(s): return "\(s) s"
-        case let .minutes(m): return "\(m) min"
-        case let .hours(h): return "\(h) h"
-        case let .days(d): return "\(d) d"
+            case let .nanoseconds(n): return "\(n) ns"
+            case let .microseconds(u): return "\(u) μs"
+            case let .milliseconds(m): return "\(m) ms"
+            case let .seconds(s): return "\(s) s"
+            case let .minutes(m): return "\(m) min"
+            case let .hours(h): return "\(h) h"
+            case let .days(d): return "\(d) d"
         }
     }
 

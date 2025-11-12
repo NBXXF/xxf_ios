@@ -15,7 +15,7 @@ open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
     // MARK: - Lifecycle
 
     /// 代码创建时，init(window:) 会调用这里
-    override public init(window: NSWindow?) {
+    public override init(window: NSWindow?) {
         super.init(window: window ?? Self.createDefaultWindow())
         commonInit()
     }
@@ -50,7 +50,7 @@ open class NSWindowDelegateController: NSWindowController, NSWindowDelegate {
     }
 
     /// nib/storyboard 加载后调用
-    override open func windowDidLoad() {
+    open override func windowDidLoad() {
         super.windowDidLoad()
         // nib加载时这里也会调用
         // 再次确保代理和管理（避免遗漏）

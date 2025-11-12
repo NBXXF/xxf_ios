@@ -30,14 +30,14 @@ extension _XXFDatabaseUIntCompatible {
 
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt64? {
         switch dbValue.storage {
-        case let .int64(intValue):
-            guard intValue >= 0 else { return nil }
-            return UInt64(intValue)
-        case let .blob(blob):
-            guard blob.count == 8 else { return nil }
-            return blob.withUnsafeBytes { $0.load(as: UInt64.self).littleEndian }
-        default:
-            return nil
+            case let .int64(intValue):
+                guard intValue >= 0 else { return nil }
+                return UInt64(intValue)
+            case let .blob(blob):
+                guard blob.count == 8 else { return nil }
+                return blob.withUnsafeBytes { $0.load(as: UInt64.self).littleEndian }
+            default:
+                return nil
         }
     }
 }

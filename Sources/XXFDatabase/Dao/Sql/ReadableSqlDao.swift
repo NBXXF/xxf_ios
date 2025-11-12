@@ -22,6 +22,6 @@ public protocol ReadableSqlDao: LocalDataSource {
     func executeQuery<T: BaseTable>(
         sql: String,
         params: StatementParams?,
-        asType type: T.Type,
+        asType type: T.Type
     ) throws -> [T]
 }

@@ -10,7 +10,7 @@
         import UIKit
 
         public typealias PlatformImage = UIImage
-        
+
         @usableFromInline nonisolated(unsafe) let kUTTypeJPEG = "public.jpeg" as CFString
         @usableFromInline nonisolated(unsafe) let kUTTypePNG = "public.png" as CFString
         @usableFromInline nonisolated(unsafe) let kUTTypeTIFF = "public.tiff" as CFString

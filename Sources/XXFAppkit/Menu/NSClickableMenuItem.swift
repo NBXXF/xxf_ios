@@ -16,7 +16,7 @@ open class NSClickableMenuItem: NSMenuItem, NSMenuItemValidation {
 
     open var onClick: ((NSMenuItem) -> Void)?
 
-    override public init(title string: String, action selector: Selector?, keyEquivalent charCode: String) {
+    public override init(title string: String, action selector: Selector?, keyEquivalent charCode: String) {
         super.init(title: string, action: selector, keyEquivalent: charCode)
         commonInit()
     }
@@ -36,7 +36,7 @@ open class NSClickableMenuItem: NSMenuItem, NSMenuItemValidation {
     }
 
     // 重写copy，保证复制时onClick被复制
-    override open func copy(with zone: NSZone? = nil) -> Any {
+    open override func copy(with zone: NSZone? = nil) -> Any {
         let copyItem = super.copy(with: zone) as! NSClickableMenuItem
         copyItem.commonInit() // 关键补充：重新设置 target 和 action
         copyItem.onClick = onClick

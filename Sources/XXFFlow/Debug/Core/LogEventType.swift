@@ -15,11 +15,11 @@ public enum LogEventType<Element> {
     /// 转换成不带泛型的标签
     public var tag: LogEventTypeTag {
         switch self {
-        case .subscribed: return .subscribed
-        case .next: return .next
-        case .error: return .error
-        case .completed: return .completed
-        case .disposed: return .disposed
+            case .subscribed: return .subscribed
+            case .next: return .next
+            case .error: return .error
+            case .completed: return .completed
+            case .disposed: return .disposed
         }
     }
 }

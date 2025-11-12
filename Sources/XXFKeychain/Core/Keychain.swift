@@ -30,16 +30,16 @@ public class Keychain {
 
         let nativeAccessibility: XXFKeychainAccessibility
         switch accessibility {
-        case .whenUnlocked:
-            nativeAccessibility = .whenUnlocked
-        case .whenUnlockedThisDeviceOnly:
-            nativeAccessibility = .whenUnlockedThisDeviceOnly
-        case .afterFirstUnlock:
-            nativeAccessibility = .afterFirstUnlock
-        case .afterFirstUnlockThisDeviceOnly:
-            nativeAccessibility = .afterFirstUnlockThisDeviceOnly
-        default:
-            nativeAccessibility = .whenUnlocked
+            case .whenUnlocked:
+                nativeAccessibility = .whenUnlocked
+            case .whenUnlockedThisDeviceOnly:
+                nativeAccessibility = .whenUnlockedThisDeviceOnly
+            case .afterFirstUnlock:
+                nativeAccessibility = .afterFirstUnlock
+            case .afterFirstUnlockThisDeviceOnly:
+                nativeAccessibility = .afterFirstUnlockThisDeviceOnly
+            default:
+                nativeAccessibility = .whenUnlocked
         }
 
         nativeKeychain = NativeKeychain(service: identifier, accessibility: nativeAccessibility)

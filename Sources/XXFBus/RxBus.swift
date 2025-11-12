@@ -33,7 +33,8 @@ public final class RxBus {
 
     public func postSticky<T>(_ event: T) {
         let key = "\(T.self)"
-        lock.lock(); defer { lock.unlock() }
+        lock.lock()
+        defer { lock.unlock() }
         stickyMap[key] = event
         post(event)
     }
@@ -53,7 +54,8 @@ public final class RxBus {
     }
 
     public func removeSticky<T>(_: T.Type) {
-        lock.lock(); defer { lock.unlock() }
+        lock.lock()
+        defer { lock.unlock() }
         stickyMap.removeValue(forKey: "\(T.self)")
     }
 }

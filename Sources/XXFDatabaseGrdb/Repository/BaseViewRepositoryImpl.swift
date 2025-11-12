@@ -14,12 +14,12 @@ open class BaseViewRepositoryImpl<PK: DatabaseValueConvertible,
     DAO: BaseViewDaoImpl<PK, Entity>>: BaseMappedRepositoryImpl<PK, Entity, DAO>
 {
     @available(*, deprecated, message: "Views do not have the concept of primary keys")
-    override public func selectById(_ id: PK) -> Entity? {
+    public override func selectById(_ id: PK) -> Entity? {
         return super.selectById(id)
     }
 
     @available(*, deprecated, message: "Views do not have the concept of primary keys")
-    override public func selectByIds(_ ids: [PK]) -> [Entity] {
+    public override func selectByIds(_ ids: [PK]) -> [Entity] {
         return super.selectByIds(ids)
     }
 }

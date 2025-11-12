@@ -36,7 +36,7 @@ public extension NSViewController {
                 child.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
                 child.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
                 child.view.topAnchor.constraint(equalTo: containerView.topAnchor),
-                child.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+                child.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
             ])
         }
 
@@ -71,7 +71,7 @@ public extension NSViewController {
             newChild.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             newChild.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             newChild.view.topAnchor.constraint(equalTo: containerView.topAnchor),
-            newChild.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            newChild.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
 
         if let old = oldChild, children.contains(old) {

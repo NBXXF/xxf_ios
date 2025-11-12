@@ -6,39 +6,39 @@
 //
 
 #if os(macOS)
-import AppKit
-import Foundation
+    import AppKit
+    import Foundation
 
-// MARK: - ViewController 范围
+    // MARK: - ViewController 范围
 
-/**
- 用法
- final class MyViewController: NSViewController {
-     @VCViewModelBinding(owner: { [weak self] in self })
-     var vcVM: MyViewControllerViewModel
+    /**
+     用法
+     final class MyViewController: NSViewController {
+         @VCViewModelBinding(owner: { [weak self] in self })
+         var vcVM: MyViewControllerViewModel
 
-      @AppViewModelBinding()
-      var vcVM: MyViewControllerViewModel
+          @AppViewModelBinding()
+          var vcVM: MyViewControllerViewModel
 
-      @WindowViewModelBinding(owner: { [weak self] in self?.view.window })
-      var vcVM: MyViewControllerViewModel
- }
- */
-@MainActor
-@propertyWrapper
-public final class VCViewModelBinding<VM: ViewModel> {
-    private let ownerProvider: () -> NSViewController?
-    private lazy var value: VM = {
-        guard let owner = ownerProvider() else {
-            fatalError("Owner not available yet.")
+          @WindowViewModelBinding(owner: { [weak self] in self?.view.window })
+          var vcVM: MyViewControllerViewModel
+     }
+     */
+    @MainActor
+    @propertyWrapper
+    public final class VCViewModelBinding<VM: ViewModel> {
+        private let ownerProvider: () -> NSViewController?
+        private lazy var value: VM = {
+            guard let owner = ownerProvider() else {
+                fatalError("Owner not available yet.")
+            }
+            return ViewModelProvider(owner: owner).of(VM.self)
+        }()
+
+        public init(owner ownerProvider: @escaping () -> NSViewController?) {
+            self.ownerProvider = ownerProvider
         }
-        return ViewModelProvider(owner: owner).of(VM.self)
-    }()
 
-    public init(owner ownerProvider: @escaping () -> NSViewController?) {
-        self.ownerProvider = ownerProvider
+        public var wrappedValue: VM { value }
     }
-
-    public var wrappedValue: VM { value }
-}
 #endif

@@ -51,11 +51,11 @@ public extension FileTimes {
     ///  注意这里的硬编码 不能变
     private static func label(for keyPath: KeyPath<FileTimes, Date?>) -> String {
         switch keyPath {
-        case \.creationTime: return "creationTime"
-        case \.modificationTime: return "modificationTime"
-        case \.accessTime: return "accessTime"
-        case \.changeTime: return "changeTime"
-        default: return "unknown"
+            case \.creationTime: return "creationTime"
+            case \.modificationTime: return "modificationTime"
+            case \.accessTime: return "accessTime"
+            case \.changeTime: return "changeTime"
+            default: return "unknown"
         }
     }
 }

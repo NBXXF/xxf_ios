@@ -17,14 +17,14 @@ public enum XXFKeychainAccessibility {
 
     var secAttrAccessible: CFString {
         switch self {
-        case .whenUnlocked:
-            return kSecAttrAccessibleWhenUnlocked
-        case .whenUnlockedThisDeviceOnly:
-            return kSecAttrAccessibleWhenUnlockedThisDeviceOnly
-        case .afterFirstUnlock:
-            return kSecAttrAccessibleAfterFirstUnlock
-        case .afterFirstUnlockThisDeviceOnly:
-            return kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            case .whenUnlocked:
+                return kSecAttrAccessibleWhenUnlocked
+            case .whenUnlockedThisDeviceOnly:
+                return kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            case .afterFirstUnlock:
+                return kSecAttrAccessibleAfterFirstUnlock
+            case .afterFirstUnlockThisDeviceOnly:
+                return kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         }
     }
 }
@@ -80,12 +80,12 @@ public class NativeKeychain {
         let updateQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: key,
+            kSecAttrAccount as String: key
         ]
 
         let updateAttributes: [String: Any] = [
             kSecValueData as String: data,
-            kSecAttrAccessible as String: accessibility.secAttrAccessible,
+            kSecAttrAccessible as String: accessibility.secAttrAccessible
         ]
 
         let updateStatus = SecItemUpdate(updateQuery as CFDictionary, updateAttributes as CFDictionary)
@@ -97,7 +97,7 @@ public class NativeKeychain {
                 kSecAttrService as String: service,
                 kSecAttrAccount as String: key,
                 kSecValueData as String: data,
-                kSecAttrAccessible as String: accessibility.secAttrAccessible,
+                kSecAttrAccessible as String: accessibility.secAttrAccessible
             ]
 
             let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
@@ -119,7 +119,7 @@ public class NativeKeychain {
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
             kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecMatchLimit as String: kSecMatchLimitOne
         ]
 
         var result: AnyObject?
@@ -170,7 +170,7 @@ public class NativeKeychain {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: key,
+            kSecAttrAccount as String: key
         ]
 
         let status = SecItemDelete(query as CFDictionary)
@@ -187,7 +187,7 @@ public class NativeKeychain {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
-            kSecReturnData as String: false,
+            kSecReturnData as String: false
         ]
 
         let status = SecItemCopyMatching(query as CFDictionary, nil)
@@ -199,7 +199,7 @@ public class NativeKeychain {
     public func removeAll() throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: service
         ]
 
         let status = SecItemDelete(query as CFDictionary)

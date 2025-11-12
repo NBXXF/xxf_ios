@@ -138,7 +138,7 @@ public extension Bundle {
         "NSUserTrackingUsageDescription",
         "NSBluetoothAlwaysUsageDescription",
         "NSBluetoothPeripheralUsageDescription",
-        "NSFaceIDUsageDescription",
+        "NSFaceIDUsageDescription"
     ]
 
     // MARK: - 配置项（Info.plist）

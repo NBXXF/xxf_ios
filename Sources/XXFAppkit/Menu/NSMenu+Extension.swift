@@ -70,7 +70,7 @@ public extension NSMenu {
         keyEquivalentModifierMask: NSEvent.ModifierFlags = [],
         keyEquivalent: String = "",
         enabled: Bool = true,
-        onClick: @escaping (NSMenuItem) -> Void,
+        onClick: @escaping (NSMenuItem) -> Void
     ) -> NSClickableMenuItem {
         let item = NSClickableMenuItem(title: title, action: nil, keyEquivalent: keyEquivalent)
         item.tag = tag
@@ -91,7 +91,7 @@ public extension NSMenu {
     func addItem(
         _ menu: any MenuRepresentable,
         enabled: Bool = true,
-        onClick: @escaping (NSMenuItem) -> Void,
+        onClick: @escaping (NSMenuItem) -> Void
     ) -> NSClickableMenuItem {
         let item = NSClickableMenuItem(title: menu.title, action: nil, keyEquivalent: menu.keyEquivalent)
         item.tag = menu.rawValue

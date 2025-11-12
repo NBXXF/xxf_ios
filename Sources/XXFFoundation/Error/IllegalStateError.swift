@@ -7,7 +7,7 @@
 
 // 定义一个错误类型，类似 Java/Kotlin 的 IllegalArgumentException
 open class IllegalStateError: AppError, @unchecked Sendable {
-    override public var description: String {
+    public override var description: String {
         return "IllegalStateError: \(message)"
     }
 

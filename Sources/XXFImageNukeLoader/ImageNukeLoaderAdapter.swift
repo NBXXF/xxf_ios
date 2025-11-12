@@ -26,8 +26,9 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
         loaderQueue.maxConcurrentOperationCount = 8 // 限制并发
     }) {
         self.loaderQueue = loaderQueue
-        imageFectchers = [//LocalFileThumbnailDataFetcher(),
-                          LocalResourceDataFetcher()]
+        imageFectchers = [ // LocalFileThumbnailDataFetcher(),
+            LocalResourceDataFetcher()
+        ]
         initNuke()
     }
 
@@ -146,12 +147,12 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
             } // 核心保证唯一性
 
             switch result {
-            case let .success(response):
-                view.image = response.image
-                completion?(.success(()))
-            case let .failure(err):
-                view.image = error
-                completion?(.failure(err))
+                case let .success(response):
+                    view.image = response.image
+                    completion?(.success(()))
+                case let .failure(err):
+                    view.image = error
+                    completion?(.failure(err))
             }
 
             // 完成后清理 task

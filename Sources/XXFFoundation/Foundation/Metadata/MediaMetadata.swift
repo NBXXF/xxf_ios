@@ -60,34 +60,34 @@ public enum MediaMetadata {
         let type = MediaType(for: url)
 
         switch type {
-        case .image:
-            guard let dimensions = fetchImageDimensions(url: url) else {
-                return nil
-            }
-            return MediaAsset(url: url,
-                              type: .image,
-                              width: dimensions.width,
-                              height: dimensions.height,
-                              duration: nil)
+            case .image:
+                guard let dimensions = fetchImageDimensions(url: url) else {
+                    return nil
+                }
+                return MediaAsset(url: url,
+                                  type: .image,
+                                  width: dimensions.width,
+                                  height: dimensions.height,
+                                  duration: nil)
 
-        case .video, .audio:
-            let asset = AVAsset(url: url)
-            guard let duration = fetchAVDuration(asset: asset) else {
-                return nil
-            }
-            let (w, h) = fetchAVDimensions(asset: asset)
-            return MediaAsset(url: url,
-                              type: type,
-                              width: w,
-                              height: h,
-                              duration: duration)
+            case .video, .audio:
+                let asset = AVAsset(url: url)
+                guard let duration = fetchAVDuration(asset: asset) else {
+                    return nil
+                }
+                let (w, h) = fetchAVDimensions(asset: asset)
+                return MediaAsset(url: url,
+                                  type: type,
+                                  width: w,
+                                  height: h,
+                                  duration: duration)
 
-        case .unknown:
-            return MediaAsset(url: url,
-                              type: .unknown,
-                              width: nil,
-                              height: nil,
-                              duration: nil)
+            case .unknown:
+                return MediaAsset(url: url,
+                                  type: .unknown,
+                                  width: nil,
+                                  height: nil,
+                                  duration: nil)
         }
     }
 

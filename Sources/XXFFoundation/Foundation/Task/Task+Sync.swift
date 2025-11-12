@@ -40,12 +40,12 @@ public extension Task where Failure == Error {
         semaphore.wait()
 
         switch result {
-        case let .success(value):
-            return value
-        case let .failure(error):
-            throw error
-        case .none:
-            throw AppError("Task did not complete")
+            case let .success(value):
+                return value
+            case let .failure(error):
+                throw error
+            case .none:
+                throw AppError("Task did not complete")
         }
     }
 }

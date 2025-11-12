@@ -14,47 +14,47 @@
         /// - Returns: The formatted data, or nil on error
         func imageData(for type: ImageExportType, otherOptions: [String: Any]? = nil) throws -> Data {
             switch type {
-            case let .png(scale: scale, excludeGPSData: excludeGPSData):
-                return try dataRepresentation(
-                    uniformTypeIdentifier: type.utType,
-                    dpi: scale * 72.0,
-                    excludeGPSData: excludeGPSData,
-                    otherOptions: otherOptions
-                )
-            case .gif:
-                return try dataRepresentation(
-                    uniformTypeIdentifier: type.utType,
-                    dpi: 72.0,
-                    otherOptions: otherOptions
-                )
-            case let .jpg(scale: scale, compression: compression, excludeGPSData: excludeGPSData):
-                return try dataRepresentation(
-                    uniformTypeIdentifier: type.utType,
-                    dpi: scale * 72.0,
-                    compression: compression,
-                    excludeGPSData: excludeGPSData,
-                    otherOptions: otherOptions
-                )
-            case let .tiff(scale: scale, compression: compression, excludeGPSData: excludeGPSData):
-                return try dataRepresentation(
-                    uniformTypeIdentifier: type.utType,
-                    dpi: scale * 72.0,
-                    compression: compression,
-                    excludeGPSData: excludeGPSData,
-                    otherOptions: otherOptions
-                )
-            case let .heic(scale: scale, compression: compression, excludeGPSData: excludeGPSData):
-                return try dataRepresentation(
-                    uniformTypeIdentifier: type.utType,
-                    dpi: scale * 72.0,
-                    compression: compression,
-                    excludeGPSData: excludeGPSData,
-                    otherOptions: otherOptions
-                )
-            case let .pdf(size: size):
-                return try pdfRepresentation(size: size)
-            case let .svg(size: size, fillStyle: fillStyle, embeddedImageFormat: embeddedImageFormat):
-                return try svgRepresentation(size: size, fillStyle: fillStyle, embeddedImageFormat: embeddedImageFormat)
+                case let .png(scale: scale, excludeGPSData: excludeGPSData):
+                    return try dataRepresentation(
+                        uniformTypeIdentifier: type.utType,
+                        dpi: scale * 72.0,
+                        excludeGPSData: excludeGPSData,
+                        otherOptions: otherOptions
+                    )
+                case .gif:
+                    return try dataRepresentation(
+                        uniformTypeIdentifier: type.utType,
+                        dpi: 72.0,
+                        otherOptions: otherOptions
+                    )
+                case let .jpg(scale: scale, compression: compression, excludeGPSData: excludeGPSData):
+                    return try dataRepresentation(
+                        uniformTypeIdentifier: type.utType,
+                        dpi: scale * 72.0,
+                        compression: compression,
+                        excludeGPSData: excludeGPSData,
+                        otherOptions: otherOptions
+                    )
+                case let .tiff(scale: scale, compression: compression, excludeGPSData: excludeGPSData):
+                    return try dataRepresentation(
+                        uniformTypeIdentifier: type.utType,
+                        dpi: scale * 72.0,
+                        compression: compression,
+                        excludeGPSData: excludeGPSData,
+                        otherOptions: otherOptions
+                    )
+                case let .heic(scale: scale, compression: compression, excludeGPSData: excludeGPSData):
+                    return try dataRepresentation(
+                        uniformTypeIdentifier: type.utType,
+                        dpi: scale * 72.0,
+                        compression: compression,
+                        excludeGPSData: excludeGPSData,
+                        otherOptions: otherOptions
+                    )
+                case let .pdf(size: size):
+                    return try pdfRepresentation(size: size)
+                case let .svg(size: size, fillStyle: fillStyle, embeddedImageFormat: embeddedImageFormat):
+                    return try svgRepresentation(size: size, fillStyle: fillStyle, embeddedImageFormat: embeddedImageFormat)
             }
         }
     }
@@ -256,7 +256,7 @@
                 kCGImagePropertyPixelWidth: width,
                 kCGImagePropertyPixelHeight: height,
                 kCGImagePropertyDPIWidth: dpi,
-                kCGImagePropertyDPIHeight: dpi,
+                kCGImagePropertyDPIHeight: dpi
             ]
 
             if let compression = compression {

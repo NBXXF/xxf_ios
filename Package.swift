@@ -7,7 +7,7 @@ let package = Package(
     name: "xxf_ios",
     platforms: [
         .iOS(.v15),
-        .macOS(.v13),
+        .macOS(.v13)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -95,7 +95,7 @@ let package = Package(
         .library(
             name: "XXFTrackerSentry",
             targets: ["XXFTrackerSentry"]
-        ),
+        )
     ],
     dependencies: [
         // 第三方依赖写这里
@@ -132,16 +132,16 @@ let package = Package(
         .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.56.2"),
 
         // 图片库
-        .package(url: "https://github.com/kean/Nuke.git", from: "12.8.0"),
+        .package(url: "https://github.com/kean/Nuke.git", from: "12.8.0")
     ],
     targets: [
         .target(
-             name: "XXFSwiftFormat"
-         ),
+            name: "XXFSwiftFormat"
+        ),
         .target(
             name: "XXFAdapter",
             dependencies: [
-                .product(name: "Collections", package: "swift-collections"),
+                .product(name: "Collections", package: "swift-collections")
             ]
         ),
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -150,7 +150,7 @@ let package = Package(
             name: "XXFExtensions",
             dependencies: [
                 .product(name: "SwifterSwift", package: "SwifterSwift"),
-                "XXFSpeed",
+                "XXFSpeed"
             ]
         ),
         .target(
@@ -161,7 +161,7 @@ let package = Package(
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Numerics", package: "swift-numerics"),
                 .product(name: "Atomics", package: "swift-atomics"),
-                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Logging", package: "swift-log")
             ]
         ),
 //        .target(
@@ -176,14 +176,14 @@ let package = Package(
             name: "XXFViewModel",
             dependencies: [
                 "XXFFoundation",
-                "XXFFlow",
+                "XXFFlow"
             ]
         ),
         .target(
             name: "XXFSpeed",
             dependencies: [
                 // .product(name: "XXFHighwayHash", package: "XXFHighwayHash.swift"),
-                .product(name: "XXFXXHash", package: "XXFXXHash.swift"),
+                .product(name: "XXFXXHash", package: "XXFXXHash.swift")
             ]
         ),
         .target(
@@ -194,9 +194,9 @@ let package = Package(
 
                 /// 可视化
                 .product(name: "Pulse", package: "PulseCompat"),
-                .product(name: "PulseUI", package: "PulseCompat",condition: .when(platforms: [.macOS])),
+                .product(name: "PulseUI", package: "PulseCompat", condition: .when(platforms: [.macOS])),
                 .product(name: "PulseLogHandler", package: "PulseCompat"),
-                .product(name: "PulseProxy", package: "PulseCompat"),
+                .product(name: "PulseProxy", package: "PulseCompat")
                 // .product(name: "Installations", package: "KSCrash"),
             ]
         ),
@@ -206,7 +206,7 @@ let package = Package(
                 "XXFFoundation",
                 .product(name: "RxSwift", package: "RxSwift"),
                 .product(name: "RxCocoa", package: "RxSwift"),
-                .product(name: "RxBlocking", package: "RxSwift"), // ✅ 加上这个
+                .product(name: "RxBlocking", package: "RxSwift") // ✅ 加上这个
             ]
         ),
         .target(
@@ -217,7 +217,7 @@ let package = Package(
                 "XXFDataSource",
                 "XXFFlow",
                 /// 日志
-                .product(name: "Pulse", package: "PulseCompat"),
+                .product(name: "Pulse", package: "PulseCompat")
             ]
         ),
         .target(
@@ -228,7 +228,7 @@ let package = Package(
             dependencies: [
                 "XXFDataSource",
                 "XXFSpeed",
-                .product(name: "Algorithms", package: "swift-algorithms"),
+                .product(name: "Algorithms", package: "swift-algorithms")
             ]
         ),
         .target(
@@ -236,26 +236,26 @@ let package = Package(
             dependencies: [
                 "XXFDatabase",
                 "XXFFoundation",
-                .product(name: "GRDB", package: "GRDB.swift"),
+                .product(name: "GRDB", package: "GRDB.swift")
             ]
         ),
         .target(
             name: "XXFCache",
             dependencies: [
-                "XXFDataSource",
+                "XXFDataSource"
             ]
         ),
         .target(
             name: "XXFDi",
             dependencies: [
                 .product(name: "Factory", package: "Factory"),
-                .product(name: "FactoryKit", package: "Factory"),
+                .product(name: "FactoryKit", package: "Factory")
             ]
         ),
         .target(
             name: "XXFHud",
             dependencies: [
-                "XXFFlow",
+                "XXFFlow"
                 // .product(name: "ProgressHUD", package: "ProgressHUD"),
             ]
         ),
@@ -285,7 +285,7 @@ let package = Package(
                 "XXFImageLoader",
                 "XXFImageNukeLoader",
                 "XXFAdapter",
-                "XXFSwiftFormat",
+                "XXFSwiftFormat"
             ]
         ),
         .target(
@@ -298,13 +298,13 @@ let package = Package(
             name: "XXFBus",
             dependencies: [
                 .product(name: "RxSwift", package: "RxSwift"),
-                .product(name: "RxRelay", package: "RxSwift"), // ✅ 这个必须单独写
+                .product(name: "RxRelay", package: "RxSwift") // ✅ 这个必须单独写
             ]
         ),
         .target(
             name: "XXFJson",
             dependencies: [
-                "XXFFoundation",
+                "XXFFoundation"
             ]
         ),
         .target(
@@ -319,7 +319,7 @@ let package = Package(
                 // 高并发请求其他http
                 // .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 /// 日志
-                .product(name: "Pulse", package: "PulseCompat"),
+                .product(name: "Pulse", package: "PulseCompat")
             ]
 
         ),
@@ -332,7 +332,7 @@ let package = Package(
         .target(
             name: "XXFIdentifier",
             dependencies: [
-                "XXFKeychain",
+                "XXFKeychain"
             ]
         ),
         .target(
@@ -342,14 +342,14 @@ let package = Package(
             name: "XXFImageLoader",
             dependencies: [
                 "XXFFoundation",
-                "XXFImage",
+                "XXFImage"
             ]
         ),
         .target(
             name: "XXFImageNukeLoader",
             dependencies: [
                 "XXFImageLoader",
-                .product(name: "Nuke", package: "Nuke"),
+                .product(name: "Nuke", package: "Nuke")
             ]
         ),
         .target(
@@ -357,7 +357,7 @@ let package = Package(
             dependencies: [
                 "XXFTracker",
                 // 把 Bugsnag 框架添加到你的 Target
-                .product(name: "Bugsnag", package: "bugsnag-cocoa"),
+                .product(name: "Bugsnag", package: "bugsnag-cocoa")
                 // .product(name: "BugsnagPerformance", package: "bugsnag-cocoa-performance"),
             ]
         ),
@@ -365,12 +365,12 @@ let package = Package(
             name: "XXFTrackerSentry",
             dependencies: [
                 "XXFTracker",
-                .product(name: "Sentry", package: "sentry-cocoa"),
+                .product(name: "Sentry", package: "sentry-cocoa")
             ]
         ),
         .testTarget(
             name: "xxf_iosTests",
             dependencies: ["XXFLog", "XXFCache"]
-        ),
+        )
     ]
 )

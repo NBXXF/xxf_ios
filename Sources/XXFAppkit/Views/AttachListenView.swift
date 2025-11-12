@@ -24,7 +24,7 @@ public final class AttachListenView: NSView {
         parentView.addSubview(self)
     }
 
-    override public func viewDidMoveToWindow() {
+    public override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         if let win = window {
             onAttachToWindow?(self)

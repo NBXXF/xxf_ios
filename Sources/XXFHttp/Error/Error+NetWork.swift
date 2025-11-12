@@ -16,20 +16,20 @@ public extension Error {
             // MoyaError
             if let moyaError = error as? MoyaError {
                 switch moyaError {
-                case let .underlying(underlyingError, _):
-                    return check(underlyingError)
-                default:
-                    return false
+                    case let .underlying(underlyingError, _):
+                        return check(underlyingError)
+                    default:
+                        return false
                 }
             }
 
             // AFError
             if let afError = error as? AFError {
                 switch afError {
-                case let .sessionTaskFailed(underlyingError):
-                    return check(underlyingError)
-                default:
-                    return false
+                    case let .sessionTaskFailed(underlyingError):
+                        return check(underlyingError)
+                    default:
+                        return false
                 }
             }
 
@@ -45,7 +45,7 @@ public extension Error {
                     let codes: [Int] = [
                         NSURLErrorCannotConnectToHost,
                         NSURLErrorTimedOut,
-                        NSURLErrorNotConnectedToInternet,
+                        NSURLErrorNotConnectedToInternet
                     ]
                     return codes.contains(nsError.code)
                 }
@@ -80,15 +80,15 @@ private extension URLError {
     /// 判断是否是网络错误
     var isURLErrorNetwork: Bool {
         switch code {
-        case .notConnectedToInternet, // -1009 设备无网
-             .networkConnectionLost, // -1005 网络中断
-             .timedOut, // -1001 请求超时
-             .cannotFindHost, // -1003 无法找到服务器
-             .cannotConnectToHost, // -1004 服务器拒绝连接
-             .dnsLookupFailed: // -1006 DNS 解析失败
-            return true
-        default:
-            return false
+            case .notConnectedToInternet, // -1009 设备无网
+                 .networkConnectionLost, // -1005 网络中断
+                 .timedOut, // -1001 请求超时
+                 .cannotFindHost, // -1003 无法找到服务器
+                 .cannotConnectToHost, // -1004 服务器拒绝连接
+                 .dnsLookupFailed: // -1006 DNS 解析失败
+                return true
+            default:
+                return false
         }
     }
 }

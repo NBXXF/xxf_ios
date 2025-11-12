@@ -24,19 +24,19 @@ open class NSFilterMenu: NSMenu {
         return filter?(item) ?? true
     }
 
-    override open func insertItem(_ newItem: NSMenuItem, at index: Int) {
+    open override func insertItem(_ newItem: NSMenuItem, at index: Int) {
         if shouldAddItem(newItem) {
             super.insertItem(newItem, at: index)
         }
     }
 
-    override open func addItem(_ newItem: NSMenuItem) {
+    open override func addItem(_ newItem: NSMenuItem) {
         if shouldAddItem(newItem) {
             super.addItem(newItem)
         }
     }
 
-    override open func insertItem(withTitle title: String, action selector: Selector?, keyEquivalent key: String, at index: Int) -> NSMenuItem {
+    open override func insertItem(withTitle title: String, action selector: Selector?, keyEquivalent key: String, at index: Int) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: selector, keyEquivalent: key)
         if shouldAddItem(item) {
             super.insertItem(item, at: index)
@@ -44,7 +44,7 @@ open class NSFilterMenu: NSMenu {
         return item
     }
 
-    override open func addItem(withTitle title: String, action selector: Selector?, keyEquivalent key: String) -> NSMenuItem {
+    open override func addItem(withTitle title: String, action selector: Selector?, keyEquivalent key: String) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: selector, keyEquivalent: key)
         if shouldAddItem(item) {
             super.addItem(item)

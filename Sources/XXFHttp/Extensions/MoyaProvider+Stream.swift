@@ -50,25 +50,25 @@ public extension MoyaProvider where Target: Sendable {
             // 5. 换成 responseStream，监听 .complete(.failure)
             streamRequest.responseStream(on: callbackQueue ?? getCallbackQueue()) { streamEvent in
                 switch streamEvent.event {
-                case .stream:
-                    // 处理中间数据
-                    break
+                    case .stream:
+                        // 处理中间数据
+                        break
 
-                case let .complete(completion):
-                    if let afError = completion.error {
-                        // 构造 Moya.Response
-                        let moyaResp = Response(
-                            statusCode: completion.response?.statusCode ?? -1,
-                            data: Data(),
-                            request: urlReqCopy,
-                            response: completion.response
-                        )
-                        let result: Result<Response, MoyaError> = .failure(.underlying(afError, moyaResp))
-                        for plugin in self.plugins {
-                            plugin.didReceive(result, target: target)
+                    case let .complete(completion):
+                        if let afError = completion.error {
+                            // 构造 Moya.Response
+                            let moyaResp = Response(
+                                statusCode: completion.response?.statusCode ?? -1,
+                                data: Data(),
+                                request: urlReqCopy,
+                                response: completion.response
+                            )
+                            let result: Result<Response, MoyaError> = .failure(.underlying(afError, moyaResp))
+                            for plugin in self.plugins {
+                                plugin.didReceive(result, target: target)
+                            }
                         }
-                    }
-                    // 如果没有 error，就是流正常结束，不用回调 didReceive
+                        // 如果没有 error，就是流正常结束，不用回调 didReceive
                 }
             }
 

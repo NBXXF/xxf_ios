@@ -67,25 +67,25 @@ public extension FileManager {
     /// - 优先使用系统 API (`.trashDirectory`, macOS 10.8+)
     /// - 如果获取失败，则 fallback 到 `~/.Trash`
     @available(macOS 10.8, *)
-     func trashDirectory() -> URL {
-         // macOS 13 / iOS 16 及以上：使用系统新 API
-         if #available(iOS 16.0, macOS 13.0, *) {
-             return URL.trashDirectory
-         }
+    func trashDirectory() -> URL {
+        // macOS 13 / iOS 16 及以上：使用系统新 API
+        if #available(iOS 16.0, macOS 13.0, *) {
+            return URL.trashDirectory
+        }
 
-         // 旧版本 macOS 或 iOS：尝试通过 FileManager 获取
-         if let url = try? url(for: .trashDirectory, in: .userDomainMask, appropriateFor: nil, create: false) {
-             return url
-         }
+        // 旧版本 macOS 或 iOS：尝试通过 FileManager 获取
+        if let url = try? url(for: .trashDirectory, in: .userDomainMask, appropriateFor: nil, create: false) {
+            return url
+        }
 
-         // macOS 专属的用户主目录回退逻辑
-         #if os(macOS)
-         return homeDirectoryForCurrentUser.appendingPathComponent(".Trash", isDirectory: true)
-         #else
-         // iOS 没有全局 Trash 概念，用临时目录代替
-         let fallback = temporaryDirectory.appendingPathComponent("Trash", isDirectory: true)
-         try? createDirectory(at: fallback, withIntermediateDirectories: true)
-         return fallback
-         #endif
-     }
+        // macOS 专属的用户主目录回退逻辑
+        #if os(macOS)
+            return homeDirectoryForCurrentUser.appendingPathComponent(".Trash", isDirectory: true)
+        #else
+            // iOS 没有全局 Trash 概念，用临时目录代替
+            let fallback = temporaryDirectory.appendingPathComponent("Trash", isDirectory: true)
+            try? createDirectory(at: fallback, withIntermediateDirectories: true)
+            return fallback
+        #endif
+    }
 }

@@ -9,7 +9,7 @@ import AppKit
 import XXFFlow
 
 open class NSCompatViewController: NSViewController, @preconcurrency NSWindowListenable {
-    override open var view: NSView {
+    open override var view: NSView {
         get {
             return super.view
         }
@@ -30,7 +30,7 @@ open class NSCompatViewController: NSViewController, @preconcurrency NSWindowLis
         }
     }
 
-    override open func loadView() {
+    open override func loadView() {
         // 不能调用父类的 macos 13会闪退
         // super.loadView()
         // 初始化默认 view 避免崩溃

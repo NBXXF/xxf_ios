@@ -24,13 +24,13 @@ public class NSLabel: NSTextField {
         set { alignment = newValue }
     }
 
-    override public var textColor: NSColor? {
+    public override var textColor: NSColor? {
         didSet {
             // 不要赋值自己，避免死循环
         }
     }
 
-    override public var font: NSFont? {
+    public override var font: NSFont? {
         didSet {
             // 同上
         }

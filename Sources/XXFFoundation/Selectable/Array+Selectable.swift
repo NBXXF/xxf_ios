@@ -15,15 +15,15 @@ public extension Array where Element: Selectable {
         guard !item.isDisabled else { return }
 
         switch mode {
-        case .single:
-            // 单选：取消其他选中，选中当前
-            for (i, var obj) in enumerated() {
-                guard !obj.isDisabled else { continue }
-                obj.isSelected = (i == index)
-            }
-        case .multiple:
-            // 多选：切换当前项
-            item.toggleSelection()
+            case .single:
+                // 单选：取消其他选中，选中当前
+                for (i, var obj) in enumerated() {
+                    guard !obj.isDisabled else { continue }
+                    obj.isSelected = (i == index)
+                }
+            case .multiple:
+                // 多选：切换当前项
+                item.toggleSelection()
         }
     }
 

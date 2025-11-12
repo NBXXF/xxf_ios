@@ -14,10 +14,10 @@ public enum LogLevel: Int, Comparable {
     // 额外提供一个描述字符串属性
     public var description: String {
         switch self {
-        case .debug: return "🐛 DEBUG"
-        case .info: return "ℹ️ INFO"
-        case .warning: return "⚠️ WARNING"
-        case .error: return "❌ ERROR"
+            case .debug: return "🐛 DEBUG"
+            case .info: return "ℹ️ INFO"
+            case .warning: return "⚠️ WARNING"
+            case .error: return "❌ ERROR"
         }
     }
 

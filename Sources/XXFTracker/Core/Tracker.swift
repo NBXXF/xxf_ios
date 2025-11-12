@@ -29,7 +29,7 @@ public final class Tracker: TrackerConverterChain, @unchecked Sendable {
     /// 转换器、渠道、回调都要在 isolationQueue 上读写
     private var _trackerConverters: [TrackerConverter] = [
         ErrorTrackerConverter(),
-        StringTrackerConverter(),
+        StringTrackerConverter()
     ]
     private var _chanelBatchTrackers: [ChanelTracker] = []
     private var _trackerHandleCallback: TrackerHandleCallback?

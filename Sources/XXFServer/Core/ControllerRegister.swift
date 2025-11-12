@@ -69,23 +69,23 @@ enum ControllerRegister {
             }
 
             switch api.method {
-            case .GET:
-                app.get(fullPath, use: handler)
-            case .POST:
-                app.post(fullPath, use: handler)
-            case .PUT:
-                app.put(fullPath, use: handler)
-            case .DELETE:
-                app.delete(fullPath, use: handler)
-            case .PATCH:
-                app.patch(fullPath, use: handler)
-            default:
-                app.on(api.method, fullPath) { req in
-                    let message = "❗️Unsupported HTTP method: \(api.method) for /\(fullPath.map(\.description).joined(separator: "/"))"
-                    return req.eventLoop.makeSucceededFuture(
-                        Response(status: .internalServerError, body: .init(string: message))
-                    )
-                }
+                case .GET:
+                    app.get(fullPath, use: handler)
+                case .POST:
+                    app.post(fullPath, use: handler)
+                case .PUT:
+                    app.put(fullPath, use: handler)
+                case .DELETE:
+                    app.delete(fullPath, use: handler)
+                case .PATCH:
+                    app.patch(fullPath, use: handler)
+                default:
+                    app.on(api.method, fullPath) { req in
+                        let message = "❗️Unsupported HTTP method: \(api.method) for /\(fullPath.map(\.description).joined(separator: "/"))"
+                        return req.eventLoop.makeSucceededFuture(
+                            Response(status: .internalServerError, body: .init(string: message))
+                        )
+                    }
             }
         }
     }

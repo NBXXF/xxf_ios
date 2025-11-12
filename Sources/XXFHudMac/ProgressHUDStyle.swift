@@ -12,7 +12,7 @@
 //  Created by Massimo Biolcati on 9/10/18.
 //  Copyright © 2018 Massimo. All rights reserved.
 //
-
+#if os(macOS)
 import AppKit
 
 /// The `ProgressHUD` color scheme
@@ -26,17 +26,17 @@ public enum ProgressHUDStyle {
 
     fileprivate var backgroundColor: NSColor {
         switch self {
-        case .light: return .white
-        case .dark: return .black
-        case let .custom(_, background): return background
+            case .light: return .white
+            case .dark: return .black
+            case let .custom(_, background): return background
         }
     }
 
     fileprivate var foregroundColor: NSColor {
         switch self {
-        case .light: return .black
-        case .dark: return .init(white: 0.95, alpha: 1)
-        case let .custom(foreground, _): return foreground
+            case .light: return .black
+            case .dark: return .init(white: 0.95, alpha: 1)
+            case let .custom(foreground, _): return foreground
         }
     }
 }
@@ -81,7 +81,7 @@ public class ProgressHUD: NSView {
 
     static let shared = ProgressHUD()
 
-    override private init(frame frameRect: NSRect) {
+    private override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
 
         // setup view
@@ -261,9 +261,9 @@ public class ProgressHUD: NSView {
 
     private var yOffset: CGFloat {
         switch position {
-        case .top: return -bounds.size.height / 5
-        case .center: return 0
-        case .bottom: return bounds.size.height / 5
+            case .top: return -bounds.size.height / 5
+            case .center: return 0
+            case .bottom: return bounds.size.height / 5
         }
     }
 
@@ -359,12 +359,12 @@ public class ProgressHUD: NSView {
         statusLabel.sizeToFit()
     }
 
-    override public func mouseDown(with theEvent: NSEvent) {
+    public override func mouseDown(with theEvent: NSEvent) {
         NotificationCenter.default.post(name: ProgressHUD.didReceiveMouseDownEvent, object: self)
 
         switch maskType {
-        case .none: super.mouseDown(with: theEvent)
-        default: break
+            case .none: super.mouseDown(with: theEvent)
+            default: break
         }
         if dismissible {
             DispatchQueue.main.async {
@@ -375,23 +375,23 @@ public class ProgressHUD: NSView {
 
     private func setupProgressIndicator() {
         switch mode {
-        case .indeterminate:
-            indicator?.removeFromSuperview()
-            let view = NSView(frame: NSRect(x: 0, y: 0, width: spinnerSize, height: spinnerSize))
-            view.wantsLayer = true
-            progressIndicator.startProgressAnimation()
-            view.layer?.addSublayer(progressIndicator)
-            indicator = view
-            addSubview(indicator!)
+            case .indeterminate:
+                indicator?.removeFromSuperview()
+                let view = NSView(frame: NSRect(x: 0, y: 0, width: spinnerSize, height: spinnerSize))
+                view.wantsLayer = true
+                progressIndicator.startProgressAnimation()
+                view.layer?.addSublayer(progressIndicator)
+                indicator = view
+                addSubview(indicator!)
 
-        case .determinate, .info, .success, .error, .text:
-            indicator?.removeFromSuperview()
-            indicator = nil
+            case .determinate, .info, .success, .error, .text:
+                indicator?.removeFromSuperview()
+                indicator = nil
 
-        case let .custom(view):
-            indicator?.removeFromSuperview()
-            indicator = view
-            addSubview(indicator!)
+            case let .custom(view):
+                indicator?.removeFromSuperview()
+                indicator = view
+                addSubview(indicator!)
         }
     }
 
@@ -416,8 +416,8 @@ public class ProgressHUD: NSView {
         var totalSize = CGSize.zero
         var indicatorFrame = indicator?.bounds ?? .zero
         switch mode {
-        case .determinate, .info, .success, .error: indicatorFrame.size.height = spinnerSize
-        default: break
+            case .determinate, .info, .success, .error: indicatorFrame.size.height = spinnerSize
+            default: break
         }
         indicatorFrame.size.width = min(indicatorFrame.size.width, maxWidth)
         totalSize.width = max(totalSize.width, indicatorFrame.size.width)
@@ -468,19 +468,19 @@ public class ProgressHUD: NSView {
         size = totalSize
     }
 
-    override public func draw(_ rect: NSRect) {
+    public override func draw(_ rect: NSRect) {
         layoutSubviews()
         NSGraphicsContext.saveGraphicsState()
         guard let context = NSGraphicsContext.current?.cgContext else { return }
         switch maskType {
-        case .black:
-            context.setFillColor(NSColor.black.withAlphaComponent(0.6).cgColor)
-            rect.fill()
-        case let .custom(color):
-            context.setFillColor(color.cgColor)
-            rect.fill()
-        default:
-            break
+            case .black:
+                context.setFillColor(NSColor.black.withAlphaComponent(0.6).cgColor)
+                rect.fill()
+            case let .custom(color):
+                context.setFillColor(color.cgColor)
+                rect.fill()
+            default:
+                break
         }
 
         // Set background rect color
@@ -505,38 +505,38 @@ public class ProgressHUD: NSView {
 
         let center = CGPoint(x: boxRect.origin.x + boxRect.size.width / 2, y: boxRect.origin.y + boxRect.size.height - spinnerSize * 0.9)
         switch mode {
-        case .determinate:
-            // Draw determinate progress
-            let lineWidth: CGFloat = 4.0
-            let processBackgroundPath = NSBezierPath()
-            processBackgroundPath.lineWidth = lineWidth
-            processBackgroundPath.lineCapStyle = .round
+            case .determinate:
+                // Draw determinate progress
+                let lineWidth: CGFloat = 4.0
+                let processBackgroundPath = NSBezierPath()
+                processBackgroundPath.lineWidth = lineWidth
+                processBackgroundPath.lineCapStyle = .round
 
-            let radius = spinnerSize / 2
-            let startAngle: CGFloat = 90
-            var endAngle = startAngle - 360 * CGFloat(progress)
-            processBackgroundPath.appendArc(withCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
-            context.setStrokeColor(style.foregroundColor.cgColor)
-            processBackgroundPath.stroke()
-            let processPath = NSBezierPath()
-            processPath.lineCapStyle = .round
-            processPath.lineWidth = lineWidth
-            endAngle = startAngle - .pi * 2
-            processPath.appendArc(withCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
-            context.setFillColor(style.foregroundColor.cgColor)
-            processPath.stroke()
+                let radius = spinnerSize / 2
+                let startAngle: CGFloat = 90
+                var endAngle = startAngle - 360 * CGFloat(progress)
+                processBackgroundPath.appendArc(withCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+                context.setStrokeColor(style.foregroundColor.cgColor)
+                processBackgroundPath.stroke()
+                let processPath = NSBezierPath()
+                processPath.lineCapStyle = .round
+                processPath.lineWidth = lineWidth
+                endAngle = startAngle - .pi * 2
+                processPath.appendArc(withCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+                context.setFillColor(style.foregroundColor.cgColor)
+                processPath.stroke()
 
-        case .info:
-            drawInfoSymbol(frame: NSRect(x: center.x - spinnerSize / 2, y: center.y - spinnerSize / 2, width: spinnerSize, height: spinnerSize))
+            case .info:
+                drawInfoSymbol(frame: NSRect(x: center.x - spinnerSize / 2, y: center.y - spinnerSize / 2, width: spinnerSize, height: spinnerSize))
 
-        case .success:
-            drawSuccessSymbol(frame: NSRect(x: center.x - spinnerSize / 2, y: center.y - spinnerSize / 2, width: spinnerSize, height: spinnerSize))
+            case .success:
+                drawSuccessSymbol(frame: NSRect(x: center.x - spinnerSize / 2, y: center.y - spinnerSize / 2, width: spinnerSize, height: spinnerSize))
 
-        case .error:
-            drawErrorSymbol(frame: NSRect(x: center.x - spinnerSize / 2, y: center.y - spinnerSize / 2, width: spinnerSize, height: spinnerSize))
+            case .error:
+                drawErrorSymbol(frame: NSRect(x: center.x - spinnerSize / 2, y: center.y - spinnerSize / 2, width: spinnerSize, height: spinnerSize))
 
-        default:
-            break
+            default:
+                break
         }
 
         NSGraphicsContext.restoreGraphicsState()
@@ -783,3 +783,4 @@ private class ProgressIndicatorLayer: CALayer {
         }
     }
 }
+#endif

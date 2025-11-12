@@ -58,14 +58,14 @@ public extension QueryInterfaceRequest where RowDecoder: TableRecord {
             )
 
             switch joinType {
-            case .innerJoinPrefetch:
-                return including(required: association)
-            case .innerJoin:
-                return joining(required: association)
-            case .leftJoinPrefetch:
-                return including(optional: association)
-            case .leftJoin:
-                return joining(optional: association)
+                case .innerJoinPrefetch:
+                    return including(required: association)
+                case .innerJoin:
+                    return joining(required: association)
+                case .leftJoinPrefetch:
+                    return including(optional: association)
+                case .leftJoin:
+                    return joining(optional: association)
             }
 
         } else {
@@ -78,14 +78,14 @@ public extension QueryInterfaceRequest where RowDecoder: TableRecord {
             )
 
             switch joinType {
-            case .innerJoinPrefetch:
-                return including(required: association)
-            case .innerJoin:
-                return joining(required: association)
-            case .leftJoinPrefetch:
-                return including(optional: association)
-            case .leftJoin:
-                return joining(optional: association)
+                case .innerJoinPrefetch:
+                    return including(required: association)
+                case .innerJoin:
+                    return joining(required: association)
+                case .leftJoinPrefetch:
+                    return including(optional: association)
+                case .leftJoin:
+                    return joining(optional: association)
             }
         }
     }

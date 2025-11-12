@@ -20,7 +20,7 @@ open class NSModalWindowController: NSWindowDelegateController, NSModalPresentab
 
     // MARK: - 重写 contentViewController 设置逻辑
 
-    override open var contentViewController: NSViewController? {
+    open override var contentViewController: NSViewController? {
         didSet {
             if let window = window {
                 setupWindow(window)
@@ -30,7 +30,7 @@ open class NSModalWindowController: NSWindowDelegateController, NSModalPresentab
 
     // MARK: - 初始化
 
-    override public init(window: NSWindow?) {
+    public override init(window: NSWindow?) {
         super.init(window: window ?? Self.createDefaultWindow())
     }
 
@@ -43,7 +43,7 @@ open class NSModalWindowController: NSWindowDelegateController, NSModalPresentab
     }
 
     /// 创建默认窗口，子类可重写
-    override open class func createDefaultWindow() -> NSWindow {
+    open class override func createDefaultWindow() -> NSWindow {
         let size = CGSize.zero // 先给0，后续显示时调整大小
         let panel = XXFPannel(
             contentRect: NSRect(origin: .zero, size: size),
@@ -174,7 +174,7 @@ open class NSModalWindowController: NSWindowDelegateController, NSModalPresentab
         panel.setFrame(frame, display: true, animate: true)
     }
 
-    override open func windowWillClose(_ notification: Notification) {
+    open override func windowWillClose(_ notification: Notification) {
         super.windowWillClose(notification)
         NotificationCenter.default.removeObserver(self)
         stopOutsideClickMonitor()
@@ -185,12 +185,12 @@ open class NSModalWindowController: NSWindowDelegateController, NSModalPresentab
         }
     }
 
-    override open func windowDidBecomeMain(_ notification: Notification) {
+    open override func windowDidBecomeMain(_ notification: Notification) {
         super.windowDidBecomeMain(notification)
         startOutsideClickMonitor()
     }
 
-    override open func windowDidResignMain(_ notification: Notification) {
+    open override func windowDidResignMain(_ notification: Notification) {
         super.windowDidResignMain(notification)
         stopOutsideClickMonitor()
     }

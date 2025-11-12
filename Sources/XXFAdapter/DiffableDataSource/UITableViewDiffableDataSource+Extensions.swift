@@ -9,8 +9,7 @@ import UIKit
 
 @available(iOS 13.0, *)
 @MainActor
-extension UITableViewDiffableDataSource:@preconcurrency DiffableDataSourceAdapter {
-
+extension UITableViewDiffableDataSource: @preconcurrency DiffableDataSourceAdapter {
     // MARK: - 🔹 添加 / 更新
 
     /// 向指定 section 追加 items 并立即应用 snapshot
@@ -21,9 +20,10 @@ extension UITableViewDiffableDataSource:@preconcurrency DiffableDataSourceAdapte
     /// dataSource.appendItems(newItems, to: .main)
     /// ```
     public func appendItems(_ items: [ItemIdentifierType],
-                     to section: SectionIdentifierType,
-                     animatingDifferences: Bool = true,
-                     completion: (() -> Void)? = nil) {
+                            to section: SectionIdentifierType,
+                            animatingDifferences: Bool = true,
+                            completion: (() -> Void)? = nil)
+    {
         guard !items.isEmpty else {
             completion?()
             return
@@ -46,8 +46,9 @@ extension UITableViewDiffableDataSource:@preconcurrency DiffableDataSourceAdapte
     /// ])
     /// ```
     public func reloadSections(_ sections: [(SectionIdentifierType, [ItemIdentifierType])],
-                        animatingDifferences: Bool = true,
-                        completion: (() -> Void)? = nil) {
+                               animatingDifferences: Bool = true,
+                               completion: (() -> Void)? = nil)
+    {
         var snapshot = NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType>()
         for (section, items) in sections {
             snapshot.appendSections([section])
@@ -62,9 +63,10 @@ extension UITableViewDiffableDataSource:@preconcurrency DiffableDataSourceAdapte
     /// dataSource.replaceItems(newItems, in: .main)
     /// ```
     public func replaceItems(_ items: [ItemIdentifierType],
-                      in section: SectionIdentifierType,
-                      animatingDifferences: Bool = true,
-                      completion: (() -> Void)? = nil) {
+                             in section: SectionIdentifierType,
+                             animatingDifferences: Bool = true,
+                             completion: (() -> Void)? = nil)
+    {
         var snapshot = self.snapshot()
         if !snapshot.sectionIdentifiers.contains(section) {
             snapshot.appendSections([section])
@@ -87,8 +89,9 @@ extension UITableViewDiffableDataSource:@preconcurrency DiffableDataSourceAdapte
     /// dataSource.deleteItems { $0.id == targetId }
     /// ```
     public func deleteItems(where predicate: (ItemIdentifierType) -> Bool,
-                     animatingDifferences: Bool = true,
-                     completion: (() -> Void)? = nil) {
+                            animatingDifferences: Bool = true,
+                            completion: (() -> Void)? = nil)
+    {
         var snapshot = self.snapshot()
         var itemsToRemove: [ItemIdentifierType] = []
 
@@ -114,13 +117,15 @@ extension UITableViewDiffableDataSource:@preconcurrency DiffableDataSourceAdapte
     /// dataSource.moveItem(itemA, before: itemB)
     /// ```
     public func moveItem(_ item: ItemIdentifierType,
-                  before target: ItemIdentifierType,
-                  animatingDifferences: Bool = true,
-                  completion: (() -> Void)? = nil) {
+                         before target: ItemIdentifierType,
+                         animatingDifferences: Bool = true,
+                         completion: (() -> Void)? = nil)
+    {
         var snapshot = self.snapshot()
         guard snapshot.itemIdentifiers.contains(item),
               snapshot.itemIdentifiers.contains(target),
-              item != target else {
+              item != target
+        else {
             completion?()
             return
         }
@@ -135,13 +140,15 @@ extension UITableViewDiffableDataSource:@preconcurrency DiffableDataSourceAdapte
     /// dataSource.moveItem(itemC, after: itemD)
     /// ```
     public func moveItem(_ item: ItemIdentifierType,
-                  after target: ItemIdentifierType,
-                  animatingDifferences: Bool = true,
-                  completion: (() -> Void)? = nil) {
+                         after target: ItemIdentifierType,
+                         animatingDifferences: Bool = true,
+                         completion: (() -> Void)? = nil)
+    {
         var snapshot = self.snapshot()
         guard snapshot.itemIdentifiers.contains(item),
               snapshot.itemIdentifiers.contains(target),
-              item != target else {
+              item != target
+        else {
             completion?()
             return
         }
@@ -154,20 +161,21 @@ extension UITableViewDiffableDataSource:@preconcurrency DiffableDataSourceAdapte
 
     /// 获取指定 IndexPath 对应的 item
     public func item(at indexPath: IndexPath) -> ItemIdentifierType? {
-        return self.itemIdentifier(for: indexPath)
+        return itemIdentifier(for: indexPath)
     }
 
     /// 判断是否存在某个 section
-    public  func hasSection(_ section: SectionIdentifierType) -> Bool {
-        return self.snapshot().sectionIdentifiers.contains(section)
+    public func hasSection(_ section: SectionIdentifierType) -> Bool {
+        return snapshot().sectionIdentifiers.contains(section)
     }
 
     /// 保证在主线程安全地执行 apply
     private func applyOnMain(_ snapshot: NSDiffableDataSourceSnapshot<SectionIdentifierType, ItemIdentifierType>,
                              animatingDifferences: Bool,
-                             completion: (() -> Void)?) {
+                             completion: (() -> Void)?)
+    {
         if Thread.isMainThread {
-            self.apply(snapshot, animatingDifferences: animatingDifferences, completion: completion)
+            apply(snapshot, animatingDifferences: animatingDifferences, completion: completion)
         } else {
             DispatchQueue.main.async {
                 self.apply(snapshot, animatingDifferences: animatingDifferences, completion: completion)

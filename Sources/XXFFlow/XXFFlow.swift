@@ -54,13 +54,13 @@ public final class XXFFlow {
 
             let message: String
             switch logEvent {
-            case let .next(element):
-                let elementDescription = trimOutput ? "\(element)".truncate(maxLength: 40, truncateAt: .middle) : "\(element)"
-                message = "\(logEvent): \(elementDescription)"
-            case let .error(error):
-                message = "\(logEvent): \(error)"
-            default:
-                message = "\(logEvent)"
+                case let .next(element):
+                    let elementDescription = trimOutput ? "\(element)".truncate(maxLength: 40, truncateAt: .middle) : "\(element)"
+                    message = "\(logEvent): \(elementDescription)"
+                case let .error(error):
+                    message = "\(logEvent): \(error)"
+                default:
+                    message = "\(logEvent)"
             }
 
             logEventLogger("\(id) -> \(message)", logEvent.tag, file, function, line)

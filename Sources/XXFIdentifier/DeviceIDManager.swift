@@ -10,11 +10,11 @@ import Foundation
 import XXFKeychain
 
 #if os(macOS) || targetEnvironment(macCatalyst)
-import IOKit
+    import IOKit
 #endif
 
 #if os(iOS)
-import UIKit
+    import UIKit
 #endif
 
 @MainActor
@@ -52,23 +52,23 @@ public enum DeviceIDManager {
 
         // 平台相关：macOS/Catalyst 使用 IOKit 常量获取硬件 UUID/序列号；iOS 使用 identifierForVendor
         #if targetEnvironment(macCatalyst) || os(macOS)
-        // 2. 硬件级 UUID (macOS / Catalyst)
-        if let uuid = ioPlatformProperty(kIOPlatformUUIDKey as CFString), isValidID(uuid) {
-            writeToCache(uuid)
-            return uuid
-        }
+            // 2. 硬件级 UUID (macOS / Catalyst)
+            if let uuid = ioPlatformProperty(kIOPlatformUUIDKey as CFString), isValidID(uuid) {
+                writeToCache(uuid)
+                return uuid
+            }
 
-        // 3. 系列号 (macOS / Catalyst)
-        if let serial = ioPlatformProperty(kIOPlatformSerialNumberKey as CFString), isValidID(serial) {
-            writeToCache(serial)
-            return serial
-        }
+            // 3. 系列号 (macOS / Catalyst)
+            if let serial = ioPlatformProperty(kIOPlatformSerialNumberKey as CFString), isValidID(serial) {
+                writeToCache(serial)
+                return serial
+            }
         #elseif os(iOS)
-        // iOS: 使用 identifierForVendor 作为硬件级近似 ID（系统允许的接口）
-        if let idfv = UIDevice.current.identifierForVendor?.uuidString, isValidID(idfv) {
-            writeToCache(idfv)
-            return idfv
-        }
+            // iOS: 使用 identifierForVendor 作为硬件级近似 ID（系统允许的接口）
+            if let idfv = UIDevice.current.identifierForVendor?.uuidString, isValidID(idfv) {
+                writeToCache(idfv)
+                return idfv
+            }
         #endif
 
         // 4. 随机 UUID
@@ -138,7 +138,7 @@ public enum DeviceIDManager {
             "0123456789",
             "1234567890",
             "abcdefghijklmnopqrstuvwxyz",
-            String("abcdefghijklmnopqrstuvwxyz".reversed()),
+            String("abcdefghijklmnopqrstuvwxyz".reversed())
         ]
         for pattern in sequentialPatterns {
             for i in 0 ... (pattern.count - 6) {
@@ -166,26 +166,25 @@ public enum DeviceIDManager {
 
     private static func ioPlatformProperty(_ key: CFString) -> String? {
         #if targetEnvironment(macCatalyst) || os(macOS)
-        // macOS / Catalyst: 使用原始 IOKit
-        guard NSClassFromString("IOService") != nil else { return nil }
-        let service = IOServiceGetMatchingService(kIOMainPortDefault,
-                                                  IOServiceMatching("IOPlatformExpertDevice"))
-        defer { IOObjectRelease(service) }
-        guard service != 0,
-              let cfValue = IORegistryEntryCreateCFProperty(service,
-                                                            key,
-                                                            kCFAllocatorDefault, 0)?
-              .takeUnretainedValue(),
-              let value = cfValue as? String,
-              !value.isEmpty
-        else {
-            return nil
-        }
-        return value
+            // macOS / Catalyst: 使用原始 IOKit
+            guard NSClassFromString("IOService") != nil else { return nil }
+            let service = IOServiceGetMatchingService(kIOMainPortDefault,
+                                                      IOServiceMatching("IOPlatformExpertDevice"))
+            defer { IOObjectRelease(service) }
+            guard service != 0,
+                  let cfValue = IORegistryEntryCreateCFProperty(service,
+                                                                key,
+                                                                kCFAllocatorDefault, 0)?
+                  .takeUnretainedValue(),
+                  let value = cfValue as? String,
+                  !value.isEmpty
+            else {
+                return nil
+            }
+            return value
         #else
-        // 其他平台不支持 IOKit
-        return nil
+            // 其他平台不支持 IOKit
+            return nil
         #endif
     }
-
 }

@@ -29,47 +29,47 @@ public enum LifecycleEvent {
     var selector: Selector? {
         #if canImport(UIKit)
             switch self {
-            case .viewDidLoad:
+                case .viewDidLoad:
                 return #selector(UIViewController.viewDidLoad)
-            case .viewWillAppear:
+                case .viewWillAppear:
                 return #selector(UIViewController.viewWillAppear(_:))
-            case .viewDidAppear:
+                case .viewDidAppear:
                 return #selector(UIViewController.viewDidAppear(_:))
-            case .viewWillDisappear:
+                case .viewWillDisappear:
                 return #selector(UIViewController.viewWillDisappear(_:))
-            case .viewDidDisappear:
+                case .viewDidDisappear:
                 return #selector(UIViewController.viewDidDisappear(_:))
-            case .viewWillLayoutSubviews:
+                case .viewWillLayoutSubviews:
                 return #selector(UIViewController.viewWillLayoutSubviews)
-            case .viewDidLayoutSubviews:
+                case .viewDidLayoutSubviews:
                 return #selector(UIViewController.viewDidLayoutSubviews)
-            case .didMoveToParent:
+                case .didMoveToParent:
                 return #selector(UIViewController.didMove(toParent:))
-            case .willMoveToParent:
+                case .willMoveToParent:
                 return #selector(UIViewController.willMove(toParent:))
-            case .viewDeallocated: return nil
+                case .viewDeallocated: return nil
             }
         #elseif canImport(AppKit)
             // macOS 下 NSViewController 没有完全对应的事件，需要根据实际用法调整
             switch self {
-            case .viewDidLoad:
+                case .viewDidLoad:
                 return #selector(NSViewController.viewDidLoad)
-            case .viewWillAppear:
+                case .viewWillAppear:
                 return #selector(NSViewController.viewWillAppear)
-            case .viewDidAppear:
+                case .viewDidAppear:
                 return #selector(NSViewController.viewDidAppear)
-            case .viewWillDisappear:
+                case .viewWillDisappear:
                 return #selector(NSViewController.viewWillDisappear)
-            case .viewDidDisappear:
+                case .viewDidDisappear:
                 return #selector(NSViewController.viewDidDisappear)
-            case .viewWillLayoutSubviews:
+                case .viewWillLayoutSubviews:
                 return #selector(NSViewController.viewWillLayout) // 近似
-            case .viewDidLayoutSubviews:
+                case .viewDidLayoutSubviews:
                 return #selector(NSViewController.viewDidLayout) // 近似
-            case .didMoveToParent, .willMoveToParent:
+                case .didMoveToParent, .willMoveToParent:
                 // macOS 没有 parentViewController 的移动事件
                 fatalError("Not supported on AppKit")
-            case .viewDeallocated: return nil
+                case .viewDeallocated: return nil
             }
         #endif
     }

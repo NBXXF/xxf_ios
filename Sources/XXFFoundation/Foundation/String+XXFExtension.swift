@@ -49,21 +49,21 @@ public extension String {
         guard count > maxLength else { return self }
 
         switch truncateAt {
-        case .end:
-            let endIndex = index(startIndex, offsetBy: max(maxLength - ellipsis.count, 0))
-            return String(self[startIndex ..< endIndex]) + ellipsis
+            case .end:
+                let endIndex = index(startIndex, offsetBy: max(maxLength - ellipsis.count, 0))
+                return String(self[startIndex ..< endIndex]) + ellipsis
 
-        case .start:
-            let startIndex = index(endIndex, offsetBy: -max(maxLength - ellipsis.count, 0))
-            return ellipsis + String(self[startIndex ..< endIndex])
+            case .start:
+                let startIndex = index(endIndex, offsetBy: -max(maxLength - ellipsis.count, 0))
+                return ellipsis + String(self[startIndex ..< endIndex])
 
-        case .middle:
-            let adjustedLength = max(maxLength - ellipsis.count, 0)
-            let firstHalf = (adjustedLength + 1) / 2
-            let secondHalf = adjustedLength / 2
-            let start = prefix(firstHalf)
-            let end = suffix(secondHalf)
-            return "\(start)\(ellipsis)\(end)"
+            case .middle:
+                let adjustedLength = max(maxLength - ellipsis.count, 0)
+                let firstHalf = (adjustedLength + 1) / 2
+                let secondHalf = adjustedLength / 2
+                let start = prefix(firstHalf)
+                let end = suffix(secondHalf)
+                return "\(start)\(ellipsis)\(end)"
         }
     }
 }

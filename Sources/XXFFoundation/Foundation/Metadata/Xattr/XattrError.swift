@@ -11,12 +11,12 @@ public enum XattrError: Error, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .unsupportedType:
-            return "Unsupported attribute type"
-        case .encodingFailed:
-            return "Failed to encode as UTF-8 or JSON"
-        case let .setxattrFailed(err):
-            return "Failed to set extended attribute: \(String(cString: strerror(err)))"
+            case .unsupportedType:
+                return "Unsupported attribute type"
+            case .encodingFailed:
+                return "Failed to encode as UTF-8 or JSON"
+            case let .setxattrFailed(err):
+                return "Failed to set extended attribute: \(String(cString: strerror(err)))"
         }
     }
 }

@@ -146,18 +146,18 @@ public enum LogUtils {
         let metadata: Logger.Metadata = [
             "file": "\(trimmedFile(file: file))",
             "function": "\(function)",
-            "line": "\(line)",
+            "line": "\(line)"
         ]
 
         switch level {
-        case .debug:
-            logger.debug("\(rawMessage)", metadata: metadata)
-        case .info:
-            logger.info("\(rawMessage)", metadata: metadata)
-        case .warning:
-            logger.warning("\(rawMessage)", metadata: metadata)
-        case .error:
-            logger.error("\(rawMessage)", metadata: metadata)
+            case .debug:
+                logger.debug("\(rawMessage)", metadata: metadata)
+            case .info:
+                logger.info("\(rawMessage)", metadata: metadata)
+            case .warning:
+                logger.warning("\(rawMessage)", metadata: metadata)
+            case .error:
+                logger.error("\(rawMessage)", metadata: metadata)
         }
     }
 }

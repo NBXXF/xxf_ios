@@ -43,8 +43,8 @@ public final class BugsnagTracker: ChanelTracker {
 //        BugsnagPerformance.start(configuration: perfConfig)
     }
 
-    public init(config: BugsnagConfiguration,
-                //   perfConfig: BugsnagPerformanceConfiguration? = nil
+    public init(config: BugsnagConfiguration
+        //   perfConfig: BugsnagPerformanceConfiguration? = nil
     ) {
         guard !Bugsnag.isStarted() else { return }
 

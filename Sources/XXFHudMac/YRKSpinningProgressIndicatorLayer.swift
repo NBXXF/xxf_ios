@@ -1,4 +1,4 @@
-
+#if os(macOS)
 import Cocoa
 import QuartzCore
 
@@ -220,7 +220,7 @@ public class SpinningProgressIndicatorLayer: CALayer {
         removeFinLayers()
     }
 
-    override public var bounds: CGRect {
+    public override var bounds: CGRect {
         get {
             return super.bounds
         }
@@ -248,7 +248,7 @@ public class SpinningProgressIndicatorLayer: CALayer {
 
     // MARK: - Determinate indicator drawing
 
-    override public func draw(in ctx: CGContext) {
+    public override func draw(in ctx: CGContext) {
         ctx.clear(bounds)
         if !isDeterminate {
             super.draw(in: ctx)
@@ -279,3 +279,4 @@ public class SpinningProgressIndicatorLayer: CALayer {
         }
     }
 }
+#endif

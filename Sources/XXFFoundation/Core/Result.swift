@@ -55,20 +55,20 @@ public extension Result {
     /// 映射失败错误
     func mapError<E: Error>(_ transform: (Failure) -> E) -> Result<Success, E> {
         switch self {
-        case let .success(value):
-            return .success(value)
-        case let .failure(error):
-            return .failure(transform(error))
+            case let .success(value):
+                return .success(value)
+            case let .failure(error):
+                return .failure(transform(error))
         }
     }
 
     /// 根据成功或失败执行对应闭包，返回闭包返回值
     func fold<T>(onSuccess: (Success) -> T, onFailure: (Failure) -> T) -> T {
         switch self {
-        case let .success(value):
-            return onSuccess(value)
-        case let .failure(error):
-            return onFailure(error)
+            case let .success(value):
+                return onSuccess(value)
+            case let .failure(error):
+                return onFailure(error)
         }
     }
 

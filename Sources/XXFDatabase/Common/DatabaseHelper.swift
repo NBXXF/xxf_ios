@@ -19,7 +19,7 @@ public enum PrimaryKeyFormat {
 public func generatePrimaryKey(from fields: [String], format: PrimaryKeyFormat = .hashed) -> String {
     let joined = fields.joined(separator: "_")
     switch format {
-    case .raw: return joined
-    case .hashed: return joined.toXXH3String()
+        case .raw: return joined
+        case .hashed: return joined.toXXH3String()
     }
 }

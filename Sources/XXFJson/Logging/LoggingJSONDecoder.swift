@@ -38,20 +38,26 @@ open class LoggingJSONDecoder: JSONDecoder, @unchecked Sendable {
         }
     }
 
-    override open func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
+    open override func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
         do { return try super.decode(type, from: data) }
-        catch { logError(error, data: data, type: type); throw error }
+        catch { logError(error, data: data, type: type)
+            throw error
+        }
     }
 
     @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
-    override open func decode<T>(_ type: T.Type, from data: Data, configuration: T.DecodingConfiguration) throws -> T where T: DecodableWithConfiguration {
+    open override func decode<T>(_ type: T.Type, from data: Data, configuration: T.DecodingConfiguration) throws -> T where T: DecodableWithConfiguration {
         do { return try super.decode(type, from: data, configuration: configuration) }
-        catch { logError(error, data: data, type: type); throw error }
+        catch { logError(error, data: data, type: type)
+            throw error
+        }
     }
 
     @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
-    override open func decode<T, C>(_ type: T.Type, from data: Data, configuration: C.Type) throws -> T where T: DecodableWithConfiguration, C: DecodingConfigurationProviding, T.DecodingConfiguration == C.DecodingConfiguration {
+    open override func decode<T, C>(_ type: T.Type, from data: Data, configuration: C.Type) throws -> T where T: DecodableWithConfiguration, C: DecodingConfigurationProviding, T.DecodingConfiguration == C.DecodingConfiguration {
         do { return try super.decode(type, from: data, configuration: configuration) }
-        catch { logError(error, data: data, type: type); throw error }
+        catch { logError(error, data: data, type: type)
+            throw error
+        }
     }
 }

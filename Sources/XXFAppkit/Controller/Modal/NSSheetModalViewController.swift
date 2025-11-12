@@ -27,7 +27,7 @@ open class NSSheetModalViewController: NSCompatViewController, NSViewControllerM
         super.init(coder: coder)
     }
 
-    override open func loadView() {
+    open override func loadView() {
         // 使用 frame 初始化，设置默认大小
         let rootView = NSView(frame: NSRect(x: 0, y: 0, width: 300.pt, height: 218.pt))
 
@@ -37,12 +37,12 @@ open class NSSheetModalViewController: NSCompatViewController, NSViewControllerM
         view = rootView
     }
 
-    override open func viewWillAppear() {
+    open override func viewWillAppear() {
         super.viewWillAppear()
         validationSheetParentMenu(validationEnabled: false)
     }
 
-    override open func viewWillDisappear() {
+    open override func viewWillDisappear() {
         super.viewWillDisappear()
         validationSheetParentMenu(validationEnabled: true)
     }

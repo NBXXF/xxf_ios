@@ -16,45 +16,43 @@ import CoreGraphics
 @MainActor
 public var screenScale: CGFloat {
     #if canImport(UIKit)
-    if #available(iOS 13.0, *) {
-        // Swift 5.9+ 主线程隔离安全访问
-        return MainActor.assumeIsolated {
-            UIScreen.main.scale
-        }
-    } else {
-        // 旧系统版本 fallback：确保在主线程访问
-        var scale: CGFloat = 2
-        if Thread.isMainThread {
-            scale = UIScreen.main.scale
+        if #available(iOS 13.0, *) {
+            // Swift 5.9+ 主线程隔离安全访问
+            return MainActor.assumeIsolated {
+                UIScreen.main.scale
+            }
         } else {
-            DispatchQueue.main.sync {
+            // 旧系统版本 fallback：确保在主线程访问
+            var scale: CGFloat = 2
+            if Thread.isMainThread {
                 scale = UIScreen.main.scale
+            } else {
+                DispatchQueue.main.sync {
+                    scale = UIScreen.main.scale
+                }
             }
+            return scale
         }
-        return scale
-    }
     #elseif canImport(AppKit)
-    if #available(macOS 10.15, *) {
-        return MainActor.assumeIsolated {
-            NSScreen.main?.backingScaleFactor ?? 2
-        }
-    } else {
-        var scale: CGFloat = 2
-        if Thread.isMainThread {
-            scale = NSScreen.main?.backingScaleFactor ?? 2
-        } else {
-            DispatchQueue.main.sync {
-                scale = NSScreen.main?.backingScaleFactor ?? 2
+        if #available(macOS 10.15, *) {
+            return MainActor.assumeIsolated {
+                NSScreen.main?.backingScaleFactor ?? 2
             }
+        } else {
+            var scale: CGFloat = 2
+            if Thread.isMainThread {
+                scale = NSScreen.main?.backingScaleFactor ?? 2
+            } else {
+                DispatchQueue.main.sync {
+                    scale = NSScreen.main?.backingScaleFactor ?? 2
+                }
+            }
+            return scale
         }
-        return scale
-    }
     #else
-    return 1 // 其他平台
+        return 1 // 其他平台
     #endif
 }
-
-
 
 // 统一的适配系数，可以根据屏幕、设备动态设置
 public enum SizeAdapter {

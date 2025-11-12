@@ -6,6 +6,6 @@
 //
 
 /// 单 Section 枚举，适用于绝大多数只有一个 section 的列表
-public enum SingleSection: CaseIterable, Hashable,@unchecked Sendable {
+public enum SingleSection: CaseIterable, Hashable, @unchecked Sendable {
     case main
 }
