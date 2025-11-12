@@ -4,7 +4,8 @@
 //  支持数据直接点语法创建可观察的对象,借鉴flutter getx.obs
 //  多用于viewModel,建立响应式ui,相比于Combine,Rx 更成熟、结合业务数据逻辑生态更好
 //  用法:
-//   “1”.obs 或者 Obs(value: "hello")
+//   “1”.obs 或者 Obs(value: "hello") 或者obs("hello")
+//    数组类型 [GridItem]().obs 或者obs([GridItem]())
 //  Created by xxf on 5/26.
 //
 
@@ -24,9 +25,17 @@ public protocol ObsConvertible {}
 
 public extension ObsConvertible {
     /// 可读写,线程自由控制,核心是一个粘性事件的观察者设计模式
+    ///   “1”.obs 或者 Obs(value: "hello") 或者obs("hello")
+    ///    数组类型 [GridItem]().obs 或者obs([GridItem]())
     var obs: BehaviorRelay<Self> {
         BehaviorRelay(value: self)
     }
+}
+
+///   “1”.obs 或者 Obs(value: "hello") 或者obs("hello")
+///    数组类型 [GridItem]().obs 或者obs([GridItem]())
+public func obs<T: ObsConvertible>(_ value: T) -> BehaviorRelay<T> {
+    value.obs
 }
 
 public extension BehaviorRelay {
