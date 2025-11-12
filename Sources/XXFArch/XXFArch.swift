@@ -6,7 +6,7 @@
 //
 @_exported import XXFBus
 @_exported import XXFCache
-//@_exported import XXFDatabase
+@_exported import XXFDatabase
 @_exported import XXFDi
 @_exported import XXFExtensions
 @_exported import XXFFlow
@@ -25,3 +25,4 @@
 @_exported import XXFImageLoader
 @_exported import XXFImageNukeLoader
 @_exported import XXFViewModel
+@_exported import XXFAdapter

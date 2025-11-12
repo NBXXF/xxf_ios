@@ -135,6 +135,12 @@ let package = Package(
         .package(url: "https://github.com/kean/Nuke.git", from: "12.8.0"),
     ],
     targets: [
+        .target(
+            name: "XXFAdapter",
+            dependencies: [
+                .product(name: "Collections", package: "swift-collections"),
+            ]
+        ),
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
@@ -265,6 +271,7 @@ let package = Package(
                 "XXFPerformance",
                 "XXFSpeed",
                 "XXFCache",
+                "XXFDatabase",
                 "XXFBus",
                 "XXFJson",
                 "XXFTracker",
@@ -274,6 +281,7 @@ let package = Package(
                 "XXFViewModel",
                 "XXFImageLoader",
                 "XXFImageNukeLoader",
+                "XXFAdapter",
             ]
         ),
         .target(
