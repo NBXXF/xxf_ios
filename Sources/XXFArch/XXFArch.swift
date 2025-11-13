@@ -22,6 +22,7 @@
 @_exported import XXFLog
 @_exported import XXFPerformance
 @_exported import XXFReusable
+@_exported import XXFRefreshable
 @_exported import XXFSpeed
 @_exported import XXFSwiftFormat
 @_exported import XXFTracker

@@ -138,7 +138,9 @@ let package = Package(
         // 图片库
         .package(url: "https://github.com/kean/Nuke.git", from: "12.8.0"),
         // toast
-        .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3")
+        .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3"),
+        // refresh
+        .package(url: "https://github.com/CoderMJLee/MJRefresh.git",from: "3.7.9")
     ],
     targets: [
         .target(
@@ -293,6 +295,7 @@ let package = Package(
                 "XXFKeychain",
                 "XXFIdentifier",
                 "XXFReusable",
+                "XXFRefreshable",
                 "XXFViewModel",
                 "XXFImageLoader",
                 "XXFImageNukeLoader",
@@ -305,6 +308,12 @@ let package = Package(
         ),
         .target(
             name: "XXFReusable"
+        ),
+        .target(
+            name: "XXFRefreshable",
+            dependencies: [
+                .product(name: "MJRefresh", package: "MJRefresh"),
+            ]
         ),
         .target(
             name: "XXFBus",
