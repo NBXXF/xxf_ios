@@ -6,9 +6,5 @@
 //
 
 public enum ProgressHudUtils {
-#if os(iOS)
-    public nonisolated(unsafe) static var progressHudHandler: ProgressHudHandler = DefaultProgressHudHandler()
-#else
-    public nonisolated(unsafe) static var progressHudHandler: ProgressHudHandler = DefaultProgressHudHandler()
-#endif
+    public nonisolated(unsafe) static var progressHudHandler: ProgressHudHandler = EmptyProgressHudHandler()
 }
