@@ -96,7 +96,7 @@ public class SwiftNotice: NSObject {
     
     // fix https://github.com/johnlui/SwiftNotice/issues/2
     // thanks broccolii(https://github.com/broccolii) and his PR https://github.com/johnlui/SwiftNotice/pull/5
-    static func clear() {
+    public static func clear() {
         self.cancelPreviousPerformRequests(withTarget: self)
         if let _ = timer {
             timer.cancel()
@@ -108,7 +108,7 @@ public class SwiftNotice: NSObject {
     
     @discardableResult
     @MainActor
-    static func noticeOnStatusBar(_ text: String, autoClear: Bool, autoClearTime: Int) -> UIWindow {
+    public static func noticeOnStatusBar(_ text: String, autoClear: Bool, autoClearTime: Int) -> UIWindow {
         let frame = UIApplication.shared.statusBarFrame
         let window = UIWindow()
         window.backgroundColor = UIColor.clear
@@ -164,7 +164,7 @@ public class SwiftNotice: NSObject {
     
     @discardableResult
     @MainActor
-    static func wait(_ imageNames: [UIImage] = [UIImage](), timeInterval: Int = 0) -> UIWindow {
+    public static func wait(_ imageNames: [UIImage] = [UIImage](), timeInterval: Int = 0) -> UIWindow {
         let frame = CGRect(x: 0, y: 0, width: 78, height: 78)
         let window = UIWindow()
         window.backgroundColor = UIColor.clear
@@ -221,7 +221,7 @@ public class SwiftNotice: NSObject {
     
     @discardableResult
     @MainActor
-    static func showText(_ text: String, autoClear: Bool = true, autoClearTime: Int = 2) -> UIWindow {
+    public static func showText(_ text: String, autoClear: Bool = true, autoClearTime: Int = 2) -> UIWindow {
         let window = UIWindow()
         window.backgroundColor = UIColor.clear
         let mainView = UIView()
@@ -267,7 +267,7 @@ public class SwiftNotice: NSObject {
     
     @discardableResult
     @MainActor
-    static func showNoticeWithText(_ type: NoticeType, text: String, autoClear: Bool, autoClearTime: Int) -> UIWindow {
+    public static func showNoticeWithText(_ type: NoticeType, text: String, autoClear: Bool, autoClearTime: Int) -> UIWindow {
         let frame = CGRect(x: 0, y: 0, width: 90, height: 90)
         let window = UIWindow()
         window.backgroundColor = UIColor.clear
@@ -327,7 +327,7 @@ public class SwiftNotice: NSObject {
     
     // just for iOS 8
     @MainActor
-    static func getRealCenter() -> CGPoint {
+    public static func getRealCenter() -> CGPoint {
         if UIApplication.shared.statusBarOrientation.rawValue >= 3 {
             return CGPoint(x: rv!.center.y, y: rv!.center.x)
         } else {
@@ -437,7 +437,7 @@ private extension Selector {
     static let hideNotice = #selector(SwiftNotice.hideNotice(_:))
 }
 
-@objc extension SwiftNotice {
+@objc public extension SwiftNotice {
     // fix https://github.com/johnlui/SwiftNotice/issues/2
     static func hideNotice(_ sender: AnyObject) {
         if let window = sender as? UIWindow {
