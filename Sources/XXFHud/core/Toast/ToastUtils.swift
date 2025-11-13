@@ -8,7 +8,11 @@
 import Foundation
 
 public enum ToastUtils {
-    public nonisolated(unsafe) static var toastDelegate: ToastDelegate?
+    #if os(iOS)
+        public nonisolated(unsafe) static var toastDelegate: ToastDelegate? = DefaultToastDelegate()
+    #else
+        public nonisolated(unsafe) static var toastDelegate: ToastDelegate?
+    #endif
     public static func showToast(text: String) {
         func call() {
             if let delegate = toastDelegate {
