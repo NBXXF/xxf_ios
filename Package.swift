@@ -134,7 +134,8 @@ let package = Package(
         // 图片库
         .package(url: "https://github.com/kean/Nuke.git", from: "12.8.0"),
         // toast
-        .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3")
+        .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3"),
+        .package(path: "../XXFHudiOS")
     ],
     targets: [
         .target(
@@ -258,10 +259,15 @@ let package = Package(
             name: "XXFHud",
             dependencies: [
                 "XXFFlow",
+                "XXFFoundation",
                 .product(name: "Toast", package: "toast-swift",condition: .when(platforms: [.iOS])),
+                .product(name: "XXFHudiOS", package: "XXFHudiOS",condition: .when(platforms: [.iOS])),
+              
                 // .product(name: "ProgressHUD", package: "ProgressHUD"),
             ]
         ),
+        .target(
+            name: "XXFHudiOS"),
         .target(
             name: "XXFHudMac"),
         .target(

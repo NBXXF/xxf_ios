@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import XXFFoundation
 
 public enum ToastUtils {
     #if os(iOS)
@@ -20,12 +21,8 @@ public enum ToastUtils {
             }
         }
 
-        if Thread.isMainThread {
+        runMainThreadIfNeeded {
             call()
-        } else {
-            DispatchQueue.main.async {
-                call()
-            }
         }
     }
 }
