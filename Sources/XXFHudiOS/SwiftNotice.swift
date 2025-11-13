@@ -10,72 +10,80 @@ import UIKit
 
 private let sn_topBar: Int = 1001
 
-extension UIResponder {
+public extension UIResponder {
     /// wait with your own animated images
     @discardableResult
-    func pleaseWaitWithImages(_ imageNames: Array<UIImage>, timeInterval: Int) -> UIWindow{
+    func pleaseWaitWithImages(_ imageNames: [UIImage], timeInterval: Int) -> UIWindow {
         return SwiftNotice.wait(imageNames, timeInterval: timeInterval)
     }
+
     // api changed from v3.3
     @discardableResult
-    func noticeTop(_ text: String, autoClear: Bool = true, autoClearTime: Int = 1) -> UIWindow{
+    func noticeTop(_ text: String, autoClear: Bool = true, autoClearTime: Int = 1) -> UIWindow {
         return SwiftNotice.noticeOnStatusBar(text, autoClear: autoClear, autoClearTime: autoClearTime)
     }
     
     // new apis from v3.3
     @discardableResult
-    func noticeSuccess(_ text: String, autoClear: Bool = false, autoClearTime: Int = 3) -> UIWindow{
+    func noticeSuccess(_ text: String, autoClear: Bool = false, autoClearTime: Int = 3) -> UIWindow {
         return SwiftNotice.showNoticeWithText(NoticeType.success, text: text, autoClear: autoClear, autoClearTime: autoClearTime)
     }
+
     @discardableResult
-    func noticeError(_ text: String, autoClear: Bool = false, autoClearTime: Int = 3) -> UIWindow{
+    func noticeError(_ text: String, autoClear: Bool = false, autoClearTime: Int = 3) -> UIWindow {
         return SwiftNotice.showNoticeWithText(NoticeType.error, text: text, autoClear: autoClear, autoClearTime: autoClearTime)
     }
+
     @discardableResult
-    func noticeInfo(_ text: String, autoClear: Bool = false, autoClearTime: Int = 3) -> UIWindow{
+    func noticeInfo(_ text: String, autoClear: Bool = false, autoClearTime: Int = 3) -> UIWindow {
         return SwiftNotice.showNoticeWithText(NoticeType.info, text: text, autoClear: autoClear, autoClearTime: autoClearTime)
     }
     
     // old apis
     @discardableResult
-    func successNotice(_ text: String, autoClear: Bool = true) -> UIWindow{
+    func successNotice(_ text: String, autoClear: Bool = true) -> UIWindow {
         return SwiftNotice.showNoticeWithText(NoticeType.success, text: text, autoClear: autoClear, autoClearTime: 3)
     }
+
     @discardableResult
-    func errorNotice(_ text: String, autoClear: Bool = true) -> UIWindow{
+    func errorNotice(_ text: String, autoClear: Bool = true) -> UIWindow {
         return SwiftNotice.showNoticeWithText(NoticeType.error, text: text, autoClear: autoClear, autoClearTime: 3)
     }
+
     @discardableResult
-    func infoNotice(_ text: String, autoClear: Bool = true) -> UIWindow{
+    func infoNotice(_ text: String, autoClear: Bool = true) -> UIWindow {
         return SwiftNotice.showNoticeWithText(NoticeType.info, text: text, autoClear: autoClear, autoClearTime: 3)
     }
+
     @discardableResult
-    func notice(_ text: String, type: NoticeType, autoClear: Bool, autoClearTime: Int = 3) -> UIWindow{
+    func notice(_ text: String, type: NoticeType, autoClear: Bool, autoClearTime: Int = 3) -> UIWindow {
         return SwiftNotice.showNoticeWithText(type, text: text, autoClear: autoClear, autoClearTime: autoClearTime)
     }
+
     @discardableResult
-    func pleaseWait() -> UIWindow{
+    func pleaseWait() -> UIWindow {
         return SwiftNotice.wait()
     }
+
     @discardableResult
-    func noticeOnlyText(_ text: String) -> UIWindow{
+    func noticeOnlyText(_ text: String) -> UIWindow {
         return SwiftNotice.showText(text)
     }
+
     func clearAllNotice() {
         SwiftNotice.clear()
     }
 }
 
-enum NoticeType{
+public enum NoticeType {
     case success
     case error
     case info
 }
 
 @MainActor
-class SwiftNotice: NSObject {
-    
-    nonisolated(unsafe) static var windows = Array<UIWindow?>()
+public class SwiftNotice: NSObject {
+    nonisolated(unsafe) static var windows = [UIWindow?]()
     static let rv = UIApplication.shared.keyWindow?.subviews.first as UIView?
     nonisolated(unsafe) static var timer: DispatchSource!
     nonisolated(unsafe) static var timerTimes = 0
@@ -83,9 +91,7 @@ class SwiftNotice: NSObject {
     /* just for iOS 8
      */
     static var degree: Double {
-        get {
-            return [0, 0, 180, 270, 90][UIApplication.shared.statusBarOrientation.hashValue] as Double
-        }
+        return [0, 0, 180, 270, 90][UIApplication.shared.statusBarOrientation.hashValue] as Double
     }
     
     // fix https://github.com/johnlui/SwiftNotice/issues/2
@@ -102,14 +108,14 @@ class SwiftNotice: NSObject {
     
     @discardableResult
     @MainActor
-    static func noticeOnStatusBar(_ text: String, autoClear: Bool, autoClearTime: Int) -> UIWindow{
+    static func noticeOnStatusBar(_ text: String, autoClear: Bool, autoClearTime: Int) -> UIWindow {
         let frame = UIApplication.shared.statusBarFrame
         let window = UIWindow()
         window.backgroundColor = UIColor.clear
         let view = UIView()
         view.backgroundColor = UIColor(red: 0x6a/0x100, green: 0xb4/0x100, blue: 0x9f/0x100, alpha: 1)
         
-        let label = UILabel(frame: frame.height > 20 ? CGRect(x: frame.origin.x, y: frame.origin.y + frame.height - 17, width: frame.width, height: 20) : frame)
+        let label = UILabel(frame: frame.height > 20 ? CGRect(x: frame.origin.x, y: frame.origin.y + frame.height-17, width: frame.width, height: 20) : frame)
         label.textAlignment = NSTextAlignment.center
         label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = UIColor.white
@@ -120,7 +126,8 @@ class SwiftNotice: NSObject {
         view.frame = frame
         
         if let version = Double(UIDevice.current.systemVersion),
-            version < 9.0 {
+           version < 9.0
+        {
             // change center
             var array = [UIScreen.main.bounds.width, UIScreen.main.bounds.height]
             array = array.sorted(by: <)
@@ -131,7 +138,7 @@ class SwiftNotice: NSObject {
             window.center = CGPoint(x: x, y: y)
             
             // change direction
-            window.transform = CGAffineTransform(rotationAngle: CGFloat(degree * Double.pi / 180))
+            window.transform = CGAffineTransform(rotationAngle: CGFloat(degree * Double.pi/180))
         }
         
         window.windowLevel = UIWindow.Level.statusBar
@@ -147,7 +154,7 @@ class SwiftNotice: NSObject {
         view.frame = CGRect(origin: origPoint, size: view.frame.size)
         UIView.animate(withDuration: 0.3, animations: {
             view.frame = CGRect(origin: destPoint, size: view.frame.size)
-        }, completion: { b in
+        }, completion: { _ in
             if autoClear {
                 self.perform(.hideNotice, with: window, afterDelay: TimeInterval(autoClearTime))
             }
@@ -157,13 +164,13 @@ class SwiftNotice: NSObject {
     
     @discardableResult
     @MainActor
-    static func wait(_ imageNames: Array<UIImage> = Array<UIImage>(), timeInterval: Int = 0) -> UIWindow {
+    static func wait(_ imageNames: [UIImage] = [UIImage](), timeInterval: Int = 0) -> UIWindow {
         let frame = CGRect(x: 0, y: 0, width: 78, height: 78)
         let window = UIWindow()
         window.backgroundColor = UIColor.clear
         let mainView = UIView()
         mainView.layer.cornerRadius = 12
-        mainView.backgroundColor = UIColor(red:0, green:0, blue:0, alpha: 0.8)
+        mainView.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.8)
         
         if imageNames.count > 0 {
             if imageNames.count > timerTimes {
@@ -173,7 +180,7 @@ class SwiftNotice: NSObject {
                 mainView.addSubview(iv)
                 timer = DispatchSource.makeTimerSource(flags: DispatchSource.TimerFlags(rawValue: UInt(0)), queue: DispatchQueue.main) as! DispatchSource
                 timer.schedule(deadline: DispatchTime.now(), repeating: DispatchTimeInterval.milliseconds(timeInterval))
-                timer.setEventHandler(handler: { () -> Void in
+                timer.setEventHandler(handler: { () in
                     let name = imageNames[timerTimes % imageNames.count]
                     iv.image = name
                     timerTimes += 1
@@ -192,11 +199,12 @@ class SwiftNotice: NSObject {
         window.center = rv!.center
         
         if let version = Double(UIDevice.current.systemVersion),
-            version < 9.0 {
+           version < 9.0
+        {
             // change center
             window.center = getRealCenter()
             // change direction
-            window.transform = CGAffineTransform(rotationAngle: CGFloat(degree * Double.pi / 180))
+            window.transform = CGAffineTransform(rotationAngle: CGFloat(degree * Double.pi/180))
         }
         
         window.windowLevel = UIWindow.Level.alert
@@ -213,12 +221,12 @@ class SwiftNotice: NSObject {
     
     @discardableResult
     @MainActor
-    static func showText(_ text: String, autoClear: Bool=true, autoClearTime: Int=2) -> UIWindow {
+    static func showText(_ text: String, autoClear: Bool = true, autoClearTime: Int = 2) -> UIWindow {
         let window = UIWindow()
         window.backgroundColor = UIColor.clear
         let mainView = UIView()
         mainView.layer.cornerRadius = 12
-        mainView.backgroundColor = UIColor(red:0, green:0, blue:0, alpha: 0.8)
+        mainView.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.8)
         
         let label = UILabel()
         label.text = text
@@ -230,7 +238,7 @@ class SwiftNotice: NSObject {
         label.bounds = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         mainView.addSubview(label)
         
-        let superFrame = CGRect(x: 0, y: 0, width: label.frame.width + 50 , height: label.frame.height + 30)
+        let superFrame = CGRect(x: 0, y: 0, width: label.frame.width + 50, height: label.frame.height + 30)
         window.frame = superFrame
         mainView.frame = superFrame
         
@@ -238,11 +246,12 @@ class SwiftNotice: NSObject {
         window.center = rv!.center
         
         if let version = Double(UIDevice.current.systemVersion),
-            version < 9.0 {
+           version < 9.0
+        {
             // change center
             window.center = getRealCenter()
             // change direction
-            window.transform = CGAffineTransform(rotationAngle: CGFloat(degree * Double.pi / 180))
+            window.transform = CGAffineTransform(rotationAngle: CGFloat(degree * Double.pi/180))
         }
         
         window.windowLevel = UIWindow.Level.alert
@@ -258,13 +267,13 @@ class SwiftNotice: NSObject {
     
     @discardableResult
     @MainActor
-    static func showNoticeWithText(_ type: NoticeType,text: String, autoClear: Bool, autoClearTime: Int) -> UIWindow {
+    static func showNoticeWithText(_ type: NoticeType, text: String, autoClear: Bool, autoClearTime: Int) -> UIWindow {
         let frame = CGRect(x: 0, y: 0, width: 90, height: 90)
         let window = UIWindow()
         window.backgroundColor = UIColor.clear
         let mainView = UIView()
         mainView.layer.cornerRadius = 10
-        mainView.backgroundColor = UIColor(red:0, green:0, blue:0, alpha: 0.7)
+        mainView.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
         
         var image = UIImage()
         switch type {
@@ -291,11 +300,12 @@ class SwiftNotice: NSObject {
         window.center = rv!.center
         
         if let version = Double(UIDevice.current.systemVersion),
-            version < 9.0 {
+           version < 9.0
+        {
             // change center
             window.center = getRealCenter()
             // change direction
-            window.transform = CGAffineTransform(rotationAngle: CGFloat(degree * Double.pi / 180))
+            window.transform = CGAffineTransform(rotationAngle: CGFloat(degree * Double.pi/180))
         }
         
         window.windowLevel = UIWindow.Level.alert
@@ -327,17 +337,18 @@ class SwiftNotice: NSObject {
 }
 
 class SwiftNoticeSDK {
-    struct Cache {
+    enum Cache {
         nonisolated(unsafe) static var imageOfCheckmark: UIImage?
         nonisolated(unsafe) static var imageOfCross: UIImage?
         nonisolated(unsafe) static var imageOfInfo: UIImage?
     }
+
     class func draw(_ type: NoticeType) {
         let checkmarkShapePath = UIBezierPath()
         
         // draw circle
         checkmarkShapePath.move(to: CGPoint(x: 36, y: 18))
-        checkmarkShapePath.addArc(withCenter: CGPoint(x: 18, y: 18), radius: 17.5, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
+        checkmarkShapePath.addArc(withCenter: CGPoint(x: 18, y: 18), radius: 17.5, startAngle: 0, endAngle: CGFloat(Double.pi * 2), clockwise: true)
         checkmarkShapePath.close()
         
         switch type {
@@ -365,7 +376,7 @@ class SwiftNoticeSDK {
             
             let checkmarkShapePath = UIBezierPath()
             checkmarkShapePath.move(to: CGPoint(x: 18, y: 27))
-            checkmarkShapePath.addArc(withCenter: CGPoint(x: 18, y: 27), radius: 1, startAngle: 0, endAngle: CGFloat(Double.pi*2), clockwise: true)
+            checkmarkShapePath.addArc(withCenter: CGPoint(x: 18, y: 27), radius: 1, startAngle: 0, endAngle: CGFloat(Double.pi * 2), clockwise: true)
             checkmarkShapePath.close()
             
             UIColor.white.setFill()
@@ -375,8 +386,9 @@ class SwiftNoticeSDK {
         UIColor.white.setStroke()
         checkmarkShapePath.stroke()
     }
+
     class var imageOfCheckmark: UIImage {
-        if (Cache.imageOfCheckmark != nil) {
+        if Cache.imageOfCheckmark != nil {
             return Cache.imageOfCheckmark!
         }
         UIGraphicsBeginImageContextWithOptions(CGSize(width: 36, height: 36), false, 0)
@@ -387,8 +399,9 @@ class SwiftNoticeSDK {
         UIGraphicsEndImageContext()
         return Cache.imageOfCheckmark!
     }
+
     class var imageOfCross: UIImage {
-        if (Cache.imageOfCross != nil) {
+        if Cache.imageOfCross != nil {
             return Cache.imageOfCross!
         }
         UIGraphicsBeginImageContextWithOptions(CGSize(width: 36, height: 36), false, 0)
@@ -399,8 +412,9 @@ class SwiftNoticeSDK {
         UIGraphicsEndImageContext()
         return Cache.imageOfCross!
     }
+
     class var imageOfInfo: UIImage {
-        if (Cache.imageOfInfo != nil) {
+        if Cache.imageOfInfo != nil {
             return Cache.imageOfInfo!
         }
         UIGraphicsBeginImageContextWithOptions(CGSize(width: 36, height: 36), false, 0)
@@ -413,40 +427,34 @@ class SwiftNoticeSDK {
     }
 }
 
-extension UIWindow{
-    func hide(){
+extension UIWindow {
+    func hide() {
         SwiftNotice.hideNotice(self)
     }
 }
 
-fileprivate extension Selector {
+private extension Selector {
     static let hideNotice = #selector(SwiftNotice.hideNotice(_:))
 }
 
 @objc extension SwiftNotice {
-    
     // fix https://github.com/johnlui/SwiftNotice/issues/2
     static func hideNotice(_ sender: AnyObject) {
         if let window = sender as? UIWindow {
-            
             if let v = window.subviews.first {
                 UIView.animate(withDuration: 0.2, animations: {
-                    
                     if v.tag == sn_topBar {
                         v.frame = CGRect(x: 0, y: -v.frame.height, width: v.frame.width, height: v.frame.height)
                     }
                     v.alpha = 0
-                }, completion: { b in
-                    
-                    if let index = windows.index(where: { (item) -> Bool in
+                }, completion: { _ in
+                    if let index = windows.index(where: { item -> Bool in
                         return item == window
                     }) {
                         windows.remove(at: index)
                     }
                 })
             }
-            
         }
     }
-    
 }
