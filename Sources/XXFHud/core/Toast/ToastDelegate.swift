@@ -11,7 +11,7 @@ public protocol ToastDelegate {
 import Toast
 struct DefaultToastDelegate:ToastDelegate{
     func showToast(text: String) {
-        let toast = Toast.text("Safari pasted from Notes")
+        let toast = Toast.text(text)
         toast.show()
     }
 }
