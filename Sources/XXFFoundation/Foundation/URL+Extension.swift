@@ -5,6 +5,7 @@
 //  Created by xxf on /6/15.
 //
 import Foundation
+import UniformTypeIdentifiers
 import XXFSpeed
 
 public extension URL {
@@ -240,6 +241,16 @@ public extension URL {
             return false
         }
     #endif
+
+    /// 类型
+    var mimeType: String? {
+        if let utType = UTType(filenameExtension: self.pathExtension),
+           let mime = utType.preferredMIMEType
+        {
+            return mime
+        }
+        return nil
+    }
 
     /// 文件名（包含扩展名）
     var fileName: String {
