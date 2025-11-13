@@ -54,31 +54,36 @@ public var screenScale: CGFloat {
     #endif
 }
 
+// MARK: 像素适配
+
 // 统一的适配系数，可以根据屏幕、设备动态设置
 public enum SizeAdapter {
     public nonisolated(unsafe) static var scaleFactor: CGFloat = 1.0
 }
 
-public extension CGFloat {
-    var pt: CGFloat {
-        return self * SizeAdapter.scaleFactor
-    }
+public extension BinaryInteger {
+    // 像素适配
+    var pt: CGFloat { CGFloat(self) * SizeAdapter.scaleFactor }
 }
 
-public extension Double {
-    var pt: CGFloat {
-        return CGFloat(self).pt
-    }
+public extension BinaryFloatingPoint {
+    // 像素适配
+    var pt: CGFloat { CGFloat(self) * SizeAdapter.scaleFactor }
 }
 
-public extension Float {
-    var pt: CGFloat {
-        return CGFloat(self).pt
-    }
+// MARK: 字体适配
+
+// 统一的字体适配系数，可以根据屏幕、设备动态设置
+public enum FontAdapter {
+    public nonisolated(unsafe) static var scaleFactor: CGFloat = 1.0
 }
 
-public extension Int {
-    var pt: CGFloat {
-        return CGFloat(self).pt
-    }
+public extension BinaryInteger {
+    // 字体适配
+    var ft: CGFloat { CGFloat(self) * FontAdapter.scaleFactor }
+}
+
+public extension BinaryFloatingPoint {
+    // 字体适配
+    var ft: CGFloat { CGFloat(self) * FontAdapter.scaleFactor }
 }
