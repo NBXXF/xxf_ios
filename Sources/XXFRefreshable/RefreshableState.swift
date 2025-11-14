@@ -9,12 +9,12 @@ import XXFFlow
 
 /**
  【状态机控制 --> UI显示逻辑】
- 
+
  用法 RefreshableState
  public let refreshableState = RefreshableState().obs
  refreshableState .bind(to: scrollView.rx.refreshableState)
  */
-public struct RefreshableState: @unchecked Sendable {
+public struct RefreshableState: @unchecked Sendable, ObsConvertible {
     public let isRefreshing: Bool
     public let isLoadingMore: Bool
 
