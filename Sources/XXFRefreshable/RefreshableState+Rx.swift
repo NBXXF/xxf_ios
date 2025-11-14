@@ -7,34 +7,45 @@
 import UIKit
 import XXFFlow
 
+/**
+ 【业务加载更新 --> 状态机的值】
+ */
+public extension Obs where Element == RefreshableState {
+    /// 开始刷新或加载更多
+    func begin(isRefresh: Bool) {
+        if isRefresh {
+            self.state = state.copy(isRefreshing: true)
+        } else {
+            self.state = state.copy(isLoadingMore: true)
+        }
+    }
+
+    /// 结束刷新或加载更多
+    func end(isRefresh: Bool) {
+        if isRefresh {
+            self.state = state.copy(isRefreshing: false)
+        } else {
+            self.state = state.copy(isLoadingMore: false)
+        }
+    }
+}
+
 public extension ObservableType {
     /// 绑定刷新状态机
     /// - Parameters:
     ///   - state: 状态机
     ///   - isRefresh: 区分下拉刷新还是上拉加载
     func bindRefreshableState(
-        of state: RefreshableState,
+        of refreshableState: Obs<RefreshableState>,
         isRefresh: Bool
     ) -> Observable<Element> {
-        return self.doOnSubscribe {
-            if isRefresh {
-                state.beginRefreshing()
-            } else {
-                state.beginLoadingMore()
-            }
-        }.doOnNext { _ in
-            if isRefresh {
-                state.endRefreshing()
-            } else {
-                state.endLoadingMore()
-            }
+        return self.doOnSubscribe { [weak refreshableState] in
+            refreshableState?.begin(isRefresh: isRefresh)
+        }.doOnNext { [weak refreshableState] _ in
+            refreshableState?.end(isRefresh: isRefresh)
         }
-        .doOnFinal {
-            if isRefresh {
-                state.endRefreshing()
-            } else {
-                state.endLoadingMore()
-            }
+        .doOnFinal { [weak refreshableState] in
+            refreshableState?.end(isRefresh: isRefresh)
         }
     }
 }
@@ -45,28 +56,16 @@ public extension PrimitiveSequence where Trait == SingleTrait {
     ///   - state: 状态机
     ///   - isRefresh: 区分下拉刷新还是上拉加载
     func bindRefreshableState(
-        of state: RefreshableState,
+        of refreshableState: Obs<RefreshableState>,
         isRefresh: Bool
     ) -> Single<Element> {
-        return self.doOnSubscribe {
-            if isRefresh {
-                state.beginRefreshing()
-            } else {
-                state.beginLoadingMore()
-            }
-        }.doOnNext { _ in
-            if isRefresh {
-                state.endRefreshing()
-            } else {
-                state.endLoadingMore()
-            }
+        return self.doOnSubscribe { [weak refreshableState] in
+            refreshableState?.begin(isRefresh: isRefresh)
+        }.doOnNext { [weak refreshableState] _ in
+            refreshableState?.end(isRefresh: isRefresh)
         }
-        .doOnFinal {
-            if isRefresh {
-                state.endRefreshing()
-            } else {
-                state.endLoadingMore()
-            }
+        .doOnFinal { [weak refreshableState] in
+            refreshableState?.end(isRefresh: isRefresh)
         }
     }
 }
@@ -77,45 +76,16 @@ public extension PrimitiveSequence where Trait == MaybeTrait {
     ///   - state: 状态机
     ///   - isRefresh: 区分下拉刷新还是上拉加载
     func bindRefreshableState(
-        of state: RefreshableState,
+        of refreshableState: Obs<RefreshableState>,
         isRefresh: Bool
     ) -> Maybe<Element> {
-        return self.doOnSubscribe {
-            if isRefresh {
-                state.beginRefreshing()
-            } else {
-                state.beginLoadingMore()
-            }
-        }.doOnNext { _ in
-            if isRefresh {
-                state.endRefreshing()
-            } else {
-                state.endLoadingMore()
-            }
+        return self.doOnSubscribe { [weak refreshableState] in
+            refreshableState?.begin(isRefresh: isRefresh)
+        }.doOnNext { [weak refreshableState] _ in
+            refreshableState?.end(isRefresh: isRefresh)
         }
-        .doOnFinal {
-            if isRefresh {
-                state.endRefreshing()
-            } else {
-                state.endLoadingMore()
-            }
+        .doOnFinal { [weak refreshableState] in
+            refreshableState?.end(isRefresh: isRefresh)
         }
-    }
-}
-
-/**
- 用法
- state.rx.bind(to: scrollView)
- */
-public extension Reactive where Base == RefreshableState {
-    /// 绑定 RefreshableState 到 UIScrollView 的刷新/加载状态
-    func bind(to scrollView: UIScrollView) -> Disposable {
-        Observable.combineLatest(base.isRefreshing, base.isLoadingMore)
-            .subscribe(onNext: { [weak scrollView] isRefreshing, isLoadingMore in
-                guard let scrollView else { return }
-                // 绑定到 UIScrollView 的 Binder
-                scrollView.rx.refreshing.onNext(isRefreshing)
-                scrollView.rx.loadingMore.onNext(isLoadingMore)
-            })
     }
 }
