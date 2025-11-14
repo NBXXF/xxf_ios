@@ -202,7 +202,7 @@ let package = Package(
 
                 /// 可视化
                 .product(name: "Pulse", package: "PulseCompat"),
-                .product(name: "PulseUI", package: "PulseCompat", condition: .when(platforms: [.macOS])),
+                .product(name: "PulseUI", package: "PulseCompat"),
                 .product(name: "PulseLogHandler", package: "PulseCompat"),
                 .product(name: "PulseProxy", package: "PulseCompat")
                 // .product(name: "Installations", package: "KSCrash"),

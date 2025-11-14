@@ -4,21 +4,29 @@
 //  日志界面
 //  Created by xxfon 5/30.
 //
+import Pulse
+import SwiftUI
 #if os(macOS)
-    import Pulse
-    import PulseUI
-    import SwiftUI
+import AppKit
+import PulseUI
 
-    public class LogViewController: NSHostingController<ConsoleView> {
-        public init(store: LoggerStore = .shared,
-                    mode: ConsoleMode = .all)
-        {
-            super.init(rootView: ConsoleView(store: store, mode: mode))
-        }
+public typealias BaseHostingController = NSHostingController<ConsoleView>
+#else
+import PulseUI
+import UIKit
 
-        @available(*, unavailable)
-        @MainActor @preconcurrency public dynamic required init?(coder _: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
-    }
+public typealias BaseHostingController = UIHostingController<ConsoleView>
 #endif
+
+public class LogViewController: BaseHostingController {
+    public init(store: LoggerStore = .shared,
+                mode: ConsoleMode = .all)
+    {
+        super.init(rootView: ConsoleView(store: store, mode: mode))
+    }
+
+    @available(*, unavailable)
+    @MainActor @preconcurrency public required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
