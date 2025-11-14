@@ -313,6 +313,7 @@ let package = Package(
             name: "XXFRefreshable",
             dependencies: [
                 .product(name: "MJRefresh", package: "MJRefresh"),
+                "XXFFlow"
             ]
         ),
         .target(
