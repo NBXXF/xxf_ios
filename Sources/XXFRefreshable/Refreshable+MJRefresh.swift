@@ -13,7 +13,7 @@ public extension RefreshableCompatible where Self: UIScrollView {
     // MARK: 监听
 
     @MainActor
-    func addRefresh(action: @escaping () -> Void) {
+    func addRefreshing(action: @escaping () -> Void) {
         mj_header = MJRefreshNormalHeader { [weak self] in
             guard self != nil else { return }
             action()
@@ -21,7 +21,7 @@ public extension RefreshableCompatible where Self: UIScrollView {
     }
 
     @MainActor
-    func addLoadMore(action: @escaping () -> Void) {
+    func addLoadingMore(action: @escaping () -> Void) {
         mj_footer = MJRefreshAutoNormalFooter { [weak self] in
             guard self != nil else { return }
             action()

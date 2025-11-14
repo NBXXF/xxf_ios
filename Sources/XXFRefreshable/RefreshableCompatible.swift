@@ -10,11 +10,11 @@ public protocol RefreshableCompatible {
 
     /// 下拉刷新监听
     /// - Parameter action: 刷新执行回掉
-    func addRefresh(action: @escaping () -> Void)
+    func addRefreshing(action: @escaping () -> Void)
 
     /// 上拉加载
     /// - Parameter action: 加载执行回调
-    func addLoadMore(action: @escaping () -> Void)
+    func addLoadingMore(action: @escaping () -> Void)
 
     // MARK: 刷新
 

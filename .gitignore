@@ -30,3 +30,4 @@
 /.build/repositories/toast-swift-cf02598b/HEAD
 /.build/repositories/toast-swift-cf02598b/packed-refs
 /.build/
+/.swiftpm/xcode/xcuserdata/
