@@ -121,7 +121,12 @@ open class TouchDetectingWindow<WindowType: BaseWindow>: BaseWindow {
         #if os(iOS)
         guard let rootVC = self.rootViewController else { return }
         let logVC = LogViewController()
-        rootVC.present(logVC, animated: true)
+        // fix present 出来大概率子子页面无法跳转的bug
+        if let navigationController = rootVC as? UINavigationController {
+            navigationController.pushViewController(logVC, animated: true)
+        } else {
+            rootVC.navigationController?.present(logVC, animated: true)
+        }
         #elseif os(macOS)
         guard let contentVC = self.contentViewController else { return }
         let logVC = LogViewController()
