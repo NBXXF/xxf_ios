@@ -1,7 +1,7 @@
 //
 //  RefreshableState+Rx.swift
 //  xxf_ios
-//
+//  将RefreshableState 绑定到事件流里面去,等同于对应的事件流发生改变,就会修改state
 //  Created by xxf on 11/14.
 //
 import UIKit
