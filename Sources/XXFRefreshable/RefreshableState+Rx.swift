@@ -111,7 +111,8 @@ public extension Reactive where Base == RefreshableState {
     /// 绑定 RefreshableState 到 UIScrollView 的刷新/加载状态
     func bind(to scrollView: UIScrollView) -> Disposable {
         Observable.combineLatest(base.isRefreshing, base.isLoadingMore)
-            .subscribe(onNext: { isRefreshing, isLoadingMore in
+            .subscribe(onNext: { [weak scrollView] isRefreshing, isLoadingMore in
+                guard let scrollView else { return }
                 // 绑定到 UIScrollView 的 Binder
                 scrollView.rx.refreshing.onNext(isRefreshing)
                 scrollView.rx.loadingMore.onNext(isLoadingMore)

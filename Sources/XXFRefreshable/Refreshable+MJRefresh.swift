@@ -33,7 +33,9 @@ public extension RefreshableCompatible where Self: UIScrollView {
     @MainActor
     func beginRefreshing(trigger: Bool) {
         mj_header?.beginRefreshing()
-        mj_header?.executeRefreshingCallback()
+        if trigger {
+            mj_header?.executeRefreshingCallback()
+        }
     }
 
     @MainActor
@@ -46,7 +48,9 @@ public extension RefreshableCompatible where Self: UIScrollView {
     @MainActor
     func beginLoadingMore(trigger: Bool) {
         mj_footer?.beginRefreshing()
-        mj_footer?.executeRefreshingCallback()
+        if trigger {
+            mj_footer?.executeRefreshingCallback()
+        }
     }
 
     @MainActor

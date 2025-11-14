@@ -21,7 +21,8 @@ import XXFFlow
  */
 public extension Reactive where Base: UIScrollView {
     var refreshing: Binder<Bool> {
-        return Binder(base) { scrollView, isShow in
+        return Binder(base) { [weak base] _, isShow in
+            guard let scrollView = base else { return }
             Task { @MainActor in
                 if isShow {
                     scrollView.endLoadingMore() // 先结束加载更多
@@ -34,7 +35,8 @@ public extension Reactive where Base: UIScrollView {
     }
 
     var loadingMore: Binder<Bool> {
-        return Binder(base) { scrollView, isShow in
+        return Binder(base) { [weak base] _, isShow in
+            guard let scrollView = base else { return }
             Task { @MainActor in
                 if isShow {
                     scrollView.endRefreshing() // 先结束刷新
