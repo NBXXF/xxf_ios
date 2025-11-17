@@ -14,7 +14,7 @@ import XXFFlow
  public let refreshableState = RefreshableState().obs
  refreshableState .bind(to: scrollView.rx.refreshableState)
  */
-public struct RefreshableState: @unchecked Sendable, ObsConvertible {
+public struct RefreshableState: @unchecked Sendable, ObsConvertible, Hashable, Equatable {
     public let isRefreshing: Bool
     public let isLoadingMore: Bool
 

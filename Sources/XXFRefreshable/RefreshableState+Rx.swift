@@ -14,9 +14,11 @@ public extension Obs where Element == RefreshableState {
     /// 开始刷新或加载更多
     func begin(isRefresh: Bool) {
         if isRefresh {
-            self.state = state.copy(isRefreshing: true)
+            // 开始刷新时，确保加载更多是 false
+            self.state = state.copy(isRefreshing: true, isLoadingMore: false)
         } else {
-            self.state = state.copy(isLoadingMore: true)
+            // 开始加载更多时，确保刷新是 false
+            self.state = state.copy(isRefreshing: false, isLoadingMore: true)
         }
     }
 

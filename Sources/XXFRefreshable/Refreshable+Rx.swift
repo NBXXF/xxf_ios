@@ -30,21 +30,18 @@ public extension Reactive where Base: UIScrollView {
         return Binder(base) { [weak base] _, isShow in
             guard let scrollView = base else { return }
             Task { @MainActor in
-                let header = scrollView.mj_header
-                let footer = scrollView.mj_footer
-
                 if isShow {
                     // 避免冲突：先停止加载更多
-                    if footer?.state == .refreshing {
-                        footer?.endRefreshing()
+                    if scrollView.isLoadingMore() {
+                        scrollView.endLoadingMore()
                     }
                     // 避免重复 beginRefreshing
-                    if header?.state != .refreshing && header?.state != .willRefresh {
-                        header?.beginRefreshing()
+                    if !scrollView.isRefreshing() {
+                        scrollView.beginRefreshing(trigger: false)
                     }
                 } else {
-                    if header?.state == .refreshing {
-                        header?.endRefreshing()
+                    if scrollView.isRefreshing() {
+                        scrollView.endRefreshing()
                     }
                 }
             }
@@ -57,21 +54,18 @@ public extension Reactive where Base: UIScrollView {
         return Binder(base) { [weak base] _, isShow in
             guard let scrollView = base else { return }
             Task { @MainActor in
-                let header = scrollView.mj_header
-                let footer = scrollView.mj_footer
-
                 if isShow {
                     // 避免冲突：先停止下拉刷新
-                    if header?.state == .refreshing {
-                        header?.endRefreshing()
+                    if scrollView.isRefreshing() {
+                        scrollView.endRefreshing()
                     }
-                    // 避免重复 beginRefreshing
-                    if footer?.state != .refreshing && footer?.state != .willRefresh {
-                        footer?.beginRefreshing()
+                    // 避免重复 beginloadingmore
+                    if !scrollView.isLoadingMore() {
+                        scrollView.beginLoadingMore(trigger: false)
                     }
                 } else {
-                    if footer?.state == .refreshing {
-                        footer?.endRefreshing()
+                    if scrollView.isLoadingMore() {
+                        scrollView.endLoadingMore()
                     }
                 }
             }
@@ -84,34 +78,35 @@ public extension Reactive where Base: UIScrollView {
         return Binder(base) { [weak base] _, state in
             guard let scrollView = base else { return }
             Task { @MainActor in
-                let header = scrollView.mj_header
-                let footer = scrollView.mj_footer
-
                 // --- 下拉刷新 ---
                 if state.isRefreshing {
-                    if footer?.state == .refreshing {
-                        footer?.endRefreshing() // 互斥处理
+                    // 避免冲突：先停止加载更多
+                    if scrollView.isLoadingMore() {
+                        scrollView.endLoadingMore()
                     }
-                    if header?.state != .refreshing && header?.state != .willRefresh {
-                        header?.beginRefreshing()
+                    // 避免重复 beginRefreshing
+                    if !scrollView.isRefreshing() {
+                        scrollView.beginRefreshing(trigger: false)
                     }
                 } else {
-                    if header?.state == .refreshing {
-                        header?.endRefreshing()
+                    if scrollView.isRefreshing() {
+                        scrollView.endRefreshing()
                     }
                 }
 
                 // --- 上拉加载 ---
                 if state.isLoadingMore {
-                    if header?.state == .refreshing {
-                        header?.endRefreshing() // 互斥处理
+                    // 避免冲突：先停止下拉刷新
+                    if scrollView.isRefreshing() {
+                        scrollView.endRefreshing()
                     }
-                    if footer?.state != .refreshing && footer?.state != .willRefresh {
-                        footer?.beginRefreshing()
+                    // 避免重复 beginloadingmore
+                    if !scrollView.isLoadingMore() {
+                        scrollView.beginLoadingMore(trigger: false)
                     }
                 } else {
-                    if footer?.state == .refreshing {
-                        footer?.endRefreshing()
+                    if scrollView.isLoadingMore() {
+                        scrollView.endLoadingMore()
                     }
                 }
             }
