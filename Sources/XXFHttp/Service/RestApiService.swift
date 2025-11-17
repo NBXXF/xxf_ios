@@ -27,8 +27,8 @@ public protocol RestApiService: BaseApiService {
     /// 使用的 Alamofire Session（可用于注入自定义证书/缓存策略等）。
     static var session: HttpSession { get }
 
-    /// 插件列表：如网络日志插件、授权插件等。
-    static var plugins: [PluginType] { get }
+    /// 拦截器列表：如网络日志插件、授权插件等。
+    static var interceptors: [Interceptor] { get }
 
     /// rxswift拦截器
     static var callAdapter: RxCallAdapter? { get }
@@ -74,8 +74,8 @@ public extension RestApiService {
                            startRequestsImmediately: false)
     }
 
-    /// 默认插件列表：为空，可在服务中自定义返回如 NetworkLoggerPlugin。
-    static var plugins: [PluginType] {
+    /// 拦截器列表：为空，可在服务中自定义返回如 NetworkLoggerPlugin。
+    static var interceptors: [Interceptor] {
         []
     }
 
@@ -99,7 +99,7 @@ public extension RestApiService {
             stubClosure: stubClosure,
             callbackQueue: callbackQueue,
             session: session.proxy,
-            plugins: plugins,
+            plugins: interceptors,
             trackInflights: trackInflights
         )
     }

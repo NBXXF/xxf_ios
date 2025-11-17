@@ -1,12 +1,12 @@
 //
-//  HostDynamicPlugin.swift
+//  DynamicHostInterceptor.swift
 //  xxf_ios
 //  动态切换baseUrl
 //  Created by xxf on 6/19.
 //
 import Foundation
 
-public final class DynamicHostPlugin: PluginType {
+public final class DynamicHostInterceptor: Interceptor {
     let newHost: String
     let newPort: Int?
     let newScheme: String?
