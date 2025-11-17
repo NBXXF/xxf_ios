@@ -30,7 +30,7 @@ public extension Moya.Task {
     ///
     /// 支持多种请求体类型：JSON、表单、Encodable 模型、原始 Data、Multipart。
     /// 支持 query 参数叠加。
-    struct Builder {
+    class Builder {
         // MARK: - 内部存储
 
         /// 当前请求体类型
@@ -49,7 +49,7 @@ public extension Moya.Task {
         /// - Parameter parameters: 字典 body
         /// - Returns: Self，可链式调用
         @discardableResult
-        public mutating func jsonBody(_ parameters: [String: Any]) -> Self {
+        public func jsonBody(_ parameters: [String: Any]) -> Self {
             self.bodyType = .json(dict: parameters)
             return self
         }
@@ -61,7 +61,7 @@ public extension Moya.Task {
         ///   - encoder: JSONEncoder，可自定义
         /// - Returns: Self，可链式调用
         @discardableResult
-        public mutating func jsonBody<T: Encodable>(_ model: T, encoder: JSONEncoder = JSONEncoder()) -> Self {
+        public func jsonBody<T: Encodable>(_ model: T, encoder: JSONEncoder = JSONEncoder()) -> Self {
             self.bodyType = .jsonEncodable(model: model, encoder: encoder)
             return self
         }
@@ -70,7 +70,7 @@ public extension Moya.Task {
         /// - Parameter parameters: 字典 body
         /// - Returns: Self，可链式调用
         @discardableResult
-        public mutating func urlEncodedBody(_ parameters: [String: Any]) -> Self {
+        public func urlEncodedBody(_ parameters: [String: Any]) -> Self {
             self.bodyType = .urlEncoded(dict: parameters)
             return self
         }
@@ -79,7 +79,7 @@ public extension Moya.Task {
         /// - Parameter parts: MultipartFormData 数组
         /// - Returns: Self，可链式调用
         @discardableResult
-        public mutating func multipartBody(_ parts: [Moya.MultipartFormData]) -> Self {
+        public func multipartBody(_ parts: [Moya.MultipartFormData]) -> Self {
             self.bodyType = .multipart(parts: parts)
             return self
         }
@@ -88,7 +88,7 @@ public extension Moya.Task {
         /// - Parameter data: 请求体 Data
         /// - Returns: Self，可链式调用
         @discardableResult
-        public mutating func rawBody(_ data: Data) -> Self {
+        public func rawBody(_ data: Data) -> Self {
             self.bodyType = .raw(data: data)
             return self
         }
@@ -97,7 +97,7 @@ public extension Moya.Task {
         /// - Parameter parameters: query 字典
         /// - Returns: Self，可链式调用
         @discardableResult
-        public mutating func query(_ parameters: [String: Any]) -> Self {
+        public func query(_ parameters: [String: Any]) -> Self {
             if self.urlParameters == nil {
                 self.urlParameters = parameters
             } else {
@@ -109,7 +109,7 @@ public extension Moya.Task {
         /// 清空所有 body / query 数据
         /// - Returns: Self，可链式调用
         @discardableResult
-        public mutating func clear() -> Self {
+        public func clear() -> Self {
             self.bodyType = .none
             self.urlParameters = nil
             return self
