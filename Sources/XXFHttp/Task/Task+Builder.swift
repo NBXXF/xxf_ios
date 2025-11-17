@@ -39,6 +39,10 @@ public extension Moya.Task {
         /// URL query 参数
         private var urlParameters: [String: Any]?
 
+        public init(urlParameters: [String: Any]? = nil) {
+            self.urlParameters = urlParameters
+        }
+
         // MARK: - 链式方法
 
         /// 设置 JSON body（Content-Type 默认 application/json）
