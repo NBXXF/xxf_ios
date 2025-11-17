@@ -39,10 +39,13 @@ public extension ObservableType {
     ///   - isRefresh: 区分下拉刷新还是上拉加载
     func bindRefreshableState(
         of refreshableState: Obs<RefreshableState>,
-        isRefresh: Bool
+        isRefresh: Bool,
+        ignoreRefresh: Bool = true
     ) -> Observable<Element> {
         return self.doOnSubscribe { [weak refreshableState] in
-            refreshableState?.begin(isRefresh: isRefresh)
+            if !ignoreRefresh {
+                refreshableState?.begin(isRefresh: isRefresh)
+            }
         }.doOnNext { [weak refreshableState] _ in
             refreshableState?.end(isRefresh: isRefresh)
         }
@@ -59,10 +62,13 @@ public extension PrimitiveSequence where Trait == SingleTrait {
     ///   - isRefresh: 区分下拉刷新还是上拉加载
     func bindRefreshableState(
         of refreshableState: Obs<RefreshableState>,
-        isRefresh: Bool
+        isRefresh: Bool,
+        ignoreRefresh: Bool = true
     ) -> Single<Element> {
         return self.doOnSubscribe { [weak refreshableState] in
-            refreshableState?.begin(isRefresh: isRefresh)
+            if !ignoreRefresh {
+                refreshableState?.begin(isRefresh: isRefresh)
+            }
         }.doOnNext { [weak refreshableState] _ in
             refreshableState?.end(isRefresh: isRefresh)
         }
@@ -79,10 +85,13 @@ public extension PrimitiveSequence where Trait == MaybeTrait {
     ///   - isRefresh: 区分下拉刷新还是上拉加载
     func bindRefreshableState(
         of refreshableState: Obs<RefreshableState>,
-        isRefresh: Bool
+        isRefresh: Bool,
+        ignoreRefresh: Bool = true
     ) -> Maybe<Element> {
         return self.doOnSubscribe { [weak refreshableState] in
-            refreshableState?.begin(isRefresh: isRefresh)
+            if !ignoreRefresh {
+                refreshableState?.begin(isRefresh: isRefresh)
+            }
         }.doOnNext { [weak refreshableState] _ in
             refreshableState?.end(isRefresh: isRefresh)
         }
