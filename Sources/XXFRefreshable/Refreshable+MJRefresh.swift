@@ -18,6 +18,8 @@ public extension RefreshableCompatible where Self: UIScrollView {
             guard self != nil else { return }
             action()
         }
+        // fix: bindRefreshableState来回闪缩问题
+        mj_header?.isCollectionViewAnimationBug = true
     }
 
     @MainActor
