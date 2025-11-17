@@ -87,6 +87,9 @@ public extension RestApiService {
         false
     }
 
+    /// 处理默认的header
+    var headers: [String: String]? { return [:] }
+
     // MARK: - Provider 构建方法
 
     /// 构建并返回一个 MoyaProvider，使用当前类型定义的静态配置。
