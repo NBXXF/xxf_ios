@@ -23,11 +23,12 @@ public class PreferenceWrapper<T: Sendable, Owner: PreferenceProvider>: NSObject
         return subject.eraseToAnyPublisher()
     }
 
-    public init(wrappedValue defaultValue: T?,
-                _ key: String,
-                useSyncWrite: Bool = true,
-                cacheEnabled: Bool = true)
-    {
+    public init(
+        wrappedValue defaultValue: T?,
+        _ key: String,
+        useSyncWrite: Bool = true,
+        cacheEnabled: Bool = true
+    ) {
         self.key = key
         self.defaultValue = defaultValue
         storage = Owner.storage
@@ -143,21 +144,32 @@ public class PreferenceWrapper<T: Sendable, Owner: PreferenceProvider>: NSObject
             queue.async(flags: .barrier) { [weak self] in
                 guard let self = self else { return }
 
-                if newValue == nil {
-                    self.storage.removeObject(forKey: self.key)
-                    let resetValue = self.loadValue()
-                    if self.cacheEnabled {
-                        self.cache = resetValue
-                    }
-                    self.subject.send(resetValue)
-                } else if let encoded = self.encodeIfNeeded(newValue!) {
-                    self.storage.set(encoded, forKey: self.key)
-                    if self.cacheEnabled {
-                        self.cache = newValue
-                    }
-                    self.subject.send(newValue)
-                } else {
-                    print("[Preference] Encode failed for key: \(self.key), type: \(T.self)")
+                switch newValue {
+                    case .some(let value):
+                        // 有值：尝试编码和存储
+                        if let encoded = self.encodeIfNeeded(value) {
+                            self.storage.set(encoded, forKey: self.key)
+                            if self.cacheEnabled {
+                                self.cache = newValue
+                            }
+                            self.subject.send(newValue)
+                        } else {
+                            print("[Preference] Encode failed for key: \(self.key), type: \(T.self)")
+                            // 编码失败也视为要设置为 nil
+                            self.storage.removeObject(forKey: self.key)
+                            if self.cacheEnabled {
+                                self.cache = nil
+                            }
+                            self.subject.send(nil)
+                        }
+
+                    case .none:
+                        // 明确为 nil：移除存储
+                        self.storage.removeObject(forKey: self.key)
+                        if self.cacheEnabled {
+                            self.cache = nil
+                        }
+                        self.subject.send(nil)
                 }
 
                 if self.useSyncWrite, let ud = self.storage as? UserDefaults {
