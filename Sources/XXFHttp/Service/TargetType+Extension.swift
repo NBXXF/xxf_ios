@@ -2,7 +2,7 @@
 //  TargetType+Extension.swift
 //  xxf_ios
 //
-//  Created by trl on 6/23.
+//  Created by xxf on 6/23.
 //
 import Alamofire
 import Foundation

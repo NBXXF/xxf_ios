@@ -2,7 +2,7 @@
 //  NSWindowListenable.swift
 //  xxf_ios
 //
-//  Created by trl on 9/15.
+//  Created by xxf on 9/15.
 //
 
 public protocol NSWindowListenable {

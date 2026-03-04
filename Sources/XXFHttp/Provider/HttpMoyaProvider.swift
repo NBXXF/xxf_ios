@@ -2,7 +2,7 @@
 //  SuperMoyaProvider.swift
 //  xxf_ios
 //  继承 将publicCallbackQueue公开,官方默认是他的库内可见
-//  Created by trl on 8/23.
+//  Created by xxf on 8/23.
 //
 import Foundation
 import Moya

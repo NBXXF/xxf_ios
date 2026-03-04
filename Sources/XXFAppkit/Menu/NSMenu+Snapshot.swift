@@ -2,7 +2,7 @@
 //  NSMenu+Snapshot.swift
 //  xxf_ios
 //
-//  Created by trl on 2025/10/15.
+//  Created by xxf on 2025/10/15.
 //
 
 import AppKit

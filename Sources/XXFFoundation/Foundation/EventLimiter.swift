@@ -2,7 +2,7 @@
 //  EventLimiter.swift
 //  xxf_ios
 //  限流工具（Throttle & Debounce）
-//  Created by trl on 6/19.
+//  Created by xxf on 6/19.
 //
 
 import Foundation

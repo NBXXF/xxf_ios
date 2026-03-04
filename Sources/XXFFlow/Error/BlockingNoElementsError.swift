@@ -2,7 +2,7 @@
 //  BlockingNoElementsError.swift
 //  xxf_ios
 //
-//  Created by trl on 9/14.
+//  Created by xxf on 9/14.
 //
 import XXFFoundation
 

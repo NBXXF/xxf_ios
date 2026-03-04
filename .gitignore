@@ -33,3 +33,4 @@
 /.build/repositories/toast-swift-cf02598b/packed-refs
 /.build/
 /.swiftpm/xcode/xcuserdata/
+/.idea/
