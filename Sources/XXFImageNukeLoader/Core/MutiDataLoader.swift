@@ -16,7 +16,7 @@ final class MutiDataLoader: DataLoading {
         self.dataLoadingList = dataLoadingList
     }
 
-    func loadData(with request: URLRequest, didReceiveData: @escaping (Data, URLResponse) -> Void, completion: @escaping ((any Error)?) -> Void) -> any Nuke.Cancellable {
+    func loadData(with request: URLRequest, didReceiveData: @escaping @Sendable (Data, URLResponse) -> Void, completion: @escaping @Sendable ((any Error)?) -> Void) -> any Nuke.Cancellable {
         return dataLoadingList.first { dataLoading in
             dataLoading.canHandle(request: request)
         }!.loadData(with: request, didReceiveData: didReceiveData, completion: completion)
