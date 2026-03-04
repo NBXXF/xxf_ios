@@ -13,7 +13,7 @@ extension DataLoader: ImageDataFetcher {
         return true
     }
 
-    public func loadData(request: URLRequest, fetchQueue _: OperationQueue, completion: @escaping (Result<Data, Swift.Error>) -> Void) -> any XXFImageLoader.Cancellable {
+    public func loadData(request: URLRequest, fetchQueue _: OperationQueue, completion: @escaping @Sendable (Result<Data, Swift.Error>) -> Void) -> any XXFImageLoader.Cancellable {
         // 调用 DataLoading 的方法
         let task = loadData(with: request, didReceiveData: { data, _ in
             // 这里可以累加 data 或直接返回
