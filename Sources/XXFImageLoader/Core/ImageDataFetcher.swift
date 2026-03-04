@@ -12,5 +12,5 @@ public protocol ImageDataFetcher: Sendable {
     func canHandle(request: URLRequest) -> Bool
 
     /// 异步加载数据
-    func loadData(request: URLRequest, fetchQueue: OperationQueue, completion: @escaping (Result<Data, Swift.Error>) -> Void) -> any Cancellable
+    func loadData(request: URLRequest, fetchQueue: OperationQueue, completion: @escaping @Sendable (Result<Data, Swift.Error>) -> Void) -> any Cancellable
 }

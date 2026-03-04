@@ -20,13 +20,13 @@ final class NukeProxyDataFetcher: ImageDataFetcher, DataLoading {
         return proxy.canHandle(request: request)
     }
 
-    func loadData(request: URLRequest, fetchQueue: OperationQueue, completion: @escaping (Result<Data, any Error>) -> Void) -> any XXFImageLoader.Cancellable {
+    func loadData(request: URLRequest, fetchQueue: OperationQueue, completion: @escaping @Sendable (Result<Data, any Error>) -> Void) -> any XXFImageLoader.Cancellable {
         return proxy.loadData(request: request, fetchQueue: fetchQueue, completion: completion)
     }
 
     func loadData(with request: URLRequest,
-                  didReceiveData: @escaping (Data, URLResponse) -> Void,
-                  completion: @escaping ((any Error)?) -> Void) -> any Nuke.Cancellable
+                  didReceiveData: @escaping @Sendable (Data, URLResponse) -> Void,
+                  completion: @escaping @Sendable ((any Error)?) -> Void) -> any Nuke.Cancellable
     {
         // 1. 将 URLRequest 转换为 URL
         guard request.url != nil else {

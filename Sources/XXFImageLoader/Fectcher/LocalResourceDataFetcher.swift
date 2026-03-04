@@ -25,7 +25,7 @@ public final class LocalResourceDataFetcher: ImageDataFetcher {
         return request.url?.isLocalResource == true
     }
 
-    public func loadData(request: URLRequest, fetchQueue: OperationQueue, completion: @escaping (Result<Data, any Error>) -> Void) -> any Cancellable {
+    public func loadData(request: URLRequest, fetchQueue: OperationQueue, completion: @escaping @Sendable (Result<Data, any Error>) -> Void) -> any Cancellable {
         let task = LocalReourceDataTask(request: request, fetchQueue: fetchQueue, completion: completion)
         task.start()
         return task
@@ -37,14 +37,14 @@ public final class LocalResourceDataFetcher: ImageDataFetcher {
         private let request: URLRequest
         private let fetchQueue: OperationQueue
         private let fileLoadURL: URL
-        private let completion: (Result<Data, any Error>) -> Void
+        private let completion: @Sendable (Result<Data, any Error>) -> Void
         private var cancelled = false
 
         private var operationCancellable: OperationCancellable?
 
         init(request: URLRequest,
              fetchQueue: OperationQueue,
-             completion: @escaping (Result<Data, any Error>) -> Void)
+             completion: @escaping @Sendable (Result<Data, any Error>) -> Void)
         {
             self.request = request
             self.fetchQueue = fetchQueue
