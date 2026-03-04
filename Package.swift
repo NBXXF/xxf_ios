@@ -224,6 +224,8 @@ let package = Package(
                 .product(name: "RxMoya", package: "Moya"),
                 "XXFDataSource",
                 "XXFFlow",
+                "XXFJson",
+                "XXFSpeed",
                 /// 日志
                 .product(name: "Pulse", package: "PulseCompat")
             ]
