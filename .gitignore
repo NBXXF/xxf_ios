@@ -1,3 +1,5 @@
+# 忽略整个 .build 目录（核心）
+.build/
 /.build/arm64-apple-macosx/debug/index/db/v13/p37744--fb0197/data.mdb
 /.build/arm64-apple-macosx/debug/index/db/v13/p37744--fb0197/lock.mdb
 /.build/checkouts/Alamofire/
