@@ -209,6 +209,8 @@ private extension CachingRxCallAdapter {
     /// 可能发射 1-2 次：
     /// - 有缓存：发射缓存 → 发射网络响应（或完成）
     /// - 无缓存：发射网络响应（或错误）
+    ///
+    /// 优化：内存缓存同步检查（毫秒级），磁盘缓存异步读取
     func firstCache(
         source: Observable<Response>,
         key: String,
@@ -216,40 +218,80 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Response> {
-        Observable<Response>.create { observer in
-            var hasCacheEmitted = false
+        // 1. 同步检查内存缓存（非常快，不阻塞）
+        let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
-            // 1. 先检查缓存（同步）
-            if let cached = cache.get(forKey: key, maxAge: maxAge) {
-                observer.onNext(cached)
+        // 网络请求（带缓存写入）
+        let networkObservable = source
+            .do(onNext: { response in
+                cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
+            })
+
+        return Observable<Response>.create { observer in
+            // 使用锁保护状态变量，防止竞态条件
+            let lock = NSLock()
+            var hasCacheEmitted = false
+            var hasNetworkEmitted = false
+            let disposeBag = CompositeDisposable()
+
+            // 2. 如果内存有缓存，立即发射
+            if let cached = memoryCached {
                 hasCacheEmitted = true
+                observer.onNext(cached)
+            } else {
+                // 3. 内存未命中，异步读取磁盘
+                cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                    lock.lock()
+                    let shouldEmit = !hasNetworkEmitted // 只有网络还没返回时才发射缓存
+                    if diskCached != nil {
+                        hasCacheEmitted = true
+                    }
+                    lock.unlock()
+
+                    if shouldEmit, let cached = diskCached {
+                        DispatchQueue.main.async {
+                            observer.onNext(cached)
+                        }
+                    }
+                }
             }
 
-            // 2. 发起网络请求
-            let disposable = source.subscribe(
-                onNext: { response in
-                    // 缓存响应
-                    cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-                    observer.onNext(response)
-                },
-                onError: { error in
-                    // 如果已有缓存，静默完成；否则传递错误
-                    if hasCacheEmitted {
-                        observer.onCompleted()
-                    } else {
-                        observer.onError(error)
-                    }
-                },
-                onCompleted: {
-                    observer.onCompleted()
-                }
-            )
+            // 4. 同时发起网络请求
+            let networkDisposable = networkObservable
+                .observe(on: MainScheduler.instance)
+                .subscribe(
+                    onNext: { response in
+                        lock.lock()
+                        hasNetworkEmitted = true
+                        let cacheEmitted = hasCacheEmitted
+                        lock.unlock()
 
-            return disposable
+                        observer.onNext(response)
+                    },
+                    onError: { error in
+                        lock.lock()
+                        let cacheEmitted = hasCacheEmitted
+                        lock.unlock()
+
+                        if cacheEmitted {
+                            observer.onCompleted()
+                        } else {
+                            observer.onError(error)
+                        }
+                    },
+                    onCompleted: {
+                        observer.onCompleted()
+                    }
+                )
+            _ = disposeBag.insert(networkDisposable)
+
+            return disposeBag
         }
     }
 
     /// firstRemote: 先请求网络，失败时回退缓存
+    ///
+    /// 优化：网络失败时，先检查内存缓存，再异步读取磁盘缓存
     func firstRemote(
         source: Observable<Response>,
         key: String,
@@ -262,23 +304,52 @@ private extension CachingRxCallAdapter {
                 cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
             })
             .catch { error -> Observable<Response> in
-                // 网络失败，尝试读取缓存
-                if let cached = cache.get(forKey: key, maxAge: maxAge) {
+                // 网络失败，先检查内存缓存（同步，快）
+                if let cached = cache.getFromMemory(forKey: key, maxAge: maxAge) {
                     return .just(cached)
                 }
-                return .error(error)
+                // 内存无缓存，异步读取磁盘
+                return Observable<Response>.create { observer in
+                    cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                        DispatchQueue.main.async {
+                            if let cached = diskCached {
+                                observer.onNext(cached)
+                                observer.onCompleted()
+                            } else {
+                                observer.onError(error)
+                            }
+                        }
+                    }
+                    return Disposables.create()
+                }
             }
     }
 
     /// onlyCache: 只读缓存，没有则 empty
+    ///
+    /// 优化：先检查内存缓存，再异步读取磁盘缓存
     func onlyCache(key: String, maxAge: TimeInterval, cache: HttpCache) -> Observable<Response> {
-        if let cached = cache.get(forKey: key, maxAge: maxAge) {
+        // 先检查内存缓存（同步，快）
+        if let cached = cache.getFromMemory(forKey: key, maxAge: maxAge) {
             return .just(cached)
         }
-        return .empty()
+        // 内存无缓存，异步读取磁盘
+        return Observable<Response>.create { observer in
+            cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                DispatchQueue.main.async {
+                    if let cached = diskCached {
+                        observer.onNext(cached)
+                    }
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
     }
 
     /// ifCache: 有缓存用缓存，无缓存走网络
+    ///
+    /// 优化：先检查内存缓存，无内存缓存时并发读磁盘和网络
     func ifCache(
         source: Observable<Response>,
         key: String,
@@ -286,21 +357,73 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Response> {
-        // 先检查缓存
-        if let cached = cache.get(forKey: key, maxAge: maxAge) {
+        // 先检查内存缓存（同步，快）
+        if let cached = cache.getFromMemory(forKey: key, maxAge: maxAge) {
             return .just(cached)
         }
 
-        // 无缓存，走网络并缓存结果
-        return source.do(onNext: { response in
-            cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-        })
+        // 内存无缓存，异步检查磁盘，如果磁盘也没有则走网络
+        return Observable<Response>.create { observer in
+            let lock = NSLock()
+            var hasEmitted = false
+            let disposeBag = CompositeDisposable()
+
+            // 异步读取磁盘
+            cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                lock.lock()
+                if !hasEmitted, let cached = diskCached {
+                    hasEmitted = true
+                    lock.unlock()
+                    DispatchQueue.main.async {
+                        observer.onNext(cached)
+                        observer.onCompleted()
+                    }
+                } else {
+                    lock.unlock()
+                }
+            }
+
+            // 同时发起网络请求（延迟一小段时间给磁盘缓存机会）
+            let networkDisposable = source
+                .delay(.milliseconds(50), scheduler: MainScheduler.instance)
+                .do(onNext: { response in
+                    cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
+                })
+                .subscribe(
+                    onNext: { response in
+                        lock.lock()
+                        if !hasEmitted {
+                            hasEmitted = true
+                            lock.unlock()
+                            observer.onNext(response)
+                            observer.onCompleted()
+                        } else {
+                            lock.unlock()
+                        }
+                    },
+                    onError: { error in
+                        lock.lock()
+                        if !hasEmitted {
+                            hasEmitted = true
+                            lock.unlock()
+                            observer.onError(error)
+                        } else {
+                            lock.unlock()
+                        }
+                    }
+                )
+            _ = disposeBag.insert(networkDisposable)
+
+            return disposeBag
+        }
     }
 
     /// lastCache: 返回缓存后静默更新网络
     ///
     /// - 有缓存：返回缓存，静默请求网络更新缓存
     /// - 无缓存：返回网络响应
+    ///
+    /// 优化：先检查内存缓存，磁盘读取异步化
     func lastCache(
         source: Observable<Response>,
         key: String,
@@ -308,41 +431,80 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Response> {
-        Observable<Response>.create { observer in
-            if let cached = cache.get(forKey: key, maxAge: maxAge) {
-                // 有缓存：返回缓存，静默更新
+        // 先检查内存缓存（同步，快）
+        let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
+
+        return Observable<Response>.create { observer in
+            let lock = NSLock()
+            var hasCacheEmitted = false
+            let disposeBag = CompositeDisposable()
+
+            // 如果内存有缓存，立即发射
+            if let cached = memoryCached {
+                hasCacheEmitted = true
                 observer.onNext(cached)
 
+                // 静默更新网络
                 let disposable = source.subscribe(
                     onNext: { response in
-                        // 静默更新缓存
                         cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                     },
                     onError: { _ in
-                        // 静默失败，正常完成
                         observer.onCompleted()
                     },
                     onCompleted: {
                         observer.onCompleted()
                     }
                 )
-                return disposable
+                _ = disposeBag.insert(disposable)
             } else {
-                // 无缓存：返回网络
-                let disposable = source.subscribe(
+                // 内存无缓存，异步读取磁盘
+                cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                    lock.lock()
+                    if !hasCacheEmitted, let cached = diskCached {
+                        hasCacheEmitted = true
+                        lock.unlock()
+                        DispatchQueue.main.async {
+                            observer.onNext(cached)
+                        }
+                    } else {
+                        lock.unlock()
+                    }
+                }
+
+                // 同时发起网络请求
+                let networkDisposable = source.subscribe(
                     onNext: { response in
                         cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-                        observer.onNext(response)
+
+                        lock.lock()
+                        if !hasCacheEmitted {
+                            hasCacheEmitted = true
+                            lock.unlock()
+                            observer.onNext(response)
+                        } else {
+                            lock.unlock()
+                        }
                     },
                     onError: { error in
-                        observer.onError(error)
+                        lock.lock()
+                        let cacheEmitted = hasCacheEmitted
+                        lock.unlock()
+
+                        if cacheEmitted {
+                            observer.onCompleted()
+                        } else {
+                            observer.onError(error)
+                        }
                     },
                     onCompleted: {
                         observer.onCompleted()
                     }
                 )
-                return disposable
+                _ = disposeBag.insert(networkDisposable)
             }
+
+            return disposeBag
         }
     }
 }
@@ -351,6 +513,8 @@ private extension CachingRxCallAdapter {
 
 private extension CachingRxCallAdapter {
     /// firstCache: 先返回缓存，再请求网络（可能发射 1-2 次）
+    ///
+    /// 优化：内存缓存同步检查，磁盘缓存异步读取
     func handleFirstCache(
         source: Observable<some Any>,
         key: String,
@@ -358,25 +522,56 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Any> {
-        Observable<Any>.create { observer in
-            var hasCacheEmitted = false
+        // 同步检查内存缓存
+        let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
-            // 1. 先检查缓存
-            if let cachedResponse = cache.get(forKey: key, maxAge: maxAge) {
-                observer.onNext(cachedResponse)
+        return Observable<Any>.create { observer in
+            let lock = NSLock()
+            var hasCacheEmitted = false
+            var hasNetworkEmitted = false
+            let disposeBag = CompositeDisposable()
+
+            // 如果内存有缓存，立即发射
+            if let cached = memoryCached {
                 hasCacheEmitted = true
+                observer.onNext(cached)
+            } else {
+                // 内存未命中，异步读取磁盘
+                cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                    lock.lock()
+                    let shouldEmit = !hasNetworkEmitted
+                    if diskCached != nil {
+                        hasCacheEmitted = true
+                    }
+                    lock.unlock()
+
+                    if shouldEmit, let cached = diskCached {
+                        DispatchQueue.main.async {
+                            observer.onNext(cached)
+                        }
+                    }
+                }
             }
 
-            // 2. 发起网络请求
+            // 发起网络请求
             let disposable = source.subscribe(
                 onNext: { element in
                     if let response = element as? Response {
                         cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                     }
+
+                    lock.lock()
+                    hasNetworkEmitted = true
+                    lock.unlock()
+
                     observer.onNext(element)
                 },
                 onError: { error in
-                    if hasCacheEmitted {
+                    lock.lock()
+                    let cacheEmitted = hasCacheEmitted
+                    lock.unlock()
+
+                    if cacheEmitted {
                         observer.onCompleted()
                     } else {
                         observer.onError(error)
@@ -386,12 +581,15 @@ private extension CachingRxCallAdapter {
                     observer.onCompleted()
                 }
             )
+            _ = disposeBag.insert(disposable)
 
-            return disposable
+            return disposeBag
         }
     }
 
     /// firstRemote: 先请求网络，失败时回退缓存
+    ///
+    /// 优化：网络失败时，先检查内存缓存，再异步读取磁盘
     func handleFirstRemote(
         source: Observable<some Any>,
         key: String,
@@ -407,22 +605,52 @@ private extension CachingRxCallAdapter {
                 return element
             }
             .catch { error -> Observable<Any> in
-                if let cachedResponse = cache.get(forKey: key, maxAge: maxAge) {
+                // 先检查内存缓存
+                if let cachedResponse = cache.getFromMemory(forKey: key, maxAge: maxAge) {
                     return .just(cachedResponse)
                 }
-                return .error(error)
+                // 异步读取磁盘
+                return Observable<Any>.create { observer in
+                    cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                        DispatchQueue.main.async {
+                            if let cached = diskCached {
+                                observer.onNext(cached)
+                                observer.onCompleted()
+                            } else {
+                                observer.onError(error)
+                            }
+                        }
+                    }
+                    return Disposables.create()
+                }
             }
     }
 
     /// onlyCache: 只读缓存，没有则 empty
+    ///
+    /// 优化：先检查内存缓存，再异步读取磁盘
     func handleOnlyCache(key: String, maxAge: TimeInterval, cache: HttpCache) -> Observable<Any> {
-        if let cachedResponse = cache.get(forKey: key, maxAge: maxAge) {
+        // 先检查内存缓存
+        if let cachedResponse = cache.getFromMemory(forKey: key, maxAge: maxAge) {
             return .just(cachedResponse)
         }
-        return .empty()
+        // 异步读取磁盘
+        return Observable<Any>.create { observer in
+            cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                DispatchQueue.main.async {
+                    if let cached = diskCached {
+                        observer.onNext(cached)
+                    }
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
     }
 
     /// ifCache: 有缓存用缓存，无缓存走网络
+    ///
+    /// 优化：先检查内存缓存，无内存缓存时并发读磁盘和网络
     func handleIfCache(
         source: Observable<some Any>,
         key: String,
@@ -430,19 +658,71 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Any> {
-        if let cachedResponse = cache.get(forKey: key, maxAge: maxAge) {
+        // 先检查内存缓存
+        if let cachedResponse = cache.getFromMemory(forKey: key, maxAge: maxAge) {
             return .just(cachedResponse)
         }
 
-        return source.map { element -> Any in
-            if let response = element as? Response {
-                cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
+        // 内存无缓存，异步检查磁盘，如果磁盘也没有则走网络
+        return Observable<Any>.create { observer in
+            let lock = NSLock()
+            var hasEmitted = false
+            let disposeBag = CompositeDisposable()
+
+            // 异步读取磁盘
+            cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                lock.lock()
+                if !hasEmitted, let cached = diskCached {
+                    hasEmitted = true
+                    lock.unlock()
+                    DispatchQueue.main.async {
+                        observer.onNext(cached)
+                        observer.onCompleted()
+                    }
+                } else {
+                    lock.unlock()
+                }
             }
-            return element
+
+            // 同时发起网络请求（延迟一小段时间给磁盘缓存机会）
+            let networkDisposable = source
+                .delay(.milliseconds(50), scheduler: MainScheduler.instance)
+                .subscribe(
+                    onNext: { element in
+                        if let response = element as? Response {
+                            cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
+                        }
+
+                        lock.lock()
+                        if !hasEmitted {
+                            hasEmitted = true
+                            lock.unlock()
+                            observer.onNext(element)
+                            observer.onCompleted()
+                        } else {
+                            lock.unlock()
+                        }
+                    },
+                    onError: { error in
+                        lock.lock()
+                        if !hasEmitted {
+                            hasEmitted = true
+                            lock.unlock()
+                            observer.onError(error)
+                        } else {
+                            lock.unlock()
+                        }
+                    }
+                )
+            _ = disposeBag.insert(networkDisposable)
+
+            return disposeBag
         }
     }
 
     /// lastCache: 返回缓存后静默更新网络（有缓存时只发射一次）
+    ///
+    /// 优化：先检查内存缓存，磁盘读取异步化
     func handleLastCache(
         source: Observable<some Any>,
         key: String,
@@ -450,9 +730,17 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Any> {
-        Observable<Any>.create { observer in
-            if let cachedResponse = cache.get(forKey: key, maxAge: maxAge) {
-                observer.onNext(cachedResponse)
+        // 先检查内存缓存
+        let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
+
+        return Observable<Any>.create { observer in
+            let lock = NSLock()
+            var hasCacheEmitted = false
+            let disposeBag = CompositeDisposable()
+
+            if let cached = memoryCached {
+                hasCacheEmitted = true
+                observer.onNext(cached)
 
                 let disposable = source.subscribe(
                     onNext: { element in
@@ -467,24 +755,57 @@ private extension CachingRxCallAdapter {
                         observer.onCompleted()
                     }
                 )
-                return disposable
+                _ = disposeBag.insert(disposable)
             } else {
-                let disposable = source.subscribe(
+                // 内存无缓存，异步读取磁盘
+                cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                    lock.lock()
+                    if !hasCacheEmitted, let cached = diskCached {
+                        hasCacheEmitted = true
+                        lock.unlock()
+                        DispatchQueue.main.async {
+                            observer.onNext(cached)
+                        }
+                    } else {
+                        lock.unlock()
+                    }
+                }
+
+                // 同时发起网络请求
+                let networkDisposable = source.subscribe(
                     onNext: { element in
                         if let response = element as? Response {
                             cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                         }
-                        observer.onNext(element)
+
+                        lock.lock()
+                        if !hasCacheEmitted {
+                            hasCacheEmitted = true
+                            lock.unlock()
+                            observer.onNext(element)
+                        } else {
+                            lock.unlock()
+                        }
                     },
                     onError: { error in
-                        observer.onError(error)
+                        lock.lock()
+                        let cacheEmitted = hasCacheEmitted
+                        lock.unlock()
+
+                        if cacheEmitted {
+                            observer.onCompleted()
+                        } else {
+                            observer.onError(error)
+                        }
                     },
                     onCompleted: {
                         observer.onCompleted()
                     }
                 )
-                return disposable
+                _ = disposeBag.insert(networkDisposable)
             }
+
+            return disposeBag
         }
     }
 }

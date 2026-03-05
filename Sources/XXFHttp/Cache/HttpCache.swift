@@ -322,6 +322,30 @@ public final class HttpCache: @unchecked Sendable {
 
     // MARK: - Read Operations
 
+    /// 只从内存缓存读取（同步，非常快）
+    ///
+    /// 该方法只查询内存层缓存，不会访问磁盘。适用于需要快速检查缓存的场景。
+    ///
+    /// - Parameters:
+    ///   - key: 缓存键
+    ///   - maxAge: 最大有效期（秒），默认永不过期
+    /// - Returns: 缓存的响应，内存中不存在或已过期返回 nil
+    public func getFromMemory(forKey key: String, maxAge: TimeInterval = .infinity) -> Response? {
+        guard !key.isEmpty else { return nil }
+
+        if let entry = memoryCache.value(forKey: key) {
+            if entry.isValid(maxAge: maxAge) {
+                return entry.response
+            } else {
+                // 过期，移除内存缓存
+                memoryCache.removeValue(forKey: key)
+                // 异步移除磁盘缓存
+                removeDiskCacheAsync(forKey: key)
+            }
+        }
+        return nil
+    }
+
     /// 同步读取缓存
     ///
     /// - Warning: 如果内存缓存未命中，会同步读取磁盘，可能阻塞当前线程。
