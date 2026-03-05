@@ -37,6 +37,83 @@ import Foundation
 import Moya
 import RxSwift
 
+// MARK: - 线程安全状态管理
+
+/// 缓存状态管理器（线程安全）
+///
+/// 用于在并发环境中安全地管理缓存发射状态
+private final class CacheState: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _hasCacheEmitted = false
+    private var _hasNetworkEmitted = false
+
+    var hasCacheEmitted: Bool {
+        get { lock.withLock { _hasCacheEmitted } }
+        set { lock.withLock { _hasCacheEmitted = newValue } }
+    }
+
+    var hasNetworkEmitted: Bool {
+        get { lock.withLock { _hasNetworkEmitted } }
+        set { lock.withLock { _hasNetworkEmitted = newValue } }
+    }
+
+    /// 原子性检查并设置缓存发射状态
+    /// - Returns: 是否应该发射（之前未发射过）
+    func tryEmitCache() -> Bool {
+        lock.withLock {
+            if !_hasCacheEmitted && !_hasNetworkEmitted {
+                _hasCacheEmitted = true
+                return true
+            }
+            return false
+        }
+    }
+
+    /// 原子性检查并设置网络发射状态
+    /// - Returns: 缓存是否已发射
+    func markNetworkEmitted() -> Bool {
+        lock.withLock {
+            _hasNetworkEmitted = true
+            return _hasCacheEmitted
+        }
+    }
+
+    /// 原子性尝试发射（用于只发射一次的场景）
+    /// - Returns: 是否应该发射
+    func tryEmitOnce() -> Bool {
+        lock.withLock {
+            if !_hasCacheEmitted && !_hasNetworkEmitted {
+                _hasCacheEmitted = true
+                return true
+            }
+            return false
+        }
+    }
+}
+
+/// 线程安全的 Observer 包装器
+///
+/// 将 AnyObserver 包装为 Sendable 类型，用于在并发闭包中安全使用
+private final class SendableObserver<Element>: @unchecked Sendable {
+    private let observer: AnyObserver<Element>
+
+    init(_ observer: AnyObserver<Element>) {
+        self.observer = observer
+    }
+
+    func onNext(_ element: Element) {
+        observer.onNext(element)
+    }
+
+    func onError(_ error: Error) {
+        observer.onError(error)
+    }
+
+    func onCompleted() {
+        observer.onCompleted()
+    }
+}
+
 // MARK: - CachingRxCallAdapter
 
 /// 缓存 RxSwift 请求适配器
@@ -227,31 +304,27 @@ private extension CachingRxCallAdapter {
                 cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
             })
 
-        return Observable<Response>.create { observer in
-            // 使用锁保护状态变量，防止竞态条件
-            let lock = NSLock()
-            var hasCacheEmitted = false
-            var hasNetworkEmitted = false
+        return Observable<Response>.create { rawObserver in
+            // 使用线程安全的包装器
+            let state = CacheState()
+            let observer = SendableObserver(rawObserver)
             let disposeBag = CompositeDisposable()
 
             // 2. 如果内存有缓存，立即发射
             if let cached = memoryCached {
-                hasCacheEmitted = true
+                state.hasCacheEmitted = true
                 observer.onNext(cached)
             } else {
                 // 3. 内存未命中，异步读取磁盘
-                cache.get(forKey: key, maxAge: maxAge) { diskCached in
-                    lock.lock()
-                    let shouldEmit = !hasNetworkEmitted // 只有网络还没返回时才发射缓存
-                    if diskCached != nil {
-                        hasCacheEmitted = true
-                    }
-                    lock.unlock()
-
-                    if shouldEmit, let cached = diskCached {
+                cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
+                    // 只有网络还没返回时才发射缓存
+                    if !state.hasNetworkEmitted, let cached = diskCached {
+                        state.hasCacheEmitted = true
                         DispatchQueue.main.async {
                             observer.onNext(cached)
                         }
+                    } else if diskCached != nil {
+                        state.hasCacheEmitted = true
                     }
                 }
             }
@@ -260,26 +333,18 @@ private extension CachingRxCallAdapter {
             let networkDisposable = networkObservable
                 .observe(on: MainScheduler.instance)
                 .subscribe(
-                    onNext: { response in
-                        lock.lock()
-                        hasNetworkEmitted = true
-                        let cacheEmitted = hasCacheEmitted
-                        lock.unlock()
-
+                    onNext: { [state, observer] response in
+                        _ = state.markNetworkEmitted()
                         observer.onNext(response)
                     },
-                    onError: { error in
-                        lock.lock()
-                        let cacheEmitted = hasCacheEmitted
-                        lock.unlock()
-
-                        if cacheEmitted {
+                    onError: { [state, observer] error in
+                        if state.hasCacheEmitted {
                             observer.onCompleted()
                         } else {
                             observer.onError(error)
                         }
                     },
-                    onCompleted: {
+                    onCompleted: { [observer] in
                         observer.onCompleted()
                     }
                 )
@@ -309,8 +374,9 @@ private extension CachingRxCallAdapter {
                     return .just(cached)
                 }
                 // 内存无缓存，异步读取磁盘
-                return Observable<Response>.create { observer in
-                    cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                return Observable<Response>.create { rawObserver in
+                    let observer = SendableObserver(rawObserver)
+                    cache.get(forKey: key, maxAge: maxAge) { [observer] diskCached in
                         DispatchQueue.main.async {
                             if let cached = diskCached {
                                 observer.onNext(cached)
@@ -334,8 +400,9 @@ private extension CachingRxCallAdapter {
             return .just(cached)
         }
         // 内存无缓存，异步读取磁盘
-        return Observable<Response>.create { observer in
-            cache.get(forKey: key, maxAge: maxAge) { diskCached in
+        return Observable<Response>.create { rawObserver in
+            let observer = SendableObserver(rawObserver)
+            cache.get(forKey: key, maxAge: maxAge) { [observer] diskCached in
                 DispatchQueue.main.async {
                     if let cached = diskCached {
                         observer.onNext(cached)
@@ -363,23 +430,18 @@ private extension CachingRxCallAdapter {
         }
 
         // 内存无缓存，异步检查磁盘，如果磁盘也没有则走网络
-        return Observable<Response>.create { observer in
-            let lock = NSLock()
-            var hasEmitted = false
+        return Observable<Response>.create { rawObserver in
+            let state = CacheState()
+            let observer = SendableObserver(rawObserver)
             let disposeBag = CompositeDisposable()
 
             // 异步读取磁盘
-            cache.get(forKey: key, maxAge: maxAge) { diskCached in
-                lock.lock()
-                if !hasEmitted, let cached = diskCached {
-                    hasEmitted = true
-                    lock.unlock()
+            cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
+                if let cached = diskCached, state.tryEmitOnce() {
                     DispatchQueue.main.async {
                         observer.onNext(cached)
                         observer.onCompleted()
                     }
-                } else {
-                    lock.unlock()
                 }
             }
 
@@ -390,25 +452,15 @@ private extension CachingRxCallAdapter {
                     cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                 })
                 .subscribe(
-                    onNext: { response in
-                        lock.lock()
-                        if !hasEmitted {
-                            hasEmitted = true
-                            lock.unlock()
+                    onNext: { [state, observer] response in
+                        if state.tryEmitOnce() {
                             observer.onNext(response)
                             observer.onCompleted()
-                        } else {
-                            lock.unlock()
                         }
                     },
-                    onError: { error in
-                        lock.lock()
-                        if !hasEmitted {
-                            hasEmitted = true
-                            lock.unlock()
+                    onError: { [state, observer] error in
+                        if state.tryEmitOnce() {
                             observer.onError(error)
-                        } else {
-                            lock.unlock()
                         }
                     }
                 )
@@ -434,14 +486,14 @@ private extension CachingRxCallAdapter {
         // 先检查内存缓存（同步，快）
         let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
-        return Observable<Response>.create { observer in
-            let lock = NSLock()
-            var hasCacheEmitted = false
+        return Observable<Response>.create { rawObserver in
+            let state = CacheState()
+            let observer = SendableObserver(rawObserver)
             let disposeBag = CompositeDisposable()
 
             // 如果内存有缓存，立即发射
             if let cached = memoryCached {
-                hasCacheEmitted = true
+                state.hasCacheEmitted = true
                 observer.onNext(cached)
 
                 // 静默更新网络
@@ -449,55 +501,40 @@ private extension CachingRxCallAdapter {
                     onNext: { response in
                         cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                     },
-                    onError: { _ in
+                    onError: { [observer] _ in
                         observer.onCompleted()
                     },
-                    onCompleted: {
+                    onCompleted: { [observer] in
                         observer.onCompleted()
                     }
                 )
                 _ = disposeBag.insert(disposable)
             } else {
                 // 内存无缓存，异步读取磁盘
-                cache.get(forKey: key, maxAge: maxAge) { diskCached in
-                    lock.lock()
-                    if !hasCacheEmitted, let cached = diskCached {
-                        hasCacheEmitted = true
-                        lock.unlock()
+                cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
+                    if let cached = diskCached, state.tryEmitCache() {
                         DispatchQueue.main.async {
                             observer.onNext(cached)
                         }
-                    } else {
-                        lock.unlock()
                     }
                 }
 
                 // 同时发起网络请求
                 let networkDisposable = source.subscribe(
-                    onNext: { response in
+                    onNext: { [state, observer] response in
                         cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-
-                        lock.lock()
-                        if !hasCacheEmitted {
-                            hasCacheEmitted = true
-                            lock.unlock()
+                        if state.tryEmitCache() {
                             observer.onNext(response)
-                        } else {
-                            lock.unlock()
                         }
                     },
-                    onError: { error in
-                        lock.lock()
-                        let cacheEmitted = hasCacheEmitted
-                        lock.unlock()
-
-                        if cacheEmitted {
+                    onError: { [state, observer] error in
+                        if state.hasCacheEmitted {
                             observer.onCompleted()
                         } else {
                             observer.onError(error)
                         }
                     },
-                    onCompleted: {
+                    onCompleted: { [observer] in
                         observer.onCompleted()
                     }
                 )
@@ -525,59 +562,46 @@ private extension CachingRxCallAdapter {
         // 同步检查内存缓存
         let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
-        return Observable<Any>.create { observer in
-            let lock = NSLock()
-            var hasCacheEmitted = false
-            var hasNetworkEmitted = false
+        return Observable<Any>.create { rawObserver in
+            let state = CacheState()
+            let observer = SendableObserver(rawObserver)
             let disposeBag = CompositeDisposable()
 
             // 如果内存有缓存，立即发射
             if let cached = memoryCached {
-                hasCacheEmitted = true
+                state.hasCacheEmitted = true
                 observer.onNext(cached)
             } else {
                 // 内存未命中，异步读取磁盘
-                cache.get(forKey: key, maxAge: maxAge) { diskCached in
-                    lock.lock()
-                    let shouldEmit = !hasNetworkEmitted
-                    if diskCached != nil {
-                        hasCacheEmitted = true
-                    }
-                    lock.unlock()
-
-                    if shouldEmit, let cached = diskCached {
+                cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
+                    if !state.hasNetworkEmitted, let cached = diskCached {
+                        state.hasCacheEmitted = true
                         DispatchQueue.main.async {
                             observer.onNext(cached)
                         }
+                    } else if diskCached != nil {
+                        state.hasCacheEmitted = true
                     }
                 }
             }
 
             // 发起网络请求
             let disposable = source.subscribe(
-                onNext: { element in
+                onNext: { [state, observer] element in
                     if let response = element as? Response {
                         cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                     }
-
-                    lock.lock()
-                    hasNetworkEmitted = true
-                    lock.unlock()
-
+                    _ = state.markNetworkEmitted()
                     observer.onNext(element)
                 },
-                onError: { error in
-                    lock.lock()
-                    let cacheEmitted = hasCacheEmitted
-                    lock.unlock()
-
-                    if cacheEmitted {
+                onError: { [state, observer] error in
+                    if state.hasCacheEmitted {
                         observer.onCompleted()
                     } else {
                         observer.onError(error)
                     }
                 },
-                onCompleted: {
+                onCompleted: { [observer] in
                     observer.onCompleted()
                 }
             )
@@ -610,8 +634,9 @@ private extension CachingRxCallAdapter {
                     return .just(cachedResponse)
                 }
                 // 异步读取磁盘
-                return Observable<Any>.create { observer in
-                    cache.get(forKey: key, maxAge: maxAge) { diskCached in
+                return Observable<Any>.create { rawObserver in
+                    let observer = SendableObserver(rawObserver)
+                    cache.get(forKey: key, maxAge: maxAge) { [observer] diskCached in
                         DispatchQueue.main.async {
                             if let cached = diskCached {
                                 observer.onNext(cached)
@@ -635,8 +660,9 @@ private extension CachingRxCallAdapter {
             return .just(cachedResponse)
         }
         // 异步读取磁盘
-        return Observable<Any>.create { observer in
-            cache.get(forKey: key, maxAge: maxAge) { diskCached in
+        return Observable<Any>.create { rawObserver in
+            let observer = SendableObserver(rawObserver)
+            cache.get(forKey: key, maxAge: maxAge) { [observer] diskCached in
                 DispatchQueue.main.async {
                     if let cached = diskCached {
                         observer.onNext(cached)
@@ -664,23 +690,18 @@ private extension CachingRxCallAdapter {
         }
 
         // 内存无缓存，异步检查磁盘，如果磁盘也没有则走网络
-        return Observable<Any>.create { observer in
-            let lock = NSLock()
-            var hasEmitted = false
+        return Observable<Any>.create { rawObserver in
+            let state = CacheState()
+            let observer = SendableObserver(rawObserver)
             let disposeBag = CompositeDisposable()
 
             // 异步读取磁盘
-            cache.get(forKey: key, maxAge: maxAge) { diskCached in
-                lock.lock()
-                if !hasEmitted, let cached = diskCached {
-                    hasEmitted = true
-                    lock.unlock()
+            cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
+                if let cached = diskCached, state.tryEmitOnce() {
                     DispatchQueue.main.async {
                         observer.onNext(cached)
                         observer.onCompleted()
                     }
-                } else {
-                    lock.unlock()
                 }
             }
 
@@ -688,29 +709,18 @@ private extension CachingRxCallAdapter {
             let networkDisposable = source
                 .delay(.milliseconds(50), scheduler: MainScheduler.instance)
                 .subscribe(
-                    onNext: { element in
+                    onNext: { [state, observer] element in
                         if let response = element as? Response {
                             cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                         }
-
-                        lock.lock()
-                        if !hasEmitted {
-                            hasEmitted = true
-                            lock.unlock()
+                        if state.tryEmitOnce() {
                             observer.onNext(element)
                             observer.onCompleted()
-                        } else {
-                            lock.unlock()
                         }
                     },
-                    onError: { error in
-                        lock.lock()
-                        if !hasEmitted {
-                            hasEmitted = true
-                            lock.unlock()
+                    onError: { [state, observer] error in
+                        if state.tryEmitOnce() {
                             observer.onError(error)
-                        } else {
-                            lock.unlock()
                         }
                     }
                 )
@@ -733,13 +743,13 @@ private extension CachingRxCallAdapter {
         // 先检查内存缓存
         let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
-        return Observable<Any>.create { observer in
-            let lock = NSLock()
-            var hasCacheEmitted = false
+        return Observable<Any>.create { rawObserver in
+            let state = CacheState()
+            let observer = SendableObserver(rawObserver)
             let disposeBag = CompositeDisposable()
 
             if let cached = memoryCached {
-                hasCacheEmitted = true
+                state.hasCacheEmitted = true
                 observer.onNext(cached)
 
                 let disposable = source.subscribe(
@@ -748,57 +758,42 @@ private extension CachingRxCallAdapter {
                             cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                         }
                     },
-                    onError: { _ in
+                    onError: { [observer] _ in
                         observer.onCompleted()
                     },
-                    onCompleted: {
+                    onCompleted: { [observer] in
                         observer.onCompleted()
                     }
                 )
                 _ = disposeBag.insert(disposable)
             } else {
                 // 内存无缓存，异步读取磁盘
-                cache.get(forKey: key, maxAge: maxAge) { diskCached in
-                    lock.lock()
-                    if !hasCacheEmitted, let cached = diskCached {
-                        hasCacheEmitted = true
-                        lock.unlock()
+                cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
+                    if let cached = diskCached, state.tryEmitCache() {
                         DispatchQueue.main.async {
                             observer.onNext(cached)
                         }
-                    } else {
-                        lock.unlock()
                     }
                 }
 
                 // 同时发起网络请求
                 let networkDisposable = source.subscribe(
-                    onNext: { element in
+                    onNext: { [state, observer] element in
                         if let response = element as? Response {
                             cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                         }
-
-                        lock.lock()
-                        if !hasCacheEmitted {
-                            hasCacheEmitted = true
-                            lock.unlock()
+                        if state.tryEmitCache() {
                             observer.onNext(element)
-                        } else {
-                            lock.unlock()
                         }
                     },
-                    onError: { error in
-                        lock.lock()
-                        let cacheEmitted = hasCacheEmitted
-                        lock.unlock()
-
-                        if cacheEmitted {
+                    onError: { [state, observer] error in
+                        if state.hasCacheEmitted {
                             observer.onCompleted()
                         } else {
                             observer.onError(error)
                         }
                     },
-                    onCompleted: {
+                    onCompleted: { [observer] in
                         observer.onCompleted()
                     }
                 )
