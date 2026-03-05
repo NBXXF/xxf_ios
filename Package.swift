@@ -140,7 +140,9 @@ let package = Package(
         // toast
         .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3"),
         // refresh
-        .package(url: "https://github.com/CoderMJLee/MJRefresh.git",from: "3.7.9")
+        .package(url: "https://github.com/CoderMJLee/MJRefresh.git",from: "3.7.9"),
+        // disk cache
+        .package(url: "https://github.com/hyperoslo/Cache.git", from: "7.4.0")
     ],
     targets: [
         .target(
@@ -226,6 +228,7 @@ let package = Package(
                 "XXFFlow",
                 "XXFJson",
                 "XXFSpeed",
+                "XXFCache",
                 /// 日志
                 .product(name: "Pulse", package: "PulseCompat")
             ]
@@ -252,7 +255,8 @@ let package = Package(
         .target(
             name: "XXFCache",
             dependencies: [
-                "XXFDataSource"
+                "XXFDataSource",
+                .product(name: "Cache", package: "Cache")
             ]
         ),
         .target(

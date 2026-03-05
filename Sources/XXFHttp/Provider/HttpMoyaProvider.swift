@@ -45,7 +45,7 @@ public final class HttpMoyaProvider<Target: TargetType>: MoyaProvider<Target> {
     func adaptRequest(_ token: Target, single: Single<Response>) -> Observable<Response> {
         // 1. 先处理缓存（如果 target 实现了 RestApiService）
         var result: Observable<Response>
-        if let restApi = token as? any RestApiService, restApi.cacheConfig.needsCache {
+        if let restApi = token as? any RestApiService, restApi.cachePolicy.needsCache {
             result = cacheAdapter.adaptToObservable(single, target: token)
         } else {
             result = single.asObservable()
