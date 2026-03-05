@@ -237,10 +237,6 @@ let package = Package(
                 "XXFCache",
                 /// 日志
                 .product(name: "Pulse", package: "PulseCompat")
-            ],
-            swiftSettings: [
-                // 禁用严格并发检查，因为 RxSwift 的 AnyObserver 不是 Sendable
-                .unsafeFlags(["-Xfrontend", "-strict-concurrency=minimal"])
             ]
         ),
         .target(

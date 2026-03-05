@@ -29,13 +29,14 @@
 //  线程安全:
 //  - 使用 HttpCache 的线程安全保证
 //  - Observable 操作符保证订阅安全
+//  - 缓存数据在回调线程发射，由订阅者通过 observe(on:) 决定接收线程
 //
 //  Created by xxf on 2025/3/4.
 //
 
 import Foundation
-import Moya
-import RxSwift
+@preconcurrency import Moya
+@preconcurrency import RxSwift
 
 // MARK: - 线程安全状态管理
 
@@ -288,6 +289,7 @@ private extension CachingRxCallAdapter {
     /// - 无缓存：发射网络响应（或错误）
     ///
     /// 优化：内存缓存同步检查（毫秒级），磁盘缓存异步读取
+    /// 线程：缓存数据在回调线程发射，网络数据在网络线程发射，由订阅者决定接收线程
     func firstCache(
         source: Observable<Response>,
         key: String,
@@ -305,33 +307,30 @@ private extension CachingRxCallAdapter {
             })
 
         return Observable<Response>.create { rawObserver in
-            // 使用线程安全的包装器
+            // 使用线程安全的状态和包装器
             let state = CacheState()
             let observer = SendableObserver(rawObserver)
             let disposeBag = CompositeDisposable()
 
-            // 2. 如果内存有缓存，立即发射
+            // 2. 如果内存有缓存，立即发射（同步，在当前线程）
             if let cached = memoryCached {
                 state.hasCacheEmitted = true
                 observer.onNext(cached)
             } else {
-                // 3. 内存未命中，异步读取磁盘
+                // 3. 内存未命中，异步读取磁盘（在缓存回调线程发射）
                 cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
                     // 只有网络还没返回时才发射缓存
                     if !state.hasNetworkEmitted, let cached = diskCached {
                         state.hasCacheEmitted = true
-                        DispatchQueue.main.async {
-                            observer.onNext(cached)
-                        }
+                        observer.onNext(cached)
                     } else if diskCached != nil {
                         state.hasCacheEmitted = true
                     }
                 }
             }
 
-            // 4. 同时发起网络请求
+            // 4. 同时发起网络请求（在网络线程发射）
             let networkDisposable = networkObservable
-                .observe(on: MainScheduler.instance)
                 .subscribe(
                     onNext: { [state, observer] response in
                         _ = state.markNetworkEmitted()
@@ -357,6 +356,7 @@ private extension CachingRxCallAdapter {
     /// firstRemote: 先请求网络，失败时回退缓存
     ///
     /// 优化：网络失败时，先检查内存缓存，再异步读取磁盘缓存
+    /// 线程：缓存数据在回调线程发射，由订阅者决定接收线程
     func firstRemote(
         source: Observable<Response>,
         key: String,
@@ -377,13 +377,11 @@ private extension CachingRxCallAdapter {
                 return Observable<Response>.create { rawObserver in
                     let observer = SendableObserver(rawObserver)
                     cache.get(forKey: key, maxAge: maxAge) { [observer] diskCached in
-                        DispatchQueue.main.async {
-                            if let cached = diskCached {
-                                observer.onNext(cached)
-                                observer.onCompleted()
-                            } else {
-                                observer.onError(error)
-                            }
+                        if let cached = diskCached {
+                            observer.onNext(cached)
+                            observer.onCompleted()
+                        } else {
+                            observer.onError(error)
                         }
                     }
                     return Disposables.create()
@@ -394,6 +392,7 @@ private extension CachingRxCallAdapter {
     /// onlyCache: 只读缓存，没有则 empty
     ///
     /// 优化：先检查内存缓存，再异步读取磁盘缓存
+    /// 线程：缓存数据在回调线程发射，由订阅者决定接收线程
     func onlyCache(key: String, maxAge: TimeInterval, cache: HttpCache) -> Observable<Response> {
         // 先检查内存缓存（同步，快）
         if let cached = cache.getFromMemory(forKey: key, maxAge: maxAge) {
@@ -403,12 +402,10 @@ private extension CachingRxCallAdapter {
         return Observable<Response>.create { rawObserver in
             let observer = SendableObserver(rawObserver)
             cache.get(forKey: key, maxAge: maxAge) { [observer] diskCached in
-                DispatchQueue.main.async {
-                    if let cached = diskCached {
-                        observer.onNext(cached)
-                    }
-                    observer.onCompleted()
+                if let cached = diskCached {
+                    observer.onNext(cached)
                 }
+                observer.onCompleted()
             }
             return Disposables.create()
         }
@@ -417,6 +414,7 @@ private extension CachingRxCallAdapter {
     /// ifCache: 有缓存用缓存，无缓存走网络
     ///
     /// 优化：先检查内存缓存，无内存缓存时并发读磁盘和网络
+    /// 线程：缓存数据在回调线程发射，网络数据在网络线程发射，由订阅者决定接收线程
     func ifCache(
         source: Observable<Response>,
         key: String,
@@ -438,16 +436,14 @@ private extension CachingRxCallAdapter {
             // 异步读取磁盘
             cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
                 if let cached = diskCached, state.tryEmitOnce() {
-                    DispatchQueue.main.async {
-                        observer.onNext(cached)
-                        observer.onCompleted()
-                    }
+                    observer.onNext(cached)
+                    observer.onCompleted()
                 }
             }
 
             // 同时发起网络请求（延迟一小段时间给磁盘缓存机会）
             let networkDisposable = source
-                .delay(.milliseconds(50), scheduler: MainScheduler.instance)
+                .delay(.milliseconds(50), scheduler: ConcurrentDispatchQueueScheduler(qos: .default))
                 .do(onNext: { response in
                     cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                 })
@@ -476,6 +472,7 @@ private extension CachingRxCallAdapter {
     /// - 无缓存：返回网络响应
     ///
     /// 优化：先检查内存缓存，磁盘读取异步化
+    /// 线程：缓存数据在回调线程发射，网络数据在网络线程发射，由订阅者决定接收线程
     func lastCache(
         source: Observable<Response>,
         key: String,
@@ -513,9 +510,7 @@ private extension CachingRxCallAdapter {
                 // 内存无缓存，异步读取磁盘
                 cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
                     if let cached = diskCached, state.tryEmitCache() {
-                        DispatchQueue.main.async {
-                            observer.onNext(cached)
-                        }
+                        observer.onNext(cached)
                     }
                 }
 
@@ -576,9 +571,7 @@ private extension CachingRxCallAdapter {
                 cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
                     if !state.hasNetworkEmitted, let cached = diskCached {
                         state.hasCacheEmitted = true
-                        DispatchQueue.main.async {
-                            observer.onNext(cached)
-                        }
+                        observer.onNext(cached)
                     } else if diskCached != nil {
                         state.hasCacheEmitted = true
                     }
@@ -637,13 +630,11 @@ private extension CachingRxCallAdapter {
                 return Observable<Any>.create { rawObserver in
                     let observer = SendableObserver(rawObserver)
                     cache.get(forKey: key, maxAge: maxAge) { [observer] diskCached in
-                        DispatchQueue.main.async {
-                            if let cached = diskCached {
-                                observer.onNext(cached)
-                                observer.onCompleted()
-                            } else {
-                                observer.onError(error)
-                            }
+                        if let cached = diskCached {
+                            observer.onNext(cached)
+                            observer.onCompleted()
+                        } else {
+                            observer.onError(error)
                         }
                     }
                     return Disposables.create()
@@ -663,12 +654,10 @@ private extension CachingRxCallAdapter {
         return Observable<Any>.create { rawObserver in
             let observer = SendableObserver(rawObserver)
             cache.get(forKey: key, maxAge: maxAge) { [observer] diskCached in
-                DispatchQueue.main.async {
-                    if let cached = diskCached {
-                        observer.onNext(cached)
-                    }
-                    observer.onCompleted()
+                if let cached = diskCached {
+                    observer.onNext(cached)
                 }
+                observer.onCompleted()
             }
             return Disposables.create()
         }
@@ -698,16 +687,14 @@ private extension CachingRxCallAdapter {
             // 异步读取磁盘
             cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
                 if let cached = diskCached, state.tryEmitOnce() {
-                    DispatchQueue.main.async {
-                        observer.onNext(cached)
-                        observer.onCompleted()
-                    }
+                    observer.onNext(cached)
+                    observer.onCompleted()
                 }
             }
 
             // 同时发起网络请求（延迟一小段时间给磁盘缓存机会）
             let networkDisposable = source
-                .delay(.milliseconds(50), scheduler: MainScheduler.instance)
+                .delay(.milliseconds(50), scheduler: ConcurrentDispatchQueueScheduler(qos: .default))
                 .subscribe(
                     onNext: { [state, observer] element in
                         if let response = element as? Response {
@@ -770,9 +757,7 @@ private extension CachingRxCallAdapter {
                 // 内存无缓存，异步读取磁盘
                 cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
                     if let cached = diskCached, state.tryEmitCache() {
-                        DispatchQueue.main.async {
-                            observer.onNext(cached)
-                        }
+                        observer.onNext(cached)
                     }
                 }
 
