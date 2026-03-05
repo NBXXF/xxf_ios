@@ -912,8 +912,8 @@ private extension CachingRxCallAdapter {
     /// - 有缓存：发射缓存 → 发射网络响应（或完成）
     /// - 无缓存：发射网络响应（或错误）
     ///
-    /// 关键：磁盘缓存检查完成后，才发射网络响应，确保缓存优先
-    /// 线程：缓存数据在回调线程发射，网络数据在网络线程发射，由订阅者决定接收线程
+    /// 关键：使用 concat 串行执行，磁盘检查完成后才开始网络请求
+    /// 这确保了缓存和网络响应之间有明显的时间差
     func firstCache(
         source: Observable<Response>,
         key: String,
@@ -927,47 +927,53 @@ private extension CachingRxCallAdapter {
         // 网络请求（带缓存写入）
         let networkObservable = source
             .do(onNext: { response in
+                #if DEBUG
+                    print("[CachingRxCallAdapter] firstCache: Network response received for key '\(key)'")
+                #endif
                 cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
             })
 
         // 内存命中：直接 concat，缓存先发射，网络后发射
         if let cached = memoryCached {
+            #if DEBUG
+                print("[CachingRxCallAdapter] firstCache: Memory cache hit for key '\(key)'")
+            #endif
             return Observable.concat([
                 Observable.just(cached),
                 networkObservable
             ])
         }
 
-        // 内存未命中：需要协调磁盘缓存和网络请求
-        return Observable<Response>.create { rawObserver in
-            let coordinator = FirstCacheCoordinator(observer: rawObserver)
-            let disposeBag = CompositeDisposable()
+        // 内存未命中：创建磁盘缓存 Observable
+        // 使用 deferred + 同步读取，确保缓存先返回
+        let diskCacheObservable = Observable<Response>.deferred {
+            #if DEBUG
+                let startTime = Date()
+            #endif
 
-            // 2. 快速异步读取磁盘缓存（磁盘未就绪时立即返回 nil，不阻塞）
-            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
-                coordinator.onDiskCacheResult(diskCached)
+            // 同步检查磁盘缓存（在 subscribeOn 指定的线程上执行）
+            if let cached = cache.get(forKey: key, maxAge: maxAge) {
+                #if DEBUG
+                    let duration = Date().timeIntervalSince(startTime)
+                    print("[CachingRxCallAdapter] firstCache: Disk cache hit for key '\(key)', read took \(String(format: "%.3f", duration))s")
+                #endif
+                return Observable.just(cached)
             }
 
-            // 3. 同时发起网络请求（响应会被协调器缓冲，直到磁盘检查完成）
-            let networkDisposable = networkObservable
-                .subscribe(
-                    onNext: { response in
-                        coordinator.onNetworkResponse(response)
-                    },
-                    onError: { error in
-                        coordinator.onNetworkError(error)
-                    },
-                    onCompleted: {
-                        coordinator.onNetworkCompleted()
-                    }
-                )
-            _ = disposeBag.insert(networkDisposable)
-
-            return Disposables.create {
-                coordinator.dispose()
-                disposeBag.dispose()
-            }
+            #if DEBUG
+                let duration = Date().timeIntervalSince(startTime)
+                print("[CachingRxCallAdapter] firstCache: Disk cache miss for key '\(key)', check took \(String(format: "%.3f", duration))s")
+            #endif
+            return Observable.empty()
         }
+
+        // concat: 磁盘检查完成 → 发射缓存（如果有）→ 网络请求开始 → 发射网络响应
+        // 这确保了缓存和网络响应之间有明显的时间差
+        return Observable.concat([
+            diskCacheObservable,
+            networkObservable
+        ])
+        .subscribe(on: ConcurrentDispatchQueueScheduler(qos: .userInitiated))
     }
 
     /// firstRemote: 先请求网络，失败时回退缓存
@@ -1030,7 +1036,10 @@ private extension CachingRxCallAdapter {
 
     /// ifCache: 有缓存用缓存，无缓存走网络
     ///
-    /// 关键：等磁盘检查完成后，才决定是否使用网络响应
+    /// 关键：使用串行执行，磁盘检查完成后才决定是否发起网络请求
+    /// - 有缓存：直接发射缓存，完成（不发起网络请求）
+    /// - 无缓存：发起网络请求
+    ///
     /// 线程：缓存数据在回调线程发射，网络数据在网络线程发射，由订阅者决定接收线程
     func ifCache(
         source: Observable<Response>,
@@ -1039,44 +1048,53 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Response> {
-        // 先检查内存缓存（同步，快）
+        // 1. 先检查内存缓存（同步，快）
         if let cached = cache.getFromMemory(forKey: key, maxAge: maxAge) {
+            #if DEBUG
+                print("[CachingRxCallAdapter] ifCache: Memory cache hit for key '\(key)'")
+            #endif
             return .just(cached)
         }
 
-        // 内存无缓存，使用协调器确保磁盘检查完成后再决定
-        return Observable<Response>.create { rawObserver in
-            let coordinator = IfCacheCoordinator(observer: rawObserver)
-            let disposeBag = CompositeDisposable()
+        // 2. 网络请求（带缓存写入）
+        let networkObservable = source
+            .do(onNext: { response in
+                cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
+            })
 
-            // 快速异步读取磁盘（磁盘未就绪时立即返回 nil，不阻塞）
-            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
-                coordinator.onDiskCacheResult(diskCached)
+        // 3. 内存未命中：创建磁盘缓存检查 Observable
+        // 使用 deferred + 同步读取，确保磁盘检查完成后再决定
+        let diskCacheObservable = Observable<Response>.deferred {
+            #if DEBUG
+                let startTime = Date()
+            #endif
+
+            // 同步检查磁盘缓存（在 subscribeOn 指定的线程上执行）
+            if let cached = cache.get(forKey: key, maxAge: maxAge) {
+                #if DEBUG
+                    let duration = Date().timeIntervalSince(startTime)
+                    print("[CachingRxCallAdapter] ifCache: Disk cache hit for key '\(key)', read took \(String(format: "%.3f", duration))s")
+                #endif
+                // 有缓存，发射缓存并完成（不发起网络请求）
+                return Observable.just(cached)
             }
 
-            // 同时发起网络请求（响应会被协调器处理）
-            let networkDisposable = source
-                .do(onNext: { response in
-                    cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-                })
-                .subscribe(
-                    onNext: { response in
-                        coordinator.onNetworkResponse(response)
-                    },
-                    onError: { error in
-                        coordinator.onNetworkError(error)
-                    },
-                    onCompleted: {
-                        coordinator.onNetworkCompleted()
-                    }
-                )
-            _ = disposeBag.insert(networkDisposable)
-
-            return Disposables.create {
-                coordinator.dispose()
-                disposeBag.dispose()
-            }
+            #if DEBUG
+                let duration = Date().timeIntervalSince(startTime)
+                print("[CachingRxCallAdapter] ifCache: Disk cache miss for key '\(key)', check took \(String(format: "%.3f", duration))s")
+            #endif
+            // 无缓存，返回 empty 让 concat 继续执行网络请求
+            return Observable.empty()
         }
+
+        // 4. 串行执行：磁盘检查 → 有缓存则完成，无缓存则网络请求
+        // 如果磁盘有缓存，just(cached) 发射后序列完成，不会执行 networkObservable
+        // 如果磁盘无缓存，empty() 完成后继续执行 networkObservable
+        return Observable.concat([
+            diskCacheObservable,
+            networkObservable
+        ])
+        .subscribe(on: ConcurrentDispatchQueueScheduler(qos: .userInitiated))
     }
 
     /// lastCache: 返回缓存后静默更新网络
@@ -1084,7 +1102,7 @@ private extension CachingRxCallAdapter {
     /// - 有缓存：返回缓存，静默请求网络更新缓存（只发射一次）
     /// - 无缓存：返回网络响应
     ///
-    /// 关键：等磁盘检查完成后，才决定是否发射网络响应
+    /// 关键：使用串行执行，磁盘检查完成后才决定后续行为
     /// 线程：缓存数据在回调线程发射，网络数据在网络线程发射，由订阅者决定接收线程
     func lastCache(
         source: Observable<Response>,
@@ -1093,16 +1111,19 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Response> {
-        // 先检查内存缓存（同步，快）
+        // 1. 先检查内存缓存（同步，快）
         let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
-        // 网络请求（带缓存写入）
+        // 2. 网络请求（带缓存写入）
         let networkObservable = source.do(onNext: { response in
             cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
         })
 
-        // 内存命中：发射缓存，静默更新网络
+        // 3. 内存命中：发射缓存，静默更新网络
         if let cached = memoryCached {
+            #if DEBUG
+                print("[CachingRxCallAdapter] lastCache: Memory cache hit for key '\(key)'")
+            #endif
             return Observable<Response>.create { rawObserver in
                 let observer = SendableObserver(rawObserver)
                 let disposeBag = CompositeDisposable()
@@ -1122,35 +1143,47 @@ private extension CachingRxCallAdapter {
             }
         }
 
-        // 内存未命中：使用协调器确保磁盘检查完成后再决定
-        return Observable<Response>.create { rawObserver in
-            let coordinator = LastCacheCoordinator(observer: rawObserver)
-            let disposeBag = CompositeDisposable()
+        // 4. 内存未命中：使用串行执行
+        // 先检查磁盘缓存，根据结果决定后续行为
+        return Observable<Response>.deferred { [networkObservable] in
+            #if DEBUG
+                let startTime = Date()
+            #endif
 
-            // 快速异步读取磁盘（磁盘未就绪时立即返回 nil，不阻塞）
-            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
-                coordinator.onDiskCacheResult(diskCached)
-            }
+            // 同步检查磁盘缓存（在 subscribeOn 指定的线程上执行）
+            if let cached = cache.get(forKey: key, maxAge: maxAge) {
+                #if DEBUG
+                    let duration = Date().timeIntervalSince(startTime)
+                    print("[CachingRxCallAdapter] lastCache: Disk cache hit for key '\(key)', read took \(String(format: "%.3f", duration))s")
+                #endif
+                // 有缓存：发射缓存，静默更新网络
+                return Observable<Response>.create { rawObserver in
+                    let observer = SendableObserver(rawObserver)
+                    let disposeBag = CompositeDisposable()
 
-            // 同时发起网络请求
-            let networkDisposable = networkObservable.subscribe(
-                onNext: { response in
-                    coordinator.onNetworkResponse(response)
-                },
-                onError: { error in
-                    coordinator.onNetworkError(error)
-                },
-                onCompleted: {
-                    coordinator.onNetworkCompleted()
+                    // 发射缓存
+                    observer.onNext(cached)
+
+                    // 静默更新网络（不发射响应）
+                    let disposable = networkObservable.subscribe(
+                        onNext: { _ in },
+                        onError: { _ in observer.onCompleted() },
+                        onCompleted: { observer.onCompleted() }
+                    )
+                    _ = disposeBag.insert(disposable)
+
+                    return disposeBag
                 }
-            )
-            _ = disposeBag.insert(networkDisposable)
-
-            return Disposables.create {
-                coordinator.dispose()
-                disposeBag.dispose()
             }
+
+            #if DEBUG
+                let duration = Date().timeIntervalSince(startTime)
+                print("[CachingRxCallAdapter] lastCache: Disk cache miss for key '\(key)', check took \(String(format: "%.3f", duration))s")
+            #endif
+            // 无缓存：返回网络请求
+            return networkObservable
         }
+        .subscribe(on: ConcurrentDispatchQueueScheduler(qos: .userInitiated))
     }
 }
 
@@ -1159,7 +1192,7 @@ private extension CachingRxCallAdapter {
 private extension CachingRxCallAdapter {
     /// firstCache: 先返回缓存，再请求网络（可能发射 1-2 次）
     ///
-    /// 关键：磁盘缓存检查完成后，才发射网络响应，确保缓存优先
+    /// 关键：使用 concat 串行执行，磁盘检查完成后才开始网络请求
     func handleFirstCache(
         source: Observable<some Any>,
         key: String,
@@ -1186,35 +1219,20 @@ private extension CachingRxCallAdapter {
             ])
         }
 
-        // 内存未命中：使用协调器
-        return Observable<Any>.create { rawObserver in
-            let coordinator = GenericFirstCacheCoordinator(observer: rawObserver)
-            let disposeBag = CompositeDisposable()
-
-            // 快速异步读取磁盘缓存（磁盘未就绪时立即返回 nil，不阻塞）
-            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
-                coordinator.onDiskCacheResult(diskCached)
+        // 内存未命中：创建磁盘缓存 Observable
+        let diskCacheObservable = Observable<Any>.deferred {
+            if let cached = cache.get(forKey: key, maxAge: maxAge) {
+                return Observable.just(cached as Any)
             }
-
-            // 同时发起网络请求
-            let disposable = networkObservable.subscribe(
-                onNext: { element in
-                    coordinator.onNetworkResponse(element)
-                },
-                onError: { error in
-                    coordinator.onNetworkError(error)
-                },
-                onCompleted: {
-                    coordinator.onNetworkCompleted()
-                }
-            )
-            _ = disposeBag.insert(disposable)
-
-            return Disposables.create {
-                coordinator.dispose()
-                disposeBag.dispose()
-            }
+            return Observable.empty()
         }
+
+        // concat: 磁盘检查完成 → 发射缓存（如果有）→ 网络请求开始 → 发射网络响应
+        return Observable.concat([
+            diskCacheObservable,
+            networkObservable
+        ])
+        .subscribe(on: ConcurrentDispatchQueueScheduler(qos: .userInitiated))
     }
 
     /// firstRemote: 先请求网络，失败时回退缓存
@@ -1278,7 +1296,7 @@ private extension CachingRxCallAdapter {
 
     /// ifCache: 有缓存用缓存，无缓存走网络
     ///
-    /// 关键：等磁盘检查完成后，才决定是否使用网络响应
+    /// 关键：使用串行执行，磁盘检查完成后才决定是否发起网络请求
     func handleIfCache(
         source: Observable<some Any>,
         key: String,
@@ -1286,12 +1304,12 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Any> {
-        // 先检查内存缓存
+        // 1. 先检查内存缓存
         if let cachedResponse = cache.getFromMemory(forKey: key, maxAge: maxAge) {
             return .just(cachedResponse)
         }
 
-        // 网络请求（带缓存写入）
+        // 2. 网络请求（带缓存写入）
         let networkObservable = source.map { element -> Any in
             if let response = element as? Response {
                 cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
@@ -1299,40 +1317,28 @@ private extension CachingRxCallAdapter {
             return element
         }
 
-        // 内存无缓存，使用协调器确保磁盘检查完成后再决定
-        return Observable<Any>.create { rawObserver in
-            let coordinator = GenericIfCacheCoordinator(observer: rawObserver)
-            let disposeBag = CompositeDisposable()
-
-            // 快速异步读取磁盘（磁盘未就绪时立即返回 nil，不阻塞）
-            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
-                coordinator.onDiskCacheResult(diskCached)
+        // 3. 内存未命中：创建磁盘缓存检查 Observable
+        let diskCacheObservable = Observable<Any>.deferred {
+            // 同步检查磁盘缓存（在 subscribeOn 指定的线程上执行）
+            if let cached = cache.get(forKey: key, maxAge: maxAge) {
+                // 有缓存，发射缓存并完成（不发起网络请求）
+                return Observable.just(cached as Any)
             }
-
-            // 同时发起网络请求
-            let networkDisposable = networkObservable.subscribe(
-                onNext: { element in
-                    coordinator.onNetworkResponse(element)
-                },
-                onError: { error in
-                    coordinator.onNetworkError(error)
-                },
-                onCompleted: {
-                    coordinator.onNetworkCompleted()
-                }
-            )
-            _ = disposeBag.insert(networkDisposable)
-
-            return Disposables.create {
-                coordinator.dispose()
-                disposeBag.dispose()
-            }
+            // 无缓存，返回 empty 让 concat 继续执行网络请求
+            return Observable.empty()
         }
+
+        // 4. 串行执行：磁盘检查 → 有缓存则完成，无缓存则网络请求
+        return Observable.concat([
+            diskCacheObservable,
+            networkObservable
+        ])
+        .subscribe(on: ConcurrentDispatchQueueScheduler(qos: .userInitiated))
     }
 
     /// lastCache: 返回缓存后静默更新网络（有缓存时只发射一次）
     ///
-    /// 关键：等磁盘检查完成后，才决定是否发射网络响应
+    /// 关键：使用串行执行，磁盘检查完成后才决定后续行为
     func handleLastCache(
         source: Observable<some Any>,
         key: String,
@@ -1340,10 +1346,10 @@ private extension CachingRxCallAdapter {
         interceptor: any CacheInterceptor,
         cache: HttpCache
     ) -> Observable<Any> {
-        // 先检查内存缓存
+        // 1. 先检查内存缓存
         let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
-        // 网络请求（带缓存写入）
+        // 2. 网络请求（带缓存写入）
         let networkObservable = source.map { element -> Any in
             if let response = element as? Response {
                 cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
@@ -1351,7 +1357,7 @@ private extension CachingRxCallAdapter {
             return element
         }
 
-        // 内存命中：发射缓存，静默更新网络
+        // 3. 内存命中：发射缓存，静默更新网络
         if let cached = memoryCached {
             return Observable<Any>.create { rawObserver in
                 let observer = SendableObserver(rawObserver)
@@ -1372,34 +1378,32 @@ private extension CachingRxCallAdapter {
             }
         }
 
-        // 内存未命中：使用协调器确保磁盘检查完成后再决定
-        return Observable<Any>.create { rawObserver in
-            let coordinator = GenericLastCacheCoordinator(observer: rawObserver)
-            let disposeBag = CompositeDisposable()
+        // 4. 内存未命中：使用串行执行
+        return Observable<Any>.deferred { [networkObservable] in
+            // 同步检查磁盘缓存（在 subscribeOn 指定的线程上执行）
+            if let cached = cache.get(forKey: key, maxAge: maxAge) {
+                // 有缓存：发射缓存，静默更新网络
+                return Observable<Any>.create { rawObserver in
+                    let observer = SendableObserver(rawObserver)
+                    let disposeBag = CompositeDisposable()
 
-            // 快速异步读取磁盘（磁盘未就绪时立即返回 nil，不阻塞）
-            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
-                coordinator.onDiskCacheResult(diskCached)
-            }
+                    // 发射缓存
+                    observer.onNext(cached)
 
-            // 同时发起网络请求
-            let networkDisposable = networkObservable.subscribe(
-                onNext: { element in
-                    coordinator.onNetworkResponse(element)
-                },
-                onError: { error in
-                    coordinator.onNetworkError(error)
-                },
-                onCompleted: {
-                    coordinator.onNetworkCompleted()
+                    // 静默更新网络（不发射响应）
+                    let disposable = networkObservable.subscribe(
+                        onNext: { _ in },
+                        onError: { _ in observer.onCompleted() },
+                        onCompleted: { observer.onCompleted() }
+                    )
+                    _ = disposeBag.insert(disposable)
+
+                    return disposeBag
                 }
-            )
-            _ = disposeBag.insert(networkDisposable)
-
-            return Disposables.create {
-                coordinator.dispose()
-                disposeBag.dispose()
             }
+            // 无缓存：返回网络请求
+            return networkObservable
         }
+        .subscribe(on: ConcurrentDispatchQueueScheduler(qos: .userInitiated))
     }
 }
