@@ -562,6 +562,76 @@ public final class HttpCache: @unchecked Sendable {
         return diskCacheInitialized
     }
 
+    /// 快速异步读取缓存（磁盘未就绪时立即返回 nil）
+    ///
+    /// 与 `get(forKey:maxAge:completion:)` 的区别：
+    /// - 如果磁盘缓存未就绪，立即回调 nil，不等待初始化
+    /// - 适用于需要快速响应的场景（如 firstCache 模式）
+    ///
+    /// - Parameters:
+    ///   - key: 缓存键
+    ///   - maxAge: 最大有效期（秒），默认永不过期
+    ///   - completion: 完成回调（可能在任意线程）
+    public func getFast(
+        forKey key: String,
+        maxAge: TimeInterval = .infinity,
+        completion: @escaping @Sendable (Response?) -> Void
+    ) {
+        // 参数校验
+        guard !key.isEmpty else {
+            completion(nil)
+            return
+        }
+
+        // 1. 先同步查内存
+        if let entry = memoryCache.value(forKey: key) {
+            if entry.isValid(maxAge: maxAge) {
+                completion(entry.response)
+                return
+            } else {
+                memoryCache.removeValue(forKey: key)
+            }
+        }
+
+        // 2. 检查磁盘缓存是否就绪
+        lock.lock()
+        let isReady = diskCacheInitialized
+        let cache = diskCache
+        lock.unlock()
+
+        // 磁盘未就绪，立即返回 nil（不等待）
+        guard isReady, cache != nil else {
+            completion(nil)
+            return
+        }
+
+        // 3. 磁盘已就绪，异步查磁盘
+        diskQueue.async { [weak self] in
+            guard let self = self else {
+                completion(nil)
+                return
+            }
+
+            guard let diskEntry = self.getDiskCacheSync(forKey: key) else {
+                completion(nil)
+                return
+            }
+
+            // 检查过期
+            guard diskEntry.isValid(maxAge: maxAge) else {
+                self.removeDiskCacheAsync(forKey: key)
+                completion(nil)
+                return
+            }
+
+            // 回填内存
+            let cacheEntry = diskEntry.toCacheEntry()
+            self.memoryCache.setValue(cacheEntry, forKey: key, cost: diskEntry.data.count)
+
+            completion(diskEntry.toResponse())
+        }
+    }
+
     // MARK: - Private Disk Operations
 
     /// 同步读取磁盘缓存

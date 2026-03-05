@@ -115,6 +115,630 @@ private final class SendableObserver<Element>: @unchecked Sendable {
     }
 }
 
+// MARK: - FirstCache 协调器
+
+/// firstCache 策略的协调器
+///
+/// 核心职责：确保磁盘缓存检查完成后，才发射网络响应
+/// 这解决了磁盘缓存读取慢导致缓存和网络响应几乎同时到达的问题
+///
+/// 工作流程：
+/// 1. 磁盘缓存检查和网络请求并行执行
+/// 2. 如果网络响应先到，缓冲它，等待磁盘检查完成
+/// 3. 磁盘检查完成后：
+///    - 如果有缓存，先发射缓存
+///    - 然后发射缓冲的网络响应（或等待网络响应）
+private final class FirstCacheCoordinator: @unchecked Sendable {
+    private let lock = NSLock()
+    private let observer: AnyObserver<Response>
+
+    // 状态
+    private var diskCheckCompleted = false
+    private var cacheEmitted = false
+    private var disposed = false
+
+    // 缓冲的网络响应
+    private var pendingNetworkResponse: Response?
+    private var pendingNetworkError: Error?
+    private var networkCompleted = false
+
+    init(observer: AnyObserver<Response>) {
+        self.observer = observer
+    }
+
+    /// 磁盘缓存检查完成回调
+    func onDiskCacheResult(_ cached: Response?) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        diskCheckCompleted = true
+
+        // 如果有磁盘缓存，先发射
+        if let cached = cached {
+            cacheEmitted = true
+            observer.onNext(cached)
+        }
+
+        // 处理缓冲的网络响应
+        flushPendingNetworkEvents()
+    }
+
+    /// 网络响应回调
+    func onNetworkResponse(_ response: Response) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        if diskCheckCompleted {
+            // 磁盘检查已完成，直接发射
+            observer.onNext(response)
+        } else {
+            // 磁盘检查未完成，缓冲响应
+            pendingNetworkResponse = response
+        }
+    }
+
+    /// 网络错误回调
+    func onNetworkError(_ error: Error) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        if diskCheckCompleted {
+            // 磁盘检查已完成
+            if cacheEmitted {
+                // 有缓存已发射，忽略错误，正常完成
+                observer.onCompleted()
+            } else {
+                // 没有缓存，传递错误
+                observer.onError(error)
+            }
+        } else {
+            // 磁盘检查未完成，缓冲错误
+            pendingNetworkError = error
+        }
+    }
+
+    /// 网络完成回调
+    func onNetworkCompleted() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        networkCompleted = true
+
+        if diskCheckCompleted {
+            observer.onCompleted()
+        }
+        // 如果磁盘检查未完成，完成事件会在 flushPendingNetworkEvents 中处理
+    }
+
+    /// 释放资源
+    func dispose() {
+        lock.lock()
+        disposed = true
+        lock.unlock()
+    }
+
+    /// 刷新缓冲的网络事件（在锁内调用）
+    private func flushPendingNetworkEvents() {
+        // 发射缓冲的网络响应
+        if let response = pendingNetworkResponse {
+            pendingNetworkResponse = nil
+            observer.onNext(response)
+        }
+
+        // 处理缓冲的错误
+        if let error = pendingNetworkError {
+            pendingNetworkError = nil
+            if cacheEmitted {
+                observer.onCompleted()
+            } else {
+                observer.onError(error)
+            }
+            return
+        }
+
+        // 处理完成事件
+        if networkCompleted {
+            observer.onCompleted()
+        }
+    }
+}
+
+// MARK: - IfCache 协调器
+
+/// ifCache 策略的协调器
+///
+/// 核心职责：等磁盘检查完成后，决定使用缓存还是网络响应
+/// - 有缓存：发射缓存，忽略网络
+/// - 无缓存：发射网络响应
+private final class IfCacheCoordinator: @unchecked Sendable {
+    private let lock = NSLock()
+    private let observer: AnyObserver<Response>
+
+    // 状态
+    private var diskCheckCompleted = false
+    private var emitted = false
+    private var disposed = false
+
+    // 缓冲的网络响应
+    private var pendingNetworkResponse: Response?
+    private var pendingNetworkError: Error?
+
+    init(observer: AnyObserver<Response>) {
+        self.observer = observer
+    }
+
+    /// 磁盘缓存检查完成回调
+    func onDiskCacheResult(_ cached: Response?) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed, !emitted else { return }
+
+        diskCheckCompleted = true
+
+        // 如果有磁盘缓存，发射缓存并完成
+        if let cached = cached {
+            emitted = true
+            observer.onNext(cached)
+            observer.onCompleted()
+            return
+        }
+
+        // 无缓存，处理等待中的网络响应
+        if let response = pendingNetworkResponse {
+            emitted = true
+            observer.onNext(response)
+            observer.onCompleted()
+        } else if let error = pendingNetworkError {
+            emitted = true
+            observer.onError(error)
+        }
+    }
+
+    /// 网络响应回调
+    func onNetworkResponse(_ response: Response) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed, !emitted else { return }
+
+        if diskCheckCompleted {
+            // 磁盘检查已完成且无缓存，发射网络响应
+            emitted = true
+            observer.onNext(response)
+            observer.onCompleted()
+        } else {
+            // 磁盘检查未完成，缓冲响应
+            pendingNetworkResponse = response
+        }
+    }
+
+    /// 网络错误回调
+    func onNetworkError(_ error: Error) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed, !emitted else { return }
+
+        if diskCheckCompleted {
+            // 磁盘检查已完成且无缓存，传递错误
+            emitted = true
+            observer.onError(error)
+        } else {
+            pendingNetworkError = error
+        }
+    }
+
+    /// 网络完成回调（ifCache 模式下网络完成后无特殊处理）
+    func onNetworkCompleted() {
+        // ifCache 只发射一次，网络完成时要么已经发射了，要么等磁盘检查
+    }
+
+    func dispose() {
+        lock.lock()
+        disposed = true
+        lock.unlock()
+    }
+}
+
+// MARK: - LastCache 协调器
+
+/// lastCache 策略的协调器
+///
+/// 核心职责：等磁盘检查完成后，决定使用缓存还是网络响应（只发射一次）
+/// - 有缓存：发射缓存，静默更新网络（不再发射）
+/// - 无缓存：发射网络响应
+private final class LastCacheCoordinator: @unchecked Sendable {
+    private let lock = NSLock()
+    private let observer: AnyObserver<Response>
+
+    // 状态
+    private var diskCheckCompleted = false
+    private var cacheEmitted = false
+    private var disposed = false
+
+    // 缓冲的网络响应
+    private var pendingNetworkResponse: Response?
+    private var pendingNetworkError: Error?
+    private var networkCompleted = false
+
+    init(observer: AnyObserver<Response>) {
+        self.observer = observer
+    }
+
+    /// 磁盘缓存检查完成回调
+    func onDiskCacheResult(_ cached: Response?) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        diskCheckCompleted = true
+
+        // 如果有磁盘缓存，发射缓存
+        if let cached = cached {
+            cacheEmitted = true
+            observer.onNext(cached)
+            // 等待网络完成后再 complete
+            if networkCompleted {
+                observer.onCompleted()
+            }
+            return
+        }
+
+        // 无缓存，处理等待中的网络响应
+        if let response = pendingNetworkResponse {
+            observer.onNext(response)
+            if networkCompleted {
+                observer.onCompleted()
+            }
+        } else if let error = pendingNetworkError {
+            observer.onError(error)
+        } else if networkCompleted {
+            observer.onCompleted()
+        }
+    }
+
+    /// 网络响应回调
+    func onNetworkResponse(_ response: Response) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        if diskCheckCompleted {
+            // 磁盘检查已完成
+            if !cacheEmitted {
+                // 无缓存，发射网络响应
+                observer.onNext(response)
+            }
+            // 有缓存时，静默更新（不发射）
+        } else {
+            // 磁盘检查未完成，缓冲响应
+            pendingNetworkResponse = response
+        }
+    }
+
+    /// 网络错误回调
+    func onNetworkError(_ error: Error) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        if diskCheckCompleted {
+            if cacheEmitted {
+                // 有缓存已发射，忽略错误
+                observer.onCompleted()
+            } else {
+                // 无缓存，传递错误
+                observer.onError(error)
+            }
+        } else {
+            pendingNetworkError = error
+        }
+    }
+
+    /// 网络完成回调
+    func onNetworkCompleted() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        networkCompleted = true
+
+        if diskCheckCompleted {
+            observer.onCompleted()
+        }
+    }
+
+    func dispose() {
+        lock.lock()
+        disposed = true
+        lock.unlock()
+    }
+}
+
+/// 泛型 firstCache 协调器（用于 adapt 方法）
+///
+/// 与 FirstCacheCoordinator 功能相同，但支持 Any 类型
+private final class GenericFirstCacheCoordinator: @unchecked Sendable {
+    private let lock = NSLock()
+    private let observer: AnyObserver<Any>
+
+    // 状态
+    private var diskCheckCompleted = false
+    private var cacheEmitted = false
+    private var disposed = false
+
+    // 缓冲的网络响应
+    private var pendingNetworkResponse: Any?
+    private var pendingNetworkError: Error?
+    private var networkCompleted = false
+
+    init(observer: AnyObserver<Any>) {
+        self.observer = observer
+    }
+
+    /// 磁盘缓存检查完成回调
+    func onDiskCacheResult(_ cached: Response?) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        diskCheckCompleted = true
+
+        // 如果有磁盘缓存，先发射
+        if let cached = cached {
+            cacheEmitted = true
+            observer.onNext(cached)
+        }
+
+        // 处理缓冲的网络响应
+        flushPendingNetworkEvents()
+    }
+
+    /// 网络响应回调
+    func onNetworkResponse(_ response: Any) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        if diskCheckCompleted {
+            observer.onNext(response)
+        } else {
+            pendingNetworkResponse = response
+        }
+    }
+
+    /// 网络错误回调
+    func onNetworkError(_ error: Error) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        if diskCheckCompleted {
+            if cacheEmitted {
+                observer.onCompleted()
+            } else {
+                observer.onError(error)
+            }
+        } else {
+            pendingNetworkError = error
+        }
+    }
+
+    /// 网络完成回调
+    func onNetworkCompleted() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        networkCompleted = true
+
+        if diskCheckCompleted {
+            observer.onCompleted()
+        }
+    }
+
+    /// 释放资源
+    func dispose() {
+        lock.lock()
+        disposed = true
+        lock.unlock()
+    }
+
+    /// 刷新缓冲的网络事件（在锁内调用）
+    private func flushPendingNetworkEvents() {
+        if let response = pendingNetworkResponse {
+            pendingNetworkResponse = nil
+            observer.onNext(response)
+        }
+
+        if let error = pendingNetworkError {
+            pendingNetworkError = nil
+            if cacheEmitted {
+                observer.onCompleted()
+            } else {
+                observer.onError(error)
+            }
+            return
+        }
+
+        if networkCompleted {
+            observer.onCompleted()
+        }
+    }
+}
+
+/// 泛型 ifCache 协调器（用于 adapt 方法）
+private final class GenericIfCacheCoordinator: @unchecked Sendable {
+    private let lock = NSLock()
+    private let observer: AnyObserver<Any>
+
+    private var diskCheckCompleted = false
+    private var emitted = false
+    private var disposed = false
+
+    private var pendingNetworkResponse: Any?
+    private var pendingNetworkError: Error?
+
+    init(observer: AnyObserver<Any>) {
+        self.observer = observer
+    }
+
+    func onDiskCacheResult(_ cached: Response?) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed, !emitted else { return }
+
+        diskCheckCompleted = true
+
+        if let cached = cached {
+            emitted = true
+            observer.onNext(cached)
+            observer.onCompleted()
+            return
+        }
+
+        if let response = pendingNetworkResponse {
+            emitted = true
+            observer.onNext(response)
+            observer.onCompleted()
+        } else if let error = pendingNetworkError {
+            emitted = true
+            observer.onError(error)
+        }
+    }
+
+    func onNetworkResponse(_ response: Any) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed, !emitted else { return }
+
+        if diskCheckCompleted {
+            emitted = true
+            observer.onNext(response)
+            observer.onCompleted()
+        } else {
+            pendingNetworkResponse = response
+        }
+    }
+
+    func onNetworkError(_ error: Error) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed, !emitted else { return }
+
+        if diskCheckCompleted {
+            emitted = true
+            observer.onError(error)
+        } else {
+            pendingNetworkError = error
+        }
+    }
+
+    func onNetworkCompleted() {}
+
+    func dispose() {
+        lock.lock()
+        disposed = true
+        lock.unlock()
+    }
+}
+
+/// 泛型 lastCache 协调器（用于 adapt 方法）
+private final class GenericLastCacheCoordinator: @unchecked Sendable {
+    private let lock = NSLock()
+    private let observer: AnyObserver<Any>
+
+    private var diskCheckCompleted = false
+    private var cacheEmitted = false
+    private var disposed = false
+
+    private var pendingNetworkResponse: Any?
+    private var pendingNetworkError: Error?
+    private var networkCompleted = false
+
+    init(observer: AnyObserver<Any>) {
+        self.observer = observer
+    }
+
+    func onDiskCacheResult(_ cached: Response?) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        diskCheckCompleted = true
+
+        if let cached = cached {
+            cacheEmitted = true
+            observer.onNext(cached)
+            if networkCompleted {
+                observer.onCompleted()
+            }
+            return
+        }
+
+        if let response = pendingNetworkResponse {
+            observer.onNext(response)
+            if networkCompleted {
+                observer.onCompleted()
+            }
+        } else if let error = pendingNetworkError {
+            observer.onError(error)
+        } else if networkCompleted {
+            observer.onCompleted()
+        }
+    }
+
+    func onNetworkResponse(_ response: Any) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        if diskCheckCompleted {
+            if !cacheEmitted {
+                observer.onNext(response)
+            }
+        } else {
+            pendingNetworkResponse = response
+        }
+    }
+
+    func onNetworkError(_ error: Error) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        if diskCheckCompleted {
+            if cacheEmitted {
+                observer.onCompleted()
+            } else {
+                observer.onError(error)
+            }
+        } else {
+            pendingNetworkError = error
+        }
+    }
+
+    func onNetworkCompleted() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !disposed else { return }
+
+        networkCompleted = true
+
+        if diskCheckCompleted {
+            observer.onCompleted()
+        }
+    }
+
+    func dispose() {
+        lock.lock()
+        disposed = true
+        lock.unlock()
+    }
+}
+
 // MARK: - CachingRxCallAdapter
 
 /// 缓存 RxSwift 请求适配器
@@ -288,7 +912,7 @@ private extension CachingRxCallAdapter {
     /// - 有缓存：发射缓存 → 发射网络响应（或完成）
     /// - 无缓存：发射网络响应（或错误）
     ///
-    /// 优化：内存缓存同步检查（毫秒级），磁盘缓存异步读取
+    /// 关键：磁盘缓存检查完成后，才发射网络响应，确保缓存优先
     /// 线程：缓存数据在回调线程发射，网络数据在网络线程发射，由订阅者决定接收线程
     func firstCache(
         source: Observable<Response>,
@@ -306,50 +930,43 @@ private extension CachingRxCallAdapter {
                 cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
             })
 
+        // 内存命中：直接 concat，缓存先发射，网络后发射
+        if let cached = memoryCached {
+            return Observable.concat([
+                Observable.just(cached),
+                networkObservable
+            ])
+        }
+
+        // 内存未命中：需要协调磁盘缓存和网络请求
         return Observable<Response>.create { rawObserver in
-            // 使用线程安全的状态和包装器
-            let state = CacheState()
-            let observer = SendableObserver(rawObserver)
+            let coordinator = FirstCacheCoordinator(observer: rawObserver)
             let disposeBag = CompositeDisposable()
 
-            // 2. 如果内存有缓存，立即发射（同步，在当前线程）
-            if let cached = memoryCached {
-                state.hasCacheEmitted = true
-                observer.onNext(cached)
-            } else {
-                // 3. 内存未命中，异步读取磁盘（在缓存回调线程发射）
-                cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
-                    // 只有网络还没返回时才发射缓存
-                    if !state.hasNetworkEmitted, let cached = diskCached {
-                        state.hasCacheEmitted = true
-                        observer.onNext(cached)
-                    } else if diskCached != nil {
-                        state.hasCacheEmitted = true
-                    }
-                }
+            // 2. 快速异步读取磁盘缓存（磁盘未就绪时立即返回 nil，不阻塞）
+            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
+                coordinator.onDiskCacheResult(diskCached)
             }
 
-            // 4. 同时发起网络请求（在网络线程发射）
+            // 3. 同时发起网络请求（响应会被协调器缓冲，直到磁盘检查完成）
             let networkDisposable = networkObservable
                 .subscribe(
-                    onNext: { [state, observer] response in
-                        _ = state.markNetworkEmitted()
-                        observer.onNext(response)
+                    onNext: { response in
+                        coordinator.onNetworkResponse(response)
                     },
-                    onError: { [state, observer] error in
-                        if state.hasCacheEmitted {
-                            observer.onCompleted()
-                        } else {
-                            observer.onError(error)
-                        }
+                    onError: { error in
+                        coordinator.onNetworkError(error)
                     },
-                    onCompleted: { [observer] in
-                        observer.onCompleted()
+                    onCompleted: {
+                        coordinator.onNetworkCompleted()
                     }
                 )
             _ = disposeBag.insert(networkDisposable)
 
-            return disposeBag
+            return Disposables.create {
+                coordinator.dispose()
+                disposeBag.dispose()
+            }
         }
     }
 
@@ -413,7 +1030,7 @@ private extension CachingRxCallAdapter {
 
     /// ifCache: 有缓存用缓存，无缓存走网络
     ///
-    /// 优化：先检查内存缓存，无内存缓存时并发读磁盘和网络
+    /// 关键：等磁盘检查完成后，才决定是否使用网络响应
     /// 线程：缓存数据在回调线程发射，网络数据在网络线程发射，由订阅者决定接收线程
     func ifCache(
         source: Observable<Response>,
@@ -427,51 +1044,47 @@ private extension CachingRxCallAdapter {
             return .just(cached)
         }
 
-        // 内存无缓存，异步检查磁盘，如果磁盘也没有则走网络
+        // 内存无缓存，使用协调器确保磁盘检查完成后再决定
         return Observable<Response>.create { rawObserver in
-            let state = CacheState()
-            let observer = SendableObserver(rawObserver)
+            let coordinator = IfCacheCoordinator(observer: rawObserver)
             let disposeBag = CompositeDisposable()
 
-            // 异步读取磁盘
-            cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
-                if let cached = diskCached, state.tryEmitOnce() {
-                    observer.onNext(cached)
-                    observer.onCompleted()
-                }
+            // 快速异步读取磁盘（磁盘未就绪时立即返回 nil，不阻塞）
+            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
+                coordinator.onDiskCacheResult(diskCached)
             }
 
-            // 同时发起网络请求（延迟一小段时间给磁盘缓存机会）
+            // 同时发起网络请求（响应会被协调器处理）
             let networkDisposable = source
-                .delay(.milliseconds(50), scheduler: ConcurrentDispatchQueueScheduler(qos: .default))
                 .do(onNext: { response in
                     cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
                 })
                 .subscribe(
-                    onNext: { [state, observer] response in
-                        if state.tryEmitOnce() {
-                            observer.onNext(response)
-                            observer.onCompleted()
-                        }
+                    onNext: { response in
+                        coordinator.onNetworkResponse(response)
                     },
-                    onError: { [state, observer] error in
-                        if state.tryEmitOnce() {
-                            observer.onError(error)
-                        }
+                    onError: { error in
+                        coordinator.onNetworkError(error)
+                    },
+                    onCompleted: {
+                        coordinator.onNetworkCompleted()
                     }
                 )
             _ = disposeBag.insert(networkDisposable)
 
-            return disposeBag
+            return Disposables.create {
+                coordinator.dispose()
+                disposeBag.dispose()
+            }
         }
     }
 
     /// lastCache: 返回缓存后静默更新网络
     ///
-    /// - 有缓存：返回缓存，静默请求网络更新缓存
+    /// - 有缓存：返回缓存，静默请求网络更新缓存（只发射一次）
     /// - 无缓存：返回网络响应
     ///
-    /// 优化：先检查内存缓存，磁盘读取异步化
+    /// 关键：等磁盘检查完成后，才决定是否发射网络响应
     /// 线程：缓存数据在回调线程发射，网络数据在网络线程发射，由订阅者决定接收线程
     func lastCache(
         source: Observable<Response>,
@@ -483,60 +1096,60 @@ private extension CachingRxCallAdapter {
         // 先检查内存缓存（同步，快）
         let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
-        return Observable<Response>.create { rawObserver in
-            let state = CacheState()
-            let observer = SendableObserver(rawObserver)
-            let disposeBag = CompositeDisposable()
+        // 网络请求（带缓存写入）
+        let networkObservable = source.do(onNext: { response in
+            cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
+        })
 
-            // 如果内存有缓存，立即发射
-            if let cached = memoryCached {
-                state.hasCacheEmitted = true
+        // 内存命中：发射缓存，静默更新网络
+        if let cached = memoryCached {
+            return Observable<Response>.create { rawObserver in
+                let observer = SendableObserver(rawObserver)
+                let disposeBag = CompositeDisposable()
+
+                // 发射缓存
                 observer.onNext(cached)
 
-                // 静默更新网络
-                let disposable = source.subscribe(
-                    onNext: { response in
-                        cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-                    },
-                    onError: { [observer] _ in
-                        observer.onCompleted()
-                    },
-                    onCompleted: { [observer] in
-                        observer.onCompleted()
-                    }
+                // 静默更新网络（不发射响应）
+                let disposable = networkObservable.subscribe(
+                    onNext: { _ in },
+                    onError: { _ in observer.onCompleted() },
+                    onCompleted: { observer.onCompleted() }
                 )
                 _ = disposeBag.insert(disposable)
-            } else {
-                // 内存无缓存，异步读取磁盘
-                cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
-                    if let cached = diskCached, state.tryEmitCache() {
-                        observer.onNext(cached)
-                    }
-                }
 
-                // 同时发起网络请求
-                let networkDisposable = source.subscribe(
-                    onNext: { [state, observer] response in
-                        cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-                        if state.tryEmitCache() {
-                            observer.onNext(response)
-                        }
-                    },
-                    onError: { [state, observer] error in
-                        if state.hasCacheEmitted {
-                            observer.onCompleted()
-                        } else {
-                            observer.onError(error)
-                        }
-                    },
-                    onCompleted: { [observer] in
-                        observer.onCompleted()
-                    }
-                )
-                _ = disposeBag.insert(networkDisposable)
+                return disposeBag
+            }
+        }
+
+        // 内存未命中：使用协调器确保磁盘检查完成后再决定
+        return Observable<Response>.create { rawObserver in
+            let coordinator = LastCacheCoordinator(observer: rawObserver)
+            let disposeBag = CompositeDisposable()
+
+            // 快速异步读取磁盘（磁盘未就绪时立即返回 nil，不阻塞）
+            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
+                coordinator.onDiskCacheResult(diskCached)
             }
 
-            return disposeBag
+            // 同时发起网络请求
+            let networkDisposable = networkObservable.subscribe(
+                onNext: { response in
+                    coordinator.onNetworkResponse(response)
+                },
+                onError: { error in
+                    coordinator.onNetworkError(error)
+                },
+                onCompleted: {
+                    coordinator.onNetworkCompleted()
+                }
+            )
+            _ = disposeBag.insert(networkDisposable)
+
+            return Disposables.create {
+                coordinator.dispose()
+                disposeBag.dispose()
+            }
         }
     }
 }
@@ -546,7 +1159,7 @@ private extension CachingRxCallAdapter {
 private extension CachingRxCallAdapter {
     /// firstCache: 先返回缓存，再请求网络（可能发射 1-2 次）
     ///
-    /// 优化：内存缓存同步检查，磁盘缓存异步读取
+    /// 关键：磁盘缓存检查完成后，才发射网络响应，确保缓存优先
     func handleFirstCache(
         source: Observable<some Any>,
         key: String,
@@ -557,50 +1170,50 @@ private extension CachingRxCallAdapter {
         // 同步检查内存缓存
         let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
+        // 网络请求（带缓存写入）
+        let networkObservable = source.map { element -> Any in
+            if let response = element as? Response {
+                cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
+            }
+            return element
+        }
+
+        // 内存命中：直接 concat
+        if let cached = memoryCached {
+            return Observable.concat([
+                Observable.just(cached as Any),
+                networkObservable
+            ])
+        }
+
+        // 内存未命中：使用协调器
         return Observable<Any>.create { rawObserver in
-            let state = CacheState()
-            let observer = SendableObserver(rawObserver)
+            let coordinator = GenericFirstCacheCoordinator(observer: rawObserver)
             let disposeBag = CompositeDisposable()
 
-            // 如果内存有缓存，立即发射
-            if let cached = memoryCached {
-                state.hasCacheEmitted = true
-                observer.onNext(cached)
-            } else {
-                // 内存未命中，异步读取磁盘
-                cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
-                    if !state.hasNetworkEmitted, let cached = diskCached {
-                        state.hasCacheEmitted = true
-                        observer.onNext(cached)
-                    } else if diskCached != nil {
-                        state.hasCacheEmitted = true
-                    }
-                }
+            // 快速异步读取磁盘缓存（磁盘未就绪时立即返回 nil，不阻塞）
+            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
+                coordinator.onDiskCacheResult(diskCached)
             }
 
-            // 发起网络请求
-            let disposable = source.subscribe(
-                onNext: { [state, observer] element in
-                    if let response = element as? Response {
-                        cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-                    }
-                    _ = state.markNetworkEmitted()
-                    observer.onNext(element)
+            // 同时发起网络请求
+            let disposable = networkObservable.subscribe(
+                onNext: { element in
+                    coordinator.onNetworkResponse(element)
                 },
-                onError: { [state, observer] error in
-                    if state.hasCacheEmitted {
-                        observer.onCompleted()
-                    } else {
-                        observer.onError(error)
-                    }
+                onError: { error in
+                    coordinator.onNetworkError(error)
                 },
-                onCompleted: { [observer] in
-                    observer.onCompleted()
+                onCompleted: {
+                    coordinator.onNetworkCompleted()
                 }
             )
             _ = disposeBag.insert(disposable)
 
-            return disposeBag
+            return Disposables.create {
+                coordinator.dispose()
+                disposeBag.dispose()
+            }
         }
     }
 
@@ -665,7 +1278,7 @@ private extension CachingRxCallAdapter {
 
     /// ifCache: 有缓存用缓存，无缓存走网络
     ///
-    /// 优化：先检查内存缓存，无内存缓存时并发读磁盘和网络
+    /// 关键：等磁盘检查完成后，才决定是否使用网络响应
     func handleIfCache(
         source: Observable<some Any>,
         key: String,
@@ -678,48 +1291,48 @@ private extension CachingRxCallAdapter {
             return .just(cachedResponse)
         }
 
-        // 内存无缓存，异步检查磁盘，如果磁盘也没有则走网络
+        // 网络请求（带缓存写入）
+        let networkObservable = source.map { element -> Any in
+            if let response = element as? Response {
+                cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
+            }
+            return element
+        }
+
+        // 内存无缓存，使用协调器确保磁盘检查完成后再决定
         return Observable<Any>.create { rawObserver in
-            let state = CacheState()
-            let observer = SendableObserver(rawObserver)
+            let coordinator = GenericIfCacheCoordinator(observer: rawObserver)
             let disposeBag = CompositeDisposable()
 
-            // 异步读取磁盘
-            cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
-                if let cached = diskCached, state.tryEmitOnce() {
-                    observer.onNext(cached)
-                    observer.onCompleted()
-                }
+            // 快速异步读取磁盘（磁盘未就绪时立即返回 nil，不阻塞）
+            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
+                coordinator.onDiskCacheResult(diskCached)
             }
 
-            // 同时发起网络请求（延迟一小段时间给磁盘缓存机会）
-            let networkDisposable = source
-                .delay(.milliseconds(50), scheduler: ConcurrentDispatchQueueScheduler(qos: .default))
-                .subscribe(
-                    onNext: { [state, observer] element in
-                        if let response = element as? Response {
-                            cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-                        }
-                        if state.tryEmitOnce() {
-                            observer.onNext(element)
-                            observer.onCompleted()
-                        }
-                    },
-                    onError: { [state, observer] error in
-                        if state.tryEmitOnce() {
-                            observer.onError(error)
-                        }
-                    }
-                )
+            // 同时发起网络请求
+            let networkDisposable = networkObservable.subscribe(
+                onNext: { element in
+                    coordinator.onNetworkResponse(element)
+                },
+                onError: { error in
+                    coordinator.onNetworkError(error)
+                },
+                onCompleted: {
+                    coordinator.onNetworkCompleted()
+                }
+            )
             _ = disposeBag.insert(networkDisposable)
 
-            return disposeBag
+            return Disposables.create {
+                coordinator.dispose()
+                disposeBag.dispose()
+            }
         }
     }
 
     /// lastCache: 返回缓存后静默更新网络（有缓存时只发射一次）
     ///
-    /// 优化：先检查内存缓存，磁盘读取异步化
+    /// 关键：等磁盘检查完成后，才决定是否发射网络响应
     func handleLastCache(
         source: Observable<some Any>,
         key: String,
@@ -730,62 +1343,63 @@ private extension CachingRxCallAdapter {
         // 先检查内存缓存
         let memoryCached = cache.getFromMemory(forKey: key, maxAge: maxAge)
 
-        return Observable<Any>.create { rawObserver in
-            let state = CacheState()
-            let observer = SendableObserver(rawObserver)
-            let disposeBag = CompositeDisposable()
+        // 网络请求（带缓存写入）
+        let networkObservable = source.map { element -> Any in
+            if let response = element as? Response {
+                cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
+            }
+            return element
+        }
 
-            if let cached = memoryCached {
-                state.hasCacheEmitted = true
+        // 内存命中：发射缓存，静默更新网络
+        if let cached = memoryCached {
+            return Observable<Any>.create { rawObserver in
+                let observer = SendableObserver(rawObserver)
+                let disposeBag = CompositeDisposable()
+
+                // 发射缓存
                 observer.onNext(cached)
 
-                let disposable = source.subscribe(
-                    onNext: { element in
-                        if let response = element as? Response {
-                            cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-                        }
-                    },
-                    onError: { [observer] _ in
-                        observer.onCompleted()
-                    },
-                    onCompleted: { [observer] in
-                        observer.onCompleted()
-                    }
+                // 静默更新网络（不发射响应）
+                let disposable = networkObservable.subscribe(
+                    onNext: { _ in },
+                    onError: { _ in observer.onCompleted() },
+                    onCompleted: { observer.onCompleted() }
                 )
                 _ = disposeBag.insert(disposable)
-            } else {
-                // 内存无缓存，异步读取磁盘
-                cache.get(forKey: key, maxAge: maxAge) { [state, observer] diskCached in
-                    if let cached = diskCached, state.tryEmitCache() {
-                        observer.onNext(cached)
-                    }
-                }
 
-                // 同时发起网络请求
-                let networkDisposable = source.subscribe(
-                    onNext: { [state, observer] element in
-                        if let response = element as? Response {
-                            cache.set(response, forKey: key, maxAge: maxAge, interceptor: interceptor)
-                        }
-                        if state.tryEmitCache() {
-                            observer.onNext(element)
-                        }
-                    },
-                    onError: { [state, observer] error in
-                        if state.hasCacheEmitted {
-                            observer.onCompleted()
-                        } else {
-                            observer.onError(error)
-                        }
-                    },
-                    onCompleted: { [observer] in
-                        observer.onCompleted()
-                    }
-                )
-                _ = disposeBag.insert(networkDisposable)
+                return disposeBag
+            }
+        }
+
+        // 内存未命中：使用协调器确保磁盘检查完成后再决定
+        return Observable<Any>.create { rawObserver in
+            let coordinator = GenericLastCacheCoordinator(observer: rawObserver)
+            let disposeBag = CompositeDisposable()
+
+            // 快速异步读取磁盘（磁盘未就绪时立即返回 nil，不阻塞）
+            cache.getFast(forKey: key, maxAge: maxAge) { diskCached in
+                coordinator.onDiskCacheResult(diskCached)
             }
 
-            return disposeBag
+            // 同时发起网络请求
+            let networkDisposable = networkObservable.subscribe(
+                onNext: { element in
+                    coordinator.onNetworkResponse(element)
+                },
+                onError: { error in
+                    coordinator.onNetworkError(error)
+                },
+                onCompleted: {
+                    coordinator.onNetworkCompleted()
+                }
+            )
+            _ = disposeBag.insert(networkDisposable)
+
+            return Disposables.create {
+                coordinator.dispose()
+                disposeBag.dispose()
+            }
         }
     }
 }
