@@ -99,6 +99,10 @@ let package = Package(
         .library(
             name: "XXFTrackerSentry",
             targets: ["XXFTrackerSentry"]
+        ),
+        .library(
+            name: "XXFRouter",
+            targets: ["XXFRouter"]
         )
     ],
     dependencies: [
@@ -142,7 +146,9 @@ let package = Package(
         // refresh
         .package(url: "https://github.com/CoderMJLee/MJRefresh.git",from: "3.7.9"),
         // disk cache
-        .package(url: "https://github.com/hyperoslo/Cache.git", from: "7.4.0")
+        .package(url: "https://github.com/hyperoslo/Cache.git", from: "7.4.0"),
+        // 路由框架底层
+        .package(url: "https://github.com/devxoul/URLNavigator.git", from: "2.5.1")
     ],
     targets: [
         .target(
@@ -302,6 +308,7 @@ let package = Package(
                 "XXFIdentifier",
                 "XXFReusable",
                 "XXFRefreshable",
+                "XXFRouter",
                 "XXFViewModel",
                 "XXFImageLoader",
                 "XXFImageNukeLoader",
@@ -394,6 +401,14 @@ let package = Package(
             dependencies: [
                 "XXFTracker",
                 .product(name: "Sentry", package: "sentry-cocoa")
+            ]
+        ),
+        // MARK: - 路由框架
+        .target(
+            name: "XXFRouter",
+            dependencies: [
+                .product(name: "URLNavigator", package: "URLNavigator"),
+                .product(name: "URLMatcher", package: "URLNavigator")
             ]
         ),
         .testTarget(
