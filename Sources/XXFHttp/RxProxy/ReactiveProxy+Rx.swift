@@ -41,4 +41,12 @@ public extension ReactiveProxy where Base: ReactiveCompatible {
         // 否则直接返回原始请求
         return observable
     }
+
+    /// 代理请求（返回 Single，只发射一次）
+    ///
+    /// - Warning: 此方法已过时，请使用 `request(_:callbackQueue:)` 方法。
+    @available(*, deprecated, message: "此方法已过时，请使用 request(_:callbackQueue:) 方法。")
+    func requestSingle(_ token: Base.Target, callbackQueue: DispatchQueue? = nil) -> Single<Response> {
+        return request(token, callbackQueue: callbackQueue).asSingle()
+    }
 }
