@@ -10,8 +10,12 @@ import RxCocoa
 import RxSwift
 
 public extension Observable where Element: BaseHttpResult {
-    /// 直接返回对应的data字段
+    /// - Warning: 此方法已过时，请使用 `mapDataField` 方法。
     func mapHttpData() -> Observable<Element.DataType> {
+        return mapDataField()
+    }
+
+    func mapDataField() -> Observable<Element.DataType> {
         return flatMap { result -> Observable<Element.DataType> in
             guard result.isSuccess() else {
                 return .error(ResponseError(
