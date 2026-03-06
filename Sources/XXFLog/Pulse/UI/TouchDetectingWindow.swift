@@ -121,16 +121,12 @@ open class TouchDetectingWindow<WindowType: BaseWindow>: BaseWindow {
         #if os(iOS)
         guard let rootVC = self.rootViewController else { return }
         let logVC = LogViewController()
+        let nav = UINavigationController(rootViewController: logVC)
+        nav.modalPresentationStyle = .fullScreen
 
-        // 获取最适合的 NavigationController 进行 push
-        if let nav = findNavigationController(from: rootVC) {
-            nav.pushViewController(logVC, animated: true)
-        } else {
-            // 兜底：直接 present
-            let nav = UINavigationController(rootViewController: logVC)
-            nav.modalPresentationStyle = .fullScreen
-            rootVC.present(nav, animated: true)
-        }
+        // 找到最顶层的 ViewController 进行 present
+        let topVC = findTopViewController(from: rootVC)
+        topVC.present(nav, animated: true)
         #elseif os(macOS)
         guard let contentVC = self.contentViewController else { return }
         let logVC = LogViewController()
@@ -139,40 +135,28 @@ open class TouchDetectingWindow<WindowType: BaseWindow>: BaseWindow {
     }
 
     #if os(iOS)
-    /// 递归查找可用的 UINavigationController
-    private func findNavigationController(from vc: UIViewController) -> UINavigationController? {
-        // 1. 本身是 NavigationController
-        if let nav = vc as? UINavigationController {
-            return nav
+    /// 递归查找最顶层的 ViewController
+    private func findTopViewController(from vc: UIViewController) -> UIViewController {
+        // 优先检查 presented
+        if let presented = vc.presentedViewController {
+            return findTopViewController(from: presented)
         }
 
-        // 2. TabBarController：从选中的 VC 中查找
+        // TabBarController：从选中的 VC 查找
         if let tabBar = vc as? UITabBarController,
            let selected = tabBar.selectedViewController
         {
-            return findNavigationController(from: selected)
+            return findTopViewController(from: selected)
         }
 
-        // 3. 有 presented 的 VC：优先从 presented 中查找
-        if let presented = vc.presentedViewController {
-            if let nav = findNavigationController(from: presented) {
-                return nav
-            }
+        // NavigationController：从 visibleViewController 查找
+        if let nav = vc as? UINavigationController,
+           let visible = nav.visibleViewController
+        {
+            return findTopViewController(from: visible)
         }
 
-        // 4. 自身的 navigationController
-        if let nav = vc.navigationController {
-            return nav
-        }
-
-        // 5. 子控制器中查找
-        for child in vc.children {
-            if let nav = findNavigationController(from: child) {
-                return nav
-            }
-        }
-
-        return nil
+        return vc
     }
     #endif
 }
