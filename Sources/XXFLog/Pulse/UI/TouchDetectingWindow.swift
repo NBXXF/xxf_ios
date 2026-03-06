@@ -121,11 +121,15 @@ open class TouchDetectingWindow<WindowType: BaseWindow>: BaseWindow {
         #if os(iOS)
         guard let rootVC = self.rootViewController else { return }
         let logVC = LogViewController()
-        // fix present 出来大概率子子页面无法跳转的bug
-        if let navigationController = rootVC as? UINavigationController {
-            navigationController.pushViewController(logVC, animated: true)
+
+        // 获取最适合的 NavigationController 进行 push
+        if let nav = findNavigationController(from: rootVC) {
+            nav.pushViewController(logVC, animated: true)
         } else {
-            rootVC.navigationController?.present(logVC, animated: true)
+            // 兜底：直接 present
+            let nav = UINavigationController(rootViewController: logVC)
+            nav.modalPresentationStyle = .fullScreen
+            rootVC.present(nav, animated: true)
         }
         #elseif os(macOS)
         guard let contentVC = self.contentViewController else { return }
@@ -133,4 +137,42 @@ open class TouchDetectingWindow<WindowType: BaseWindow>: BaseWindow {
         contentVC.presentAsModalWindow(logVC)
         #endif
     }
+
+    #if os(iOS)
+    /// 递归查找可用的 UINavigationController
+    private func findNavigationController(from vc: UIViewController) -> UINavigationController? {
+        // 1. 本身是 NavigationController
+        if let nav = vc as? UINavigationController {
+            return nav
+        }
+
+        // 2. TabBarController：从选中的 VC 中查找
+        if let tabBar = vc as? UITabBarController,
+           let selected = tabBar.selectedViewController
+        {
+            return findNavigationController(from: selected)
+        }
+
+        // 3. 有 presented 的 VC：优先从 presented 中查找
+        if let presented = vc.presentedViewController {
+            if let nav = findNavigationController(from: presented) {
+                return nav
+            }
+        }
+
+        // 4. 自身的 navigationController
+        if let nav = vc.navigationController {
+            return nav
+        }
+
+        // 5. 子控制器中查找
+        for child in vc.children {
+            if let nav = findNavigationController(from: child) {
+                return nav
+            }
+        }
+
+        return nil
+    }
+    #endif
 }
