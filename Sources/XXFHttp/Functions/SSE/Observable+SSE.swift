@@ -27,7 +27,7 @@ import RxSwift
 /// // 多行 data（自动用 \n 连接）
 /// SSEEventData(event: "log", data: "line1\nline2\nline3")
 /// ```
-struct SSEEventData {
+public struct SSEEventData {
     /// 事件类型，对应 `event:` 字段
     let event: String?
 
@@ -42,8 +42,7 @@ struct SSEEventData {
 
 // MARK: - Observable SSE 扩展
 
-extension ObservableType where Element == String {
-
+public extension ObservableType where Element == String {
     /// 将 SSE 文本流转换为结构化的事件流
     ///
     /// 该方法将上游的原始文本块（可能是分块传输）解析为符合 SSE 规范的事件对象。
