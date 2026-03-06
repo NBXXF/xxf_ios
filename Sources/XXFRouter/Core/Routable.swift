@@ -196,3 +196,124 @@ public final class ClosureRouteHandler: RouteHandler, @unchecked Sendable {
         return handler(context)
     }
 }
+
+// MARK: - 类型擦除路由工厂
+
+/// 类型擦除的路由工厂，用于支持 [any Routable.Type] 批量注册
+///
+/// 由于 Swift 泛型系统限制，无法直接从 `any Routable.Type` 创建 `TypeRouteFactory<T>`，
+/// 因此使用此类型擦除包装器来解决这个问题。
+public final class AnyRoutableFactory: RouteFactory, @unchecked Sendable {
+    public let pattern: String
+    public let flags: RouteFlags
+    public let priority: Int
+
+    /// 类型擦除的创建闭包
+    private let createBlock: @MainActor @Sendable (RouteContext) -> RouteViewController?
+
+    /// 创建类型擦除工厂
+    /// - Parameter type: 任意 Routable 类型
+    @MainActor
+    public init(type: any Routable.Type) {
+        self.pattern = type.routePattern
+        self.flags = type.routeFlags
+        self.priority = type.routePriority
+        // 捕获类型并存储创建闭包
+        self.createBlock = { context in
+            type.init(context: context)
+        }
+    }
+
+    @MainActor
+    public func createViewController(with context: RouteContext) -> RouteViewController? {
+        return createBlock(context)
+    }
+}
+
+// MARK: - 批量注册配置类型
+
+/// 路由工厂配置，用于批量注册闭包工厂
+///
+/// 使用示例：
+/// ```swift
+/// let configs: [RouteFactoryConfig] = [
+///     RouteFactoryConfig(pattern: "app://home") { _ in HomeVC() },
+///     RouteFactoryConfig(pattern: "app://profile/<userId>", flags: .requiresLogin) { ctx in
+///         ProfileVC(userId: ctx.string(for: "userId") ?? "")
+///     }
+/// ]
+/// router.register(factories: configs)
+/// ```
+public struct RouteFactoryConfig: Sendable {
+    /// 路由模式
+    public let pattern: String
+    /// 路由标志位
+    public let flags: RouteFlags
+    /// 优先级
+    public let priority: Int
+    /// 工厂闭包
+    public let factory: @MainActor @Sendable (RouteContext) -> RouteViewController?
+
+    /// 创建路由工厂配置
+    /// - Parameters:
+    ///   - pattern: 路由模式
+    ///   - flags: 路由标志位，默认为 .none
+    ///   - priority: 优先级，默认为 0
+    ///   - factory: 创建视图控制器的闭包
+    public init(
+        pattern: String,
+        flags: RouteFlags = .none,
+        priority: Int = 0,
+        factory: @escaping @MainActor @Sendable (RouteContext) -> RouteViewController?
+    ) {
+        self.pattern = pattern
+        self.flags = flags
+        self.priority = priority
+        self.factory = factory
+    }
+}
+
+/// 路由处理器配置，用于批量注册处理器
+///
+/// 使用示例：
+/// ```swift
+/// let configs: [RouteHandlerConfig] = [
+///     RouteHandlerConfig(pattern: "app://logout") { _ in
+///         AuthService.shared.logout()
+///         return true
+///     },
+///     RouteHandlerConfig(pattern: "app://share") { ctx in
+///         ShareManager.share(content: ctx.string(for: "content"))
+///         return true
+///     }
+/// ]
+/// router.register(handlers: configs)
+/// ```
+public struct RouteHandlerConfig: Sendable {
+    /// 路由模式
+    public let pattern: String
+    /// 路由标志位
+    public let flags: RouteFlags
+    /// 优先级
+    public let priority: Int
+    /// 处理器闭包
+    public let handler: @Sendable (RouteContext) -> Bool
+
+    /// 创建路由处理器配置
+    /// - Parameters:
+    ///   - pattern: 路由模式
+    ///   - flags: 路由标志位，默认为 .none
+    ///   - priority: 优先级，默认为 0
+    ///   - handler: 处理闭包
+    public init(
+        pattern: String,
+        flags: RouteFlags = .none,
+        priority: Int = 0,
+        handler: @escaping @Sendable (RouteContext) -> Bool
+    ) {
+        self.pattern = pattern
+        self.flags = flags
+        self.priority = priority
+        self.handler = handler
+    }
+}

@@ -178,6 +178,25 @@ public final class RouteRegistry: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
+        registerEntryUnsafe(entry)
+    }
+
+    /// 批量注册路由条目（高效版本，一次锁操作完成所有注册）
+    /// - Parameter entries: 路由条目数组
+    private func registerEntries(_ entriesToAdd: [RouteEntry]) {
+        guard !entriesToAdd.isEmpty else { return }
+
+        lock.lock()
+        defer { lock.unlock() }
+
+        for entry in entriesToAdd {
+            registerEntryUnsafe(entry)
+        }
+    }
+
+    /// 内部注册方法（无锁版本，调用前必须持有锁）
+    /// - Parameter entry: 路由条目
+    private func registerEntryUnsafe(_ entry: RouteEntry) {
         let pattern = entry.pattern
 
         // 如果已存在相同模式的路由，比较优先级
@@ -285,13 +304,92 @@ public final class RouteRegistry: @unchecked Sendable {
 // MARK: - 便捷注册扩展
 
 public extension RouteRegistry {
-    /// 批量注册Routable类型
-    /// - Parameter types: Routable类型数组
+    /// 批量注册 Routable 类型（高效版本，一次锁操作完成所有注册）
+    /// - Parameter types: Routable 类型数组
+    ///
+    /// 使用示例：
+    /// ```swift
+    /// registry.register([
+    ///     HomeViewController.self,
+    ///     ProfileViewController.self,
+    ///     SettingsViewController.self
+    /// ])
+    /// ```
     @MainActor
     func register(_ types: [any Routable.Type]) {
+        guard !types.isEmpty else { return }
+
+        // 由于 Swift 类型系统限制，需要先收集所有 entries 再批量注册
+        // 使用 RouteEntry 的 factory 初始化方式
+        var entriesToAdd: [RouteEntry] = []
+        entriesToAdd.reserveCapacity(types.count)
+
         for type in types {
-            register(type)
+            // 通过协议方法创建工厂
+            let factory = AnyRoutableFactory(type: type)
+            entriesToAdd.append(.factory(factory))
         }
+
+        registerEntries(entriesToAdd)
+    }
+
+    /// 批量注册闭包工厂（高效版本，一次锁操作完成所有注册）
+    /// - Parameter factories: 工厂配置数组
+    ///
+    /// 使用示例：
+    /// ```swift
+    /// registry.register(factories: [
+    ///     (pattern: "app://home", flags: .none, priority: 0, factory: { _ in HomeVC() }),
+    ///     (pattern: "app://profile/<userId>", flags: .requiresLogin, priority: 0, factory: { ctx in
+    ///         ProfileVC(userId: ctx.string(for: "userId") ?? "")
+    ///     })
+    /// ])
+    /// ```
+    @MainActor
+    func register(
+        factories: [RouteFactoryConfig]
+    ) {
+        guard !factories.isEmpty else { return }
+
+        let entries = factories.map { config -> RouteEntry in
+            let factory = ClosureRouteFactory(
+                pattern: config.pattern,
+                flags: config.flags,
+                priority: config.priority,
+                factory: config.factory
+            )
+            return .factory(factory)
+        }
+        registerEntries(entries)
+    }
+
+    /// 批量注册处理器（高效版本，一次锁操作完成所有注册）
+    /// - Parameter handlers: 处理器配置数组
+    ///
+    /// 使用示例：
+    /// ```swift
+    /// registry.register(handlers: [
+    ///     RouteHandlerConfig(pattern: "app://logout") { _ in
+    ///         AuthService.shared.logout()
+    ///         return true
+    ///     }
+    /// ])
+    /// ```
+    func register(
+        handlers: [RouteHandlerConfig]
+    ) {
+        guard !handlers.isEmpty else { return }
+
+        let entries = handlers.map { config -> RouteEntry in
+            let handler = ClosureRouteHandler(
+                pattern: config.pattern,
+                flags: config.flags,
+                priority: config.priority,
+                handler: config.handler
+            )
+            return .handler(handler)
+        }
+        registerEntries(entries)
     }
 
     /// 使用构建器注册

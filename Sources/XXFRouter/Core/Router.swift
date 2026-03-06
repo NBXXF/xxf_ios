@@ -224,10 +224,61 @@ public final class Router: @unchecked Sendable {
         )
     }
 
-    /// 批量注册
+    /// 批量注册（使用构建器）
     /// - Parameter builder: 注册构建器闭包
     public func register(_ builder: (RouteRegistryBuilder) -> Void) {
         registry.register(builder)
+    }
+
+    /// 批量注册 Routable 类型（高效版本，一次锁操作完成所有注册）
+    /// - Parameter types: Routable 类型数组
+    ///
+    /// 使用示例：
+    /// ```swift
+    /// router.register([
+    ///     HomeViewController.self,
+    ///     ProfileViewController.self,
+    ///     SettingsViewController.self
+    /// ])
+    /// ```
+    public func register(_ types: [any Routable.Type]) {
+        registry.register(types)
+    }
+
+    /// 批量注册闭包工厂（高效版本，一次锁操作完成所有注册）
+    /// - Parameter factories: 工厂配置数组
+    ///
+    /// 使用示例：
+    /// ```swift
+    /// router.register(factories: [
+    ///     RouteFactoryConfig(pattern: "app://home") { _ in HomeVC() },
+    ///     RouteFactoryConfig(pattern: "app://profile/<userId>", flags: .requiresLogin) { ctx in
+    ///         ProfileVC(userId: ctx.string(for: "userId") ?? "")
+    ///     }
+    /// ])
+    /// ```
+    public func register(factories: [RouteFactoryConfig]) {
+        registry.register(factories: factories)
+    }
+
+    /// 批量注册处理器（高效版本，一次锁操作完成所有注册）
+    /// - Parameter handlers: 处理器配置数组
+    ///
+    /// 使用示例：
+    /// ```swift
+    /// router.register(handlers: [
+    ///     RouteHandlerConfig(pattern: "app://logout") { _ in
+    ///         AuthService.shared.logout()
+    ///         return true
+    ///     },
+    ///     RouteHandlerConfig(pattern: "app://share") { ctx in
+    ///         ShareManager.share(content: ctx.string(for: "content"))
+    ///         return true
+    ///     }
+    /// ])
+    /// ```
+    public func register(handlers: [RouteHandlerConfig]) {
+        registry.register(handlers: handlers)
     }
 
     // MARK: - 拦截器
