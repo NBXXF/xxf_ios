@@ -29,13 +29,13 @@ import RxSwift
 /// ```
 public struct SSEEventData {
     /// 事件类型，对应 `event:` 字段
-    let event: String?
+    public let event: String?
 
     /// 事件数据，对应 `data:` 字段（多行时用 `\n` 连接）
-    let data: String?
+    public let data: String?
 
     /// 是否为空事件（event 和 data 都为空）
-    var isEmpty: Bool {
+    public var isEmpty: Bool {
         return event == nil && data == nil
     }
 }
