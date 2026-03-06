@@ -165,10 +165,10 @@ public struct HttpCacheConfig: Sendable {
     ) {
         // 参数校验：确保所有值都是合理的
         self.memoryCountLimit = max(1, memoryCountLimit)
-        self.memoryCostLimit = max(1024, memoryCostLimit)  // 至少 1KB
+        self.memoryCostLimit = max(1024, memoryCostLimit) // 至少 1KB
         self.diskCacheName = diskCacheName.isEmpty ? "HttpCache" : diskCacheName
-        self.diskDefaultExpiry = max(60, diskDefaultExpiry)  // 至少 1分钟
-        self.diskMaxSize = max(1024 * 1024, diskMaxSize)  // 至少 1MB
+        self.diskDefaultExpiry = max(60, diskDefaultExpiry) // 至少 1分钟
+        self.diskMaxSize = max(1024 * 1024, diskMaxSize) // 至少 1MB
         self.diskCacheEnabled = diskCacheEnabled
     }
 }
@@ -310,7 +310,7 @@ public final class HttpCache: @unchecked Sendable {
             #endif
         } catch {
             lock.lock()
-            self.diskCacheInitialized = true  // 标记为已初始化（失败）
+            self.diskCacheInitialized = true // 标记为已初始化（失败）
             pendingDiskOperations.removeAll()
             lock.unlock()
 
@@ -324,13 +324,14 @@ public final class HttpCache: @unchecked Sendable {
 
     /// 只从内存缓存读取（同步，非常快）
     ///
-    /// 该方法只查询内存层缓存，不会访问磁盘。适用于需要快速检查缓存的场景。
+    /// 该方法只查询内存层缓存，不会访问磁盘。
+    /// 私有方法，外部业务应使用 `get` 或 `getAsObservable` 统一接口。
     ///
     /// - Parameters:
     ///   - key: 缓存键
     ///   - maxAge: 最大有效期（秒），默认永不过期
     /// - Returns: 缓存的响应，内存中不存在或已过期返回 nil
-    public func getFromMemory(forKey key: String, maxAge: TimeInterval = .infinity) -> Response? {
+    private func getFromMemory(forKey key: String, maxAge: TimeInterval = .infinity) -> Response? {
         guard !key.isEmpty else { return nil }
 
         if let entry = memoryCache.value(forKey: key) {
@@ -778,6 +779,64 @@ public struct CacheStatistics: Sendable {
     /// 总缓存大小（字节）
     public var totalSize: UInt64 {
         UInt64(memoryCost) + diskSize
+    }
+}
+
+// MARK: - Rx Support
+
+import RxSwift
+
+/// 缓存调度器持有者（懒加载，首次访问时才创建）
+private enum CacheSchedulerHolder {
+    nonisolated(unsafe) static let scheduler = ConcurrentDispatchQueueScheduler(qos: .userInitiated)
+}
+
+extension HttpCache {
+    /// 获取缓存（Observable 接口）
+    ///
+    /// 内部自动处理内存优先、磁盘回退的逻辑，调用方无需感知存储位置。
+    /// - 内存命中：同步发射缓存
+    /// - 内存未命中：异步检查磁盘，命中则发射
+    /// - 都未命中：发射 empty
+    ///
+    /// - Parameters:
+    ///   - key: 缓存键
+    ///   - maxAge: 最大有效期（秒）
+    /// - Returns: 发射缓存响应的 Observable（最多发射一次）
+    func getAsObservable(forKey key: String, maxAge: TimeInterval) -> Observable<Response> {
+        guard !key.isEmpty else { return .empty() }
+
+        // 1. 先同步检查内存缓存（非常快）
+        if let entry = memoryCache.value(forKey: key) {
+            if entry.isValid(maxAge: maxAge) {
+                return .just(entry.response)
+            } else {
+                memoryCache.removeValue(forKey: key)
+                removeDiskCacheAsync(forKey: key)
+            }
+        }
+
+        // 2. 内存未命中，使用 deferred 延迟检查磁盘
+        return Observable<Response>.deferred { [weak self] in
+            guard let self = self else { return .empty() }
+
+            // 同步检查磁盘缓存（在 cacheScheduler 线程执行）
+            guard let diskEntry = self.getDiskCacheSync(forKey: key) else {
+                return .empty()
+            }
+
+            guard diskEntry.isValid(maxAge: maxAge) else {
+                self.removeDiskCacheAsync(forKey: key)
+                return .empty()
+            }
+
+            // 回填内存缓存
+            let cacheEntry = diskEntry.toCacheEntry()
+            self.memoryCache.setValue(cacheEntry, forKey: key, cost: diskEntry.data.count)
+
+            return .just(diskEntry.toResponse())
+        }
+        .subscribe(on: CacheSchedulerHolder.scheduler)
     }
 }
 

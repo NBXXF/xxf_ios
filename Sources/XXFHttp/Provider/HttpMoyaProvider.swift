@@ -43,15 +43,22 @@ public final class HttpMoyaProvider<Target: TargetType>: MoyaProvider<Target> {
     ///   - single: 原始网络请求
     /// - Returns: 处理后的 Observable（支持缓存多次发射）
     func adaptRequest(_ token: Target, single: Single<Response>) -> Observable<Response> {
-        // 1. 先处理缓存（如果 target 实现了 RestApiService）
+        // 检查是否需要缓存处理
+        let needsCache = (token as? any RestApiService)?.cachePolicy.needsCache ?? false
+
+        // 如果用户自定义的 callAdapter 是 CachingRxCallAdapter，则由它处理缓存，避免重复
+        let userAdapterHandlesCache = callAdapter is CachingRxCallAdapter
+
         var result: Observable<Response>
-        if let restApi = token as? any RestApiService, restApi.cachePolicy.needsCache {
+
+        if needsCache && !userAdapterHandlesCache {
+            // 使用内部缓存适配器处理
             result = cacheAdapter.adaptToObservable(single, target: token)
         } else {
             result = single.asObservable()
         }
 
-        // 2. 再应用用户自定义的拦截器
+        // 应用用户自定义的拦截器
         if let adapter = callAdapter {
             return adapter.adapt(result, target: token)
         }
