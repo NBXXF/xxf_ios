@@ -179,8 +179,8 @@ public final class InterceptorChain: @unchecked Sendable {
     /// 是否已完成
     private var isCompleted: Bool = false
 
-    /// 锁
-    private let lock = NSLock()
+    /// 锁（使用递归锁避免同步拦截器调用 proceed 时死锁）
+    private let lock = NSRecursiveLock()
 
     /// 配置
     private let configuration: InterceptorChainConfiguration

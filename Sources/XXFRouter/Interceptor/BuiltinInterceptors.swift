@@ -515,7 +515,6 @@ public final class RateLimitInterceptor: RouteInterceptor, @unchecked Sendable {
         let now = Date()
 
         lock.lock()
-        defer { lock.unlock() }
 
         // 定期全量清理，防止内存泄漏
         if now.timeIntervalSince(lastCleanupTime) > cleanupInterval {
@@ -527,8 +526,9 @@ public final class RateLimitInterceptor: RouteInterceptor, @unchecked Sendable {
         var records = accessRecords[key] ?? []
         records = records.filter { now.timeIntervalSince($0) < timeWindow }
 
-        // 检查频率
+        // 检查频率：超过限制则拒绝
         if records.count >= maxCount {
+            lock.unlock()  // 先释放锁，避免持锁调用外部方法导致潜在死锁
             chain.reject(reason: "Rate limit exceeded for '\(key)'")
             return
         }
@@ -536,6 +536,7 @@ public final class RateLimitInterceptor: RouteInterceptor, @unchecked Sendable {
         // 记录本次访问
         records.append(now)
         accessRecords[key] = records
+        lock.unlock()  // 先释放锁，避免持锁调用外部方法导致潜在死锁
 
         chain.proceed()
     }
