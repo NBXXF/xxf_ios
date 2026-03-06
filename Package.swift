@@ -148,7 +148,9 @@ let package = Package(
         // disk cache
         .package(url: "https://github.com/hyperoslo/Cache.git", from: "7.4.0"),
         // 路由框架底层
-        .package(url: "https://github.com/devxoul/URLNavigator.git", from: "2.5.1")
+        .package(url: "https://github.com/devxoul/URLNavigator.git", from: "2.5.1"),
+        // 自动布局框架
+        .package(url: "https://github.com/SnapKit/SnapKit.git", from: "5.7.1")
     ],
     targets: [
         .target(
@@ -313,7 +315,9 @@ let package = Package(
                 "XXFImageLoader",
                 "XXFImageNukeLoader",
                 "XXFAdapter",
-                "XXFSwiftFormat"
+                "XXFSwiftFormat",
+                // 自动布局框架
+                .product(name: "SnapKit", package: "SnapKit")
             ]
         ),
         .target(

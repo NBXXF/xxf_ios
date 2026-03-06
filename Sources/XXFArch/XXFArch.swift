@@ -24,6 +24,8 @@
 @_exported import XXFReusable
 @_exported import XXFRefreshable
 @_exported import XXFRouter
+// 自动布局框架
+@_exported import SnapKit
 @_exported import XXFSpeed
 @_exported import XXFSwiftFormat
 @_exported import XXFTracker

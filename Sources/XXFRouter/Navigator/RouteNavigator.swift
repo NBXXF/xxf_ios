@@ -130,6 +130,14 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
                 completion: completion
             )
 
+        case .replaceRoot(let transition):
+            executeReplaceRoot(
+                to: viewController,
+                transition: transition,
+                options: options,
+                completion: completion
+            )
+
         case .custom(let customNavigation):
             if let source = context.sourceViewController ?? topViewController() {
                 customNavigation(source, viewController)
@@ -158,6 +166,9 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
             return
         }
 
+        // 设置是否隐藏底部TabBar
+        viewController.hidesBottomBarWhenPushed = options.hidesBottomBarWhenPushed
+
         CATransaction.begin()
         CATransaction.setCompletionBlock {
             options.completion?()
@@ -181,10 +192,20 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
             return
         }
 
-        viewController.modalPresentationStyle = options.modalPresentationStyle
-        viewController.modalTransitionStyle = options.modalTransitionStyle
+        // 决定要 present 的视图控制器（是否包装 NavigationController）
+        let vcToPresent: UIViewController
+        if options.wrapInNavigationController {
+            let nav = UINavigationController(rootViewController: viewController)
+            nav.modalPresentationStyle = options.modalPresentationStyle
+            nav.modalTransitionStyle = options.modalTransitionStyle
+            vcToPresent = nav
+        } else {
+            viewController.modalPresentationStyle = options.modalPresentationStyle
+            viewController.modalTransitionStyle = options.modalTransitionStyle
+            vcToPresent = viewController
+        }
 
-        source.present(viewController, animated: options.animated) {
+        source.present(vcToPresent, animated: options.animated) {
             options.completion?()
             completion?(true)
         }
@@ -217,6 +238,67 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
         navigationController.setViewControllers(viewControllers, animated: options.animated)
 
         CATransaction.commit()
+    }
+
+    @MainActor
+    private func executeReplaceRoot(
+        to viewController: RouteViewController,
+        transition: RootTransition,
+        options: RouteOptions,
+        completion: (@Sendable (Bool) -> Void)?
+    ) {
+        guard let window = Self.keyWindow() else {
+            completion?(false)
+            return
+        }
+
+        // 根据选项决定是否包装 NavigationController
+        let newRootVC: UIViewController
+        if options.wrapInNavigationController {
+            newRootVC = UINavigationController(rootViewController: viewController)
+        } else {
+            newRootVC = viewController
+        }
+
+        // 根据过渡类型执行动画
+        switch transition {
+        case .none:
+            window.rootViewController = newRootVC
+            options.completion?()
+            completion?(true)
+
+        case .crossDissolve:
+            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve) {
+                window.rootViewController = newRootVC
+            } completion: { _ in
+                options.completion?()
+                completion?(true)
+            }
+
+        case .slideFromRight:
+            UIView.transition(with: window, duration: 0.3, options: .transitionFlipFromRight) {
+                window.rootViewController = newRootVC
+            } completion: { _ in
+                options.completion?()
+                completion?(true)
+            }
+
+        case .slideFromBottom:
+            UIView.transition(with: window, duration: 0.3, options: .transitionCurlUp) {
+                window.rootViewController = newRootVC
+            } completion: { _ in
+                options.completion?()
+                completion?(true)
+            }
+
+        case .custom(let duration):
+            UIView.transition(with: window, duration: duration, options: .transitionCrossDissolve) {
+                window.rootViewController = newRootVC
+            } completion: { _ in
+                options.completion?()
+                completion?(true)
+            }
+        }
     }
 
     /// 获取当前顶层视图控制器

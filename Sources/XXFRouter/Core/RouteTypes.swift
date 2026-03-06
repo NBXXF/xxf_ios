@@ -209,11 +209,29 @@ public enum NavigationType: Sendable {
     /// Modal弹出
     case present
 
-    /// 替换当前视图控制器
+    /// 替换当前视图控制器（在导航栈中替换）
     case replace
+
+    /// 替换根视图控制器（替换 window.rootViewController）
+    /// - Parameter transition: 过渡动画选项（可选）
+    case replaceRoot(transition: RootTransition = .crossDissolve)
 
     /// 自定义导航方式
     case custom(@Sendable (RouteViewController, RouteViewController) -> Void)
+}
+
+/// 根视图控制器替换过渡动画
+public enum RootTransition: Sendable {
+    /// 淡入淡出
+    case crossDissolve
+    /// 无动画
+    case none
+    /// 从右滑入（类似 push）
+    case slideFromRight
+    /// 从底部滑入（类似 present）
+    case slideFromBottom
+    /// 自定义动画时长
+    case custom(duration: TimeInterval)
 }
 
 // MARK: - 路由配置
@@ -226,12 +244,18 @@ public struct RouteOptions: @unchecked Sendable {
     /// 是否带动画
     public var animated: Bool
 
-    /// Modal展示样式（仅对present有效）
     #if canImport(UIKit)
+    /// Modal展示样式（仅对present有效）
     public var modalPresentationStyle: UIModalPresentationStyle
 
     /// Modal过渡样式（仅对present有效）
     public var modalTransitionStyle: UIModalTransitionStyle
+
+    /// Push时是否隐藏底部TabBar（仅对push有效）
+    public var hidesBottomBarWhenPushed: Bool
+
+    /// Present时是否自动包装NavigationController（仅对present有效）
+    public var wrapInNavigationController: Bool
     #endif
 
     /// 是否在导航前关闭当前模态视图
@@ -250,6 +274,8 @@ public struct RouteOptions: @unchecked Sendable {
     ///   - animated: 是否带动画，默认为true
     ///   - modalPresentationStyle: Modal展示样式
     ///   - modalTransitionStyle: Modal过渡样式
+    ///   - hidesBottomBarWhenPushed: Push时是否隐藏底部TabBar
+    ///   - wrapInNavigationController: Present时是否包装NavigationController
     ///   - dismissBeforeNavigation: 是否在导航前关闭当前模态视图
     ///   - customTransition: 自定义过渡动画
     ///   - completion: 导航完成回调
@@ -258,6 +284,8 @@ public struct RouteOptions: @unchecked Sendable {
         animated: Bool = true,
         modalPresentationStyle: UIModalPresentationStyle = .automatic,
         modalTransitionStyle: UIModalTransitionStyle = .coverVertical,
+        hidesBottomBarWhenPushed: Bool = false,
+        wrapInNavigationController: Bool = false,
         dismissBeforeNavigation: Bool = false,
         customTransition: Any? = nil,
         completion: (() -> Void)? = nil
@@ -266,6 +294,8 @@ public struct RouteOptions: @unchecked Sendable {
         self.animated = animated
         self.modalPresentationStyle = modalPresentationStyle
         self.modalTransitionStyle = modalTransitionStyle
+        self.hidesBottomBarWhenPushed = hidesBottomBarWhenPushed
+        self.wrapInNavigationController = wrapInNavigationController
         self.dismissBeforeNavigation = dismissBeforeNavigation
         self.customTransition = customTransition
         self.completion = completion
@@ -293,6 +323,8 @@ public struct RouteOptions: @unchecked Sendable {
     }
     #endif
 
+    // MARK: - 预设配置
+
     /// 默认Push配置
     public static let push = RouteOptions(navigationType: .push)
 
@@ -301,6 +333,37 @@ public struct RouteOptions: @unchecked Sendable {
 
     /// 替换配置
     public static let replace = RouteOptions(navigationType: .replace)
+
+    #if canImport(UIKit)
+    /// Push并隐藏TabBar（适用于二级页面）
+    public static let pushHideTabBar = RouteOptions(
+        navigationType: .push,
+        hidesBottomBarWhenPushed: true
+    )
+
+    /// 全屏Present（带NavigationController）
+    public static let presentFullScreen = RouteOptions(
+        navigationType: .present,
+        modalPresentationStyle: .fullScreen,
+        wrapInNavigationController: true
+    )
+
+    /// 全屏Present（不带NavigationController）
+    public static let presentFullScreenWithoutNav = RouteOptions(
+        navigationType: .present,
+        modalPresentationStyle: .fullScreen
+    )
+
+    /// 替换根视图控制器（淡入淡出动画）
+    public static let replaceRoot = RouteOptions(
+        navigationType: .replaceRoot(transition: .crossDissolve)
+    )
+
+    /// 替换根视图控制器（无动画）
+    public static let replaceRootWithoutAnimation = RouteOptions(
+        navigationType: .replaceRoot(transition: .none)
+    )
+    #endif
 }
 
 // MARK: - 路由错误
