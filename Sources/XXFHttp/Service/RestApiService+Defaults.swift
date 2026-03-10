@@ -42,8 +42,9 @@ public extension RestApiService {
         /// 业务默认不应该修改这个default对象, 应该URLSessionConfiguration.default.newBuilder()来复制创建
         let configuration = URLSessionConfiguration.default
         configuration.headers = .default
+        /// startRequestsImmediately 如果设置false sse无法访问
         return HttpSession(configuration: configuration,
-                           startRequestsImmediately: false)
+                           startRequestsImmediately: true)
     }
 
     /// 拦截器列表：为空，可在服务中自定义返回如 NetworkLoggerPlugin。
@@ -61,7 +62,6 @@ public extension RestApiService {
 
     /// 处理默认的header
     var headers: [String: String]? { [:] }
-
 
     // MARK: - Provider 构建方法
 
