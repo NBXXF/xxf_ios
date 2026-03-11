@@ -24,12 +24,12 @@ import SwiftUI
 
 #if canImport(UIKit)
 import UIKit
+public typealias PlatformColor = UIColor
 public typealias _Font = UIFont
-public typealias _BaseView = UIView
 #elseif canImport(AppKit)
 import AppKit
+public typealias PlatformColor = NSColor
 public typealias _Font = NSFont
-public typealias _BaseView = NSView
 #endif
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,49 +52,6 @@ public enum BadgeContent: Equatable {
 
     /// Badge is not shown; animates out if it was previously visible.
     case hidden
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MARK: - BadgeAnchor
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// The point on the host view where the badge's **center** is anchored.
-public enum BadgeAnchor {
-    /// Top-trailing corner (top-right in LTR). Most common — tabs, avatars. Default.
-    case topTrailing
-    /// Top-leading corner (top-left in LTR). Useful for RTL or custom layouts.
-    case topLeading
-    /// Center of the top edge.
-    case topCenter
-    /// Explicit point in the host view's **local** coordinate space (badge center placed here).
-    case point(CGPoint)
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MARK: - BadgeAnimation
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Animation applied when a badge appears, disappears, or changes content.
-public enum BadgeAnimation {
-    /// No animation. Transitions are instantaneous.
-    case none
-
-    /// Physics-based spring pop.
-    ///   - `damping`:  stiffness of the spring [0…1]; lower = more bounce.
-    ///   - `velocity`: initial push (pts·s⁻¹ ÷ total travel). Default 0.8.
-    case spring(damping: CGFloat, velocity: CGFloat)
-
-    /// Cross-fade with a fixed duration.
-    case fade(duration: TimeInterval)
-
-    /// Default spring — tuned to match iOS system notification badge.
-    nonisolated(unsafe) public static let standard = BadgeAnimation.spring(damping: 0.62, velocity: 0.8)
-
-    /// Returns `true` for any animated variant.
-    public var isAnimated: Bool {
-        if case .none = self { return false }
-        return true
-    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -247,6 +204,49 @@ public struct BadgeConfiguration {
         self.shadowOffset      = shadowOffset
         self.shadowOpacity     = shadowOpacity
         self.animation         = animation
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - BadgeAnchor
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// The point on the host view where the badge's **center** is anchored.
+public enum BadgeAnchor {
+    /// Top-trailing corner (top-right in LTR). Most common — tabs, avatars. Default.
+    case topTrailing
+    /// Top-leading corner (top-left in LTR). Useful for RTL or custom layouts.
+    case topLeading
+    /// Center of the top edge.
+    case topCenter
+    /// Explicit point in the host view's **local** coordinate space (badge center placed here).
+    case point(CGPoint)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - BadgeAnimation
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Animation applied when a badge appears, disappears, or changes content.
+public enum BadgeAnimation {
+    /// No animation. Transitions are instantaneous.
+    case none
+
+    /// Physics-based spring pop.
+    ///   - `damping`:  stiffness of the spring [0…1]; lower = more bounce.
+    ///   - `velocity`: initial push (pts·s⁻¹ ÷ total travel). Default 0.8.
+    case spring(damping: CGFloat, velocity: CGFloat)
+
+    /// Cross-fade with a fixed duration.
+    case fade(duration: TimeInterval)
+
+    /// Default spring — tuned to match iOS system notification badge.
+    nonisolated(unsafe) public static let standard = BadgeAnimation.spring(damping: 0.62, velocity: 0.8)
+
+    /// Returns `true` for any animated variant.
+    public var isAnimated: Bool {
+        if case .none = self { return false }
+        return true
     }
 }
 
@@ -917,6 +917,8 @@ extension NSView {
 // MARK: - SwiftUI wrapper
 // ─────────────────────────────────────────────────────────────────────────────
 
+#if canImport(UIKit) || canImport(AppKit)
+
 /// Internal UIViewRepresentable / NSViewRepresentable bridge.
 private struct _BadgeRepresentable {
     let content:       BadgeContent
@@ -1052,3 +1054,5 @@ private struct _BadgeOverlayModifier: ViewModifier {
         }
     }
 }
+
+#endif // canImport(UIKit) || canImport(AppKit)
