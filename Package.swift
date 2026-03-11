@@ -315,6 +315,7 @@ let package = Package(
                 "XXFImageLoader",
                 "XXFImageNukeLoader",
                 "XXFAdapter",
+                "XXFUIKit",
                 "XXFSwiftFormat",
                 // 自动布局框架
                 .product(name: "SnapKit", package: "SnapKit")
@@ -364,6 +365,9 @@ let package = Package(
         ),
         .target(
             name: "XXFTracker"
+        ),
+        .target(
+            name: "XXFUIKit"
         ),
         .target(
             name: "XXFKeychain"
