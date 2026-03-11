@@ -24,12 +24,12 @@ import SwiftUI
 
 #if canImport(UIKit)
 import UIKit
-private typealias _Font = UIFont
-private typealias _BaseView = UIView
+public typealias _Font = UIFont
+public typealias _BaseView = UIView
 #elseif canImport(AppKit)
 import AppKit
-private typealias _Font = NSFont
-private typealias _BaseView = NSView
+public typealias _Font = NSFont
+public typealias _BaseView = NSView
 #endif
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -88,7 +88,7 @@ public enum BadgeAnimation {
     case fade(duration: TimeInterval)
 
     /// Default spring — tuned to match iOS system notification badge.
-    public static let standard = BadgeAnimation.spring(damping: 0.62, velocity: 0.8)
+    nonisolated(unsafe) public static let standard = BadgeAnimation.spring(damping: 0.62, velocity: 0.8)
 
     /// Returns `true` for any animated variant.
     public var isAnimated: Bool {
@@ -502,8 +502,8 @@ public final class BadgeView: UIView {
 // MARK: - UIView + Badge attachment
 // ─────────────────────────────────────────────────────────────────────────────
 
-private var _badgeViewKey: UInt8 = 0
-private var _anchorKey:    UInt8 = 0
+private nonisolated(unsafe) var _badgeViewKey: UInt8 = 0
+private nonisolated(unsafe) var _anchorKey:    UInt8 = 0
 
 extension UIView {
 
@@ -559,8 +559,12 @@ extension UIView {
         guard let badge = attachedBadge else { return }
         objc_setAssociatedObject(self, &_badgeViewKey, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         badge.setContent(.hidden, animated: animated)
-        let delay: TimeInterval = animated ? 0.3 : 0
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+        if animated {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 300_000_000)
+                badge.removeFromSuperview()
+            }
+        } else {
             badge.removeFromSuperview()
         }
     }
@@ -827,7 +831,7 @@ public final class BadgeView: NSView {
 // MARK: - NSView + Badge attachment
 // ─────────────────────────────────────────────────────────────────────────────
 
-private var _nsBadgeViewKey: UInt8 = 0
+private nonisolated(unsafe) var _nsBadgeViewKey: UInt8 = 0
 
 extension NSView {
 
@@ -865,8 +869,14 @@ extension NSView {
         guard let badge = attachedBadge else { return }
         objc_setAssociatedObject(self, &_nsBadgeViewKey, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         badge.setContent(.hidden, animated: animated)
-        let delay: TimeInterval = animated ? 0.3 : 0
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { badge.removeFromSuperview() }
+        if animated {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 300_000_000)
+                badge.removeFromSuperview()
+            }
+        } else {
+            badge.removeFromSuperview()
+        }
     }
 
     private func makeAnchorConstraints(
@@ -925,6 +935,7 @@ extension _BadgeRepresentable: UIViewRepresentable {
         view.setContent(content, animated: context.transaction.animation != nil)
     }
 
+    @available(iOS 16.0, *)
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: BadgeView, context: Context) -> CGSize? {
         uiView.intrinsicContentSize
     }
