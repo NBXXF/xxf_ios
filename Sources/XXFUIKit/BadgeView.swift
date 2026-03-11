@@ -24,7 +24,7 @@ import SwiftUI
 
 #if canImport(UIKit)
 import UIKit
-public typealias PlatformColor = UIColor
+public typealias _PlatformColor = UIColor
 public typealias _Font = UIFont
 #elseif canImport(AppKit)
 import AppKit
@@ -72,13 +72,13 @@ public struct BadgeConfiguration {
 
     /// Badge background fill.
     /// Default: `#EF4444` — Figma `semantic/error` red.
-    public var backgroundColor: PlatformColor
+    public var backgroundColor: _PlatformColor
 
     /// Label / text colour. Default: `.white`.
-    public var textColor: PlatformColor
+    public var textColor: _PlatformColor
 
     /// Border stroke colour. Visible only when `borderWidth > 0`. Default: `.white`.
-    public var borderColor: PlatformColor
+    public var borderColor: _PlatformColor
 
     /// Border stroke width in points. `0` = no border. Default: `0`.
     public var borderWidth: CGFloat
@@ -127,7 +127,7 @@ public struct BadgeConfiguration {
     // MARK: Shadow
 
     /// Shadow colour. `nil` = no shadow. Default: `nil`.
-    public var shadowColor: PlatformColor?
+    public var shadowColor: _PlatformColor?
 
     /// Shadow blur radius in points. Default: `4`.
     public var shadowRadius: CGFloat
@@ -159,7 +159,7 @@ public struct BadgeConfiguration {
     /// Best for badges over photograph / video thumbnails.
     public static var elevated: BadgeConfiguration {
         var c = BadgeConfiguration()
-        c.shadowColor   = PlatformColor.black
+        c.shadowColor   = _PlatformColor.black
         c.shadowOpacity = 0.25
         return c
     }
@@ -167,9 +167,9 @@ public struct BadgeConfiguration {
     // ─── Init ─────────────────────────────────────────────────────────────────
 
     public init(
-        backgroundColor:   PlatformColor    = PlatformColor(hex: 0xEF4444),
-        textColor:         PlatformColor    = .white,
-        borderColor:       PlatformColor    = .white,
+        backgroundColor:   _PlatformColor    = _PlatformColor(hex: 0xEF4444),
+        textColor:         _PlatformColor    = .white,
+        borderColor:       _PlatformColor    = .white,
         borderWidth:       CGFloat          = 0,
         font:              _Font            = .systemFont(ofSize: 11, weight: .semibold),
         dotSize:           CGFloat          = 8,
@@ -180,7 +180,7 @@ public struct BadgeConfiguration {
         overflowSuffix:    String           = "+",
         anchor:            BadgeAnchor      = .topTrailing,
         offset:            CGPoint          = .zero,
-        shadowColor:       PlatformColor?   = nil,
+        shadowColor:       _PlatformColor?   = nil,
         shadowRadius:      CGFloat          = 4,
         shadowOffset:      CGSize           = CGSize(width: 0, height: 2),
         shadowOpacity:     Float            = 0.2,
