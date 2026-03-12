@@ -1,5 +1,5 @@
 {
-  "originHash" : "e69c968c82b26becf0403638ecdd521a16ee71a3e19225eb71ac19670a675f80",
+  "originHash" : "363c2db927118ecc1835de8978f0296b5eb5589947e639480b7a0b0e5a255a43",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "e048c8ee94967e8d8a1c2ec0e1156d6f7fa34d31",
         "version" : "1.20.0"
+      }
+    },
+    {
+      "identity" : "brightroom",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NBXXF/Brightroom.git",
+      "state" : {
+        "revision" : "c0e43f5cdf8d7d5f0defe045b4e2d56978d508ef",
+        "version" : "2.10.2"
       }
     },
     {
