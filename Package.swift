@@ -159,6 +159,7 @@ let package = Package(
         .package(url: "https://github.com/devxoul/URLNavigator.git", from: "2.5.1"),
         // 自动布局框架
         .package(url: "https://github.com/SnapKit/SnapKit.git", from: "5.7.1"),
+
         // 图片编辑器（fork 版，修复了官方 2.x 未声明 macOS 导致 Verge 11.x 报错的问题）
         .package(url: "https://github.com/NBXXF/Brightroom.git", from: "2.10.2")
     ],
