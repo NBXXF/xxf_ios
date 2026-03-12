@@ -82,7 +82,8 @@
   - [XXFRefreshable - 下拉刷新组件](#12-xxfrefreshable---下拉刷新组件)
   - [XXFAdapter - DiffableDataSource适配器](#13-xxfadapter---diffabledatasource适配器)
   - [XXFSwiftFormat - 代码格式化](#14-xxfswiftformat---代码格式化)
-  - [其他模块](#15-其他模块)
+  - [XXFImageEditor - 图片编辑/裁切](#15-xxfimageeditor---图片编辑裁切)
+  - [其他模块](#16-其他模块)
 - [设计模式](#设计模式)
 - [最佳实践](#最佳实践)
 - [依赖关系](#依赖关系)
@@ -737,13 +738,148 @@ let configPath = SwiftFormatConfig.path
 
 ---
 
-## 15. 其他模块
+## 15. XXFImageEditor - 图片编辑/裁切
+
+可替换的图片编辑/裁切门面，外部代码与底层编辑库完全解耦，后期可无缝切换实现。
+
+### 架构设计
+
+```
+XXFImageEditor                     ← 公共 API 层（无第三方依赖）
+    ImageEditor (门面单例)
+    ImageEditorProvider (协议)
+    ImageEditorConfiguration / ImageCropConfiguration
+    ImageEditorResult / ImageEditorError
+
+XXFImageEditorBrightroom            ← Brightroom 实现（iOS 16+）
+    BrightroomImageEditorProvider
+```
+
+与 `XXFImageLoader → XXFImageNukeLoader` 完全相同的分层模式，切换底层库只需替换一个 provider 赋值，调用方代码零改动。
+
+### 安装
+
+```swift
+// Package.swift
+targets: [
+    .target(
+        name: "MyApp",
+        dependencies: [
+            "XXFImageEditor",           // 公共 API（调用方）
+            "XXFImageEditorBrightroom"  // Brightroom 实现（注册方，通常仅在 App target）
+        ]
+    )
+]
+```
+
+> **注意**：`XXFImageEditorBrightroom` 基于 [Brightroom](https://github.com/FluidGroup/Brightroom) 2.x，要求 **iOS 13+**，与主项目 iOS 15+ 完全兼容。
+> `XXFImageEditor` 本身不依赖任何第三方库，可在 iOS 15+ 使用。
+
+### 配置（只需一次）
+
+```swift
+// AppDelegate / @main，在使用前注册 provider
+import XXFImageEditorBrightroom
+
+if #available(iOS 16, *) {
+    ImageEditor.shared.provider = BrightroomImageEditorProvider()
+}
+```
+
+### 图片裁切
+
+```swift
+import XXFImageEditor
+
+// 自由比例裁切（默认）
+ImageEditor.shared.presentCrop(from: self, image: photo) { result in
+    switch result {
+    case .success(let r):
+        // r.image — 裁切后的 UIImage
+        imageView.image = r.image
+    case .failure(.cancelled):
+        break  // 用户取消，可安全忽略
+    case .failure(let e):
+        print(e.localizedDescription)
+    }
+}
+
+// 固定 16:9 比例
+ImageEditor.shared.presentCrop(
+    from: self,
+    image: photo,
+    configuration: ImageCropConfiguration(aspectRatio: .ratio(width: 16, height: 9))
+) { result in ... }
+
+// 正方形（头像场景）
+ImageEditor.shared.presentCrop(
+    from: self,
+    image: photo,
+    configuration: ImageCropConfiguration(aspectRatio: .square)
+) { result in ... }
+```
+
+### 完整编辑器（滤镜 + 调色 + 裁切）
+
+```swift
+ImageEditor.shared.presentEditor(from: self, image: photo) { result in
+    switch result {
+    case .success(let r): saveImage(r.image)
+    case .failure(.cancelled): break
+    case .failure(let e): showAlert(e)
+    }
+}
+```
+
+### 宽高比选项
+
+| 枚举值 | 效果 |
+|--------|------|
+| `.freeform`（默认） | 自由比例，显示比例选择器 |
+| `.square` | 锁定 1:1 正方形 |
+| `.ratio(width: 16, height: 9)` | 锁定指定整数比例 |
+
+### 替换底层库（隔离性演示）
+
+```swift
+// 替换为其他实现，调用方代码完全不需要改动
+ImageEditor.shared.provider = CustomImageEditorProvider()
+```
+
+自定义 Provider 只需实现两个方法：
+
+```swift
+@MainActor
+class CustomImageEditorProvider: ImageEditorProvider {
+
+    func makeEditorViewController(
+        image: UIImage,
+        configuration: ImageEditorConfiguration,
+        completion: @escaping @Sendable (Result<ImageEditorResult, ImageEditorError>) -> Void
+    ) -> UIViewController {
+        // 返回自定义编辑 VC
+    }
+
+    func makeCropViewController(
+        image: UIImage,
+        configuration: ImageCropConfiguration,
+        completion: @escaping @Sendable (Result<ImageEditorResult, ImageEditorError>) -> Void
+    ) -> UIViewController {
+        // 返回自定义裁切 VC
+    }
+}
+```
+
+---
+
+## 16. 其他模块
 
 | 模块 | 核心功能 | 亮点 |
 |------|---------|------|
 | **XXFViewModel** | MVVM 架构 | 自动生命周期管理 |
 | **XXFHud** | 提示组件 | Toast/Progress/Error HUD |
 | **XXFImageLoader** | 图片加载 | 适配器模式，支持 Nuke |
+| **XXFImageEditor** | 图片编辑/裁切 | 可替换 Provider，隔离 Brightroom |
 | **XXFTracker** | 错误追踪 | Sentry/Bugsnag 支持 |
 | **XXFKeychain** | 安全存储 | Codable 支持 |
 | **XXFIdentifier** | 设备标识 | UUID 持久化 |
@@ -825,6 +961,7 @@ api.request(...)
 | swift-log | 日志标准 | 1.x |
 | Pulse | 日志可视化 | 4.x |
 | Nuke | 图片加载 | 12.x |
+| Brightroom | 图片编辑/裁切 | 2.x（iOS 13+） |
 | SnapKit | 自动布局 | 5.x |
 | MJRefresh | 下拉刷新 | 3.x |
 | URLNavigator | 路由匹配 | 2.x |
@@ -851,6 +988,9 @@ XXFArch (一站式引入)
 ├── XXFJson
 ├── XXFSpeed (XXHash)
 ├── XXFSwiftFormat
+├── XXFUIKit
+├── XXFImageLoader ────────── XXFImageNukeLoader (Nuke)
+├── XXFImageEditor ────────── XXFImageEditorBrightroom (Brightroom 3.x, iOS 16+)
 ├── SnapKit
 └── ...
 ```

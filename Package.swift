@@ -103,6 +103,14 @@ let package = Package(
         .library(
             name: "XXFRouter",
             targets: ["XXFRouter"]
+        ),
+        .library(
+            name: "XXFImageEditor",
+            targets: ["XXFImageEditor"]
+        ),
+        .library(
+            name: "XXFImageEditorBrightroom",
+            targets: ["XXFImageEditorBrightroom"]
         )
     ],
     dependencies: [
@@ -150,7 +158,9 @@ let package = Package(
         // 路由框架底层
         .package(url: "https://github.com/devxoul/URLNavigator.git", from: "2.5.1"),
         // 自动布局框架
-        .package(url: "https://github.com/SnapKit/SnapKit.git", from: "5.7.1")
+        .package(url: "https://github.com/SnapKit/SnapKit.git", from: "5.7.1"),
+        // 图片编辑器（本地 fork，修复了 Package.swift 的 macOS 平台声明 bug）
+        .package(path: "LocalPackages/Brightroom")
     ],
     targets: [
         .target(
@@ -417,6 +427,21 @@ let package = Package(
             dependencies: [
                 .product(name: "URLNavigator", package: "URLNavigator"),
                 .product(name: "URLMatcher", package: "URLNavigator")
+            ]
+        ),
+        // MARK: - 图片编辑器（抽象层，无第三方依赖）
+        .target(
+            name: "XXFImageEditor"
+        ),
+        // MARK: - 图片编辑器（Brightroom 实现，iOS only）
+        // Brightroom 的 Package.swift 中 macOS 版本声明与其依赖 Verge 不一致
+        // 使用 .when(platforms: [.iOS]) 限制仅在 iOS 上链接 Brightroom，避免 macOS 构建报错
+        .target(
+            name: "XXFImageEditorBrightroom",
+            dependencies: [
+                "XXFImageEditor",
+                .product(name: "BrightroomUI", package: "Brightroom", condition: .when(platforms: [.iOS])),
+                .product(name: "BrightroomEngine", package: "Brightroom", condition: .when(platforms: [.iOS]))
             ]
         ),
         .testTarget(

@@ -1,5 +1,5 @@
 {
-  "originHash" : "30a6daa5f86ab8bb250f2573abde1be22970d1fcc8651cf7be8cdb0d35cab5fa",
+  "originHash" : "e69c968c82b26becf0403638ecdd521a16ee71a3e19225eb71ac19670a675f80",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -218,6 +218,15 @@
       }
     },
     {
+      "identity" : "swift-concurrency-task-manager",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/VergeGroup/swift-concurrency-task-manager",
+      "state" : {
+        "revision" : "340cf14e0282977deeeb436605d1810ce4f4fbc9",
+        "version" : "1.4.0"
+      }
+    },
+    {
       "identity" : "swift-crypto",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
@@ -371,6 +380,15 @@
       }
     },
     {
+      "identity" : "transitionpatch",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/FluidGroup/TransitionPatch.git",
+      "state" : {
+        "revision" : "88aac5305fe568ef62f73a3cf19f0b8392ffb52c",
+        "version" : "1.0.5"
+      }
+    },
+    {
       "identity" : "urlnavigator",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/devxoul/URLNavigator.git",
@@ -386,6 +404,15 @@
       "state" : {
         "revision" : "3636f443474769147828a5863e81a31f6f30e92c",
         "version" : "4.115.1"
+      }
+    },
+    {
+      "identity" : "verge",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/VergeGroup/Verge.git",
+      "state" : {
+        "revision" : "23b6e92fbf88e72ce0546144fbc1dc455cb5d53d",
+        "version" : "11.5.5"
       }
     },
     {
