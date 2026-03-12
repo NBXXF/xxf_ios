@@ -324,6 +324,8 @@ let package = Package(
                 "XXFViewModel",
                 "XXFImageLoader",
                 "XXFImageNukeLoader",
+                "XXFImageEditor",
+                "XXFImageEditorBrightroom",
                 "XXFAdapter",
                 "XXFUIKit",
                 "XXFSwiftFormat",

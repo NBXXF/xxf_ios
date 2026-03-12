@@ -15,6 +15,8 @@
 @_exported import XXFHttp
 @_exported import XXFHud
 @_exported import XXFIdentifier
+@_exported import XXFImageEditor
+@_exported import XXFImageEditorBrightroom
 @_exported import XXFImageLoader
 @_exported import XXFImageNukeLoader
 @_exported import XXFJson
