@@ -161,7 +161,10 @@ let package = Package(
         .package(url: "https://github.com/SnapKit/SnapKit.git", from: "5.7.1"),
 
         // 图片编辑器（fork 版，修复了官方 2.x 未声明 macOS 导致 Verge 11.x 报错的问题）
-        .package(url: "https://github.com/NBXXF/Brightroom.git", from: "2.10.2")
+        .package(url: "https://github.com/NBXXF/Brightroom.git", from: "2.10.2"),
+
+        // 性能监控（FPS、CPU、内存）
+        .package(url: "https://github.com/dani-gavrilov/GDPerformanceView-Swift.git", from: "2.1.1")
     ],
     targets: [
         .target(
@@ -335,7 +338,10 @@ let package = Package(
             ]
         ),
         .target(
-            name: "XXFPerformance"
+            name: "XXFPerformance",
+            dependencies: [
+                .product(name: "GDPerformanceView-Swift", package: "GDPerformanceView-Swift", condition: .when(platforms: [.iOS]))
+            ]
         ),
         .target(
             name: "XXFReusable"

@@ -1,5 +1,5 @@
 {
-  "originHash" : "363c2db927118ecc1835de8978f0296b5eb5589947e639480b7a0b0e5a255a43",
+  "originHash" : "d9eee040f69aa0fc07e47648eb0804e1da491cb392a016757ca68dd4bf7af140",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -71,6 +71,15 @@
       "state" : {
         "revision" : "ccc898f21992ebc130bc04cc197460a5ae230bcf",
         "version" : "2.5.3"
+      }
+    },
+    {
+      "identity" : "gdperformanceview-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dani-gavrilov/GDPerformanceView-Swift.git",
+      "state" : {
+        "revision" : "171a656040135d667f4228c3ec82f2384770d87d",
+        "version" : "2.1.1"
       }
     },
     {

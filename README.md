@@ -31,7 +31,7 @@
 | 日志散落各处难以追踪 | **XXFLog** - 统一管理 + Pulse 可视化 |
 | 缓存实现不统一 | **@PreferenceWrapper** - 声明式存储 |
 | 组件通信耦合严重 | **RxBus** - 类型安全的事件总线 |
-| 性能问题难以定位 | **BlockWatcher** - 主线程卡顿实时检测 |
+| 性能问题难以定位 | **XXFPerformance** - 主线程卡顿检测 + FPS/CPU/内存实时监控悬浮窗 |
 | 页面跳转逻辑混乱 | **XXFRouter** - 企业级路由框架，拦截器+降级 |
 | Cell 注册繁琐易错 | **XXFReusable** - 自动注册，类型安全出队 |
 | 下拉刷新状态混乱 | **XXFRefreshable** - 状态机+RxSwift 集成 |
@@ -83,7 +83,8 @@
   - [XXFAdapter - DiffableDataSource适配器](#13-xxfadapter---diffabledatasource适配器)
   - [XXFSwiftFormat - 代码格式化](#14-xxfswiftformat---代码格式化)
   - [XXFImageEditor - 图片编辑/裁切](#15-xxfimageeditor---图片编辑裁切)
-  - [其他模块](#16-其他模块)
+  - [XXFPerformance - 性能监控](#16-xxfperformance---性能监控)
+  - [其他模块](#17-其他模块)
 - [设计模式](#设计模式)
 - [最佳实践](#最佳实践)
 - [依赖关系](#依赖关系)
@@ -872,7 +873,60 @@ class CustomImageEditorProvider: ImageEditorProvider {
 
 ---
 
-## 16. 其他模块
+## 16. XXFPerformance - 性能监控
+
+提供**主线程卡顿检测**和 **FPS/CPU/内存实时监控悬浮窗**，采用协议抽象设计，底层可替换。
+
+### 架构设计
+
+```
+XXFPerformance
+├── BlockWatcher            ← 主线程卡顿检测（watchdog 模式）
+├── PerformanceMonitoring   ← 监控协议（抽象层）
+│   ├── PerformanceReport / PerformanceDisplayOptions / PerformanceViewStyle
+│   └── PerformanceMonitoring (protocol)
+└── GDPerformanceMonitorView ← GDPerformanceView-Swift 实现（iOS only）
+```
+
+### 使用
+
+```swift
+// 1. 卡顿检测（iOS/macOS）
+let _ = BlockWatcher(threshold: 0.4)  // 主线程阻塞超过 0.4s 告警
+
+// 2. FPS/CPU/内存悬浮窗（iOS only）
+// 启动（默认显示 FPS + CPU + 应用版本 + 系统版本）
+GDPerformanceMonitorView.shared.start()
+
+// 自定义选项和样式
+GDPerformanceMonitorView.shared.start(options: .all, style: .light)
+
+// 控制显示/隐藏
+GDPerformanceMonitorView.shared.hide()
+GDPerformanceMonitorView.shared.show()
+
+// 暂停/恢复
+GDPerformanceMonitorView.shared.pause()
+
+// 性能数据回调
+GDPerformanceMonitorView.shared.onReport = { report in
+    print("CPU: \(report.cpuUsage)%, FPS: \(report.fps), Memory: \(report.memoryUsed)")
+}
+```
+
+### 面向协议编程
+
+业务层通过 `PerformanceMonitoring` 协议访问，替换底层实现无需修改调用方：
+
+```swift
+// 通过协议引用（方便替换实现）
+let monitor: PerformanceMonitoring = GDPerformanceMonitorView.shared
+monitor.start()
+```
+
+---
+
+## 17. 其他模块
 
 | 模块 | 核心功能 | 亮点 |
 |------|---------|------|
@@ -883,7 +937,7 @@ class CustomImageEditorProvider: ImageEditorProvider {
 | **XXFTracker** | 错误追踪 | Sentry/Bugsnag 支持 |
 | **XXFKeychain** | 安全存储 | Codable 支持 |
 | **XXFIdentifier** | 设备标识 | UUID 持久化 |
-| **XXFPerformance** | 性能监控 | 主线程卡顿检测 |
+| **XXFPerformance** | 性能监控 | 主线程卡顿检测 + FPS/CPU/内存悬浮窗（协议抽象，可替换底层） |
 | **XXFServer** | 内嵌服务器 | Vapor 驱动 |
 | **XXFDi** | 依赖注入 | Factory 封装 |
 | **SnapKit** | 自动布局 | 声明式约束语法 |
@@ -917,6 +971,7 @@ struct MyApp: App {
 
         // 2. 性能监控
         let _ = BlockWatcher(threshold: 0.4)
+        GDPerformanceMonitorView.shared.start()  // FPS/CPU/内存悬浮窗
 
         // 3. 错误追踪
         Tracker.shared.registerChanelTracker(SentryTracker())
@@ -962,6 +1017,7 @@ api.request(...)
 | Pulse | 日志可视化 | 4.x |
 | Nuke | 图片加载 | 12.x |
 | Brightroom | 图片编辑/裁切 | 2.x（iOS 13+） |
+| GDPerformanceView-Swift | FPS/CPU/内存监控悬浮窗 | 2.x |
 | SnapKit | 自动布局 | 5.x |
 | MJRefresh | 下拉刷新 | 3.x |
 | URLNavigator | 路由匹配 | 2.x |
@@ -990,7 +1046,8 @@ XXFArch (一站式引入)
 ├── XXFSwiftFormat
 ├── XXFUIKit
 ├── XXFImageLoader ────────── XXFImageNukeLoader (Nuke)
-├── XXFImageEditor ────────── XXFImageEditorBrightroom (Brightroom 3.x, iOS 16+)
+├── XXFImageEditor ────────── XXFImageEditorBrightroom (Brightroom 2.x, iOS 16+)
+├── XXFPerformance (BlockWatcher + GDPerformanceView-Swift)
 ├── SnapKit
 └── ...
 ```
