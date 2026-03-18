@@ -1,3 +1,4 @@
+#if os(iOS)
 //
 //  AnyCancellableWrapper.swift
 //  xxf_ios
@@ -22,3 +23,4 @@ final class AnyCancellableWrapper: XXFImageLoader.Cancellable, Nuke.Cancellable,
         _cancel()
     }
 }
+#endif

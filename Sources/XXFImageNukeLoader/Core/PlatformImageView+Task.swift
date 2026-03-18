@@ -1,3 +1,4 @@
+#if os(iOS)
 //
 //  PlatformImageView+Task.swift
 //  xxf_ios
@@ -30,3 +31,4 @@ extension PlatformImageView {
         set { objc_setAssociatedObject(self, &Self.kImageTaskIdKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
     }
 }
+#endif

@@ -5,6 +5,7 @@
 //  Created by xxf on 2021/11/12.
 //
 
+#if canImport(UIKit)
 import UIKit
 
 @available(iOS 13.0, *)
@@ -183,3 +184,4 @@ extension UITableViewDiffableDataSource: @preconcurrency DiffableDataSourceAdapt
         }
     }
 }
+#endif

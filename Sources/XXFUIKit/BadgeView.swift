@@ -28,7 +28,7 @@ public typealias _PlatformColor = UIColor
 public typealias _Font = UIFont
 #elseif canImport(AppKit)
 import AppKit
-public typealias PlatformColor = NSColor
+public typealias _PlatformColor = NSColor
 public typealias _Font = NSFont
 #endif
 

@@ -1,10 +1,11 @@
 //
 //  Refreshable+MJRefresh.swift
 //  xxf_ios
-//  下拉刷新,上拉加载,抽象层
+//  下拉刷新，上拉加载，抽象层
 //  Created by xxf on 11/13.
 //
 
+#if canImport(UIKit)
 import MJRefresh
 
 extension UIScrollView: @preconcurrency RefreshableCompatible {}
@@ -18,7 +19,7 @@ public extension RefreshableCompatible where Self: UIScrollView {
             guard self != nil else { return }
             action()
         }
-        // fix: bindRefreshableState来回闪缩问题
+        // fix: bindRefreshableState 来回闪缩问题
         mj_header?.isCollectionViewAnimationBug = true
     }
 
@@ -72,3 +73,4 @@ public extension RefreshableCompatible where Self: UIScrollView {
         return mj_footer?.isRefreshing ?? false
     }
 }
+#endif

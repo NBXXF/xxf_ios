@@ -1,15 +1,14 @@
 //
 //  RefreshableState+Rx.swift
 //  xxf_ios
-//  将RefreshableState 绑定到事件流里面去,等同于对应的事件流发生改变,就会修改state
+//  将 RefreshableState 绑定到事件流里面去，等同于对应的事件流发生改变，就会修改 state
 //  Created by xxf on 11/14.
 //
-import UIKit
+
 import XXFFlow
 
-/**
- 【业务加载更新 --> 状态机的值】
- */
+// MARK: - 通用扩展 (跨平台)
+
 public extension Obs where Element == RefreshableState {
     /// 开始刷新或加载更多
     func begin(isRefresh: Bool) {

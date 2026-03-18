@@ -1,3 +1,4 @@
+#if os(iOS)
 //
 //  EmptyCancellable.swift
 //  xxf_ios
@@ -11,3 +12,4 @@ import XXFImageLoader
 final class EmptyCancellable: Nuke.Cancellable, XXFImageLoader.Cancellable {
     func cancel() {}
 }
+#endif

@@ -1,3 +1,4 @@
+#if os(iOS)
 //
 //  NukeDataFetcher.swift
 //  xxf_ios
@@ -28,3 +29,4 @@ extension DataLoader: ImageDataFetcher {
         return AnyCancellableWrapper(task)
     }
 }
+#endif

@@ -111,6 +111,10 @@ let package = Package(
         .library(
             name: "XXFImageEditorBrightroom",
             targets: ["XXFImageEditorBrightroom"]
+        ),
+        .library(
+            name: "XXFKeyboard",
+            targets: ["XXFKeyboard"]
         )
     ],
     dependencies: [
@@ -123,6 +127,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.3.0"),
 
         .package(url: "https://github.com/ReactiveX/RxSwift.git", from: "6.7.0"),
+        .package(url: "https://github.com/RxSwiftCommunity/RxKeyboard.git", from: "2.0.0"),
         .package(url: "https://github.com/SwifterSwift/SwifterSwift.git", from: "7.0.0"),
         .package(url: "https://github.com/Moya/Moya.git", from: "15.0.3"),
         .package(url: "https://github.com/NBXXF/PulseCompat", .upToNextMajor(from: "4.3.8")),
@@ -319,6 +324,7 @@ let package = Package(
                 "XXFDatabase",
                 "XXFBus",
                 "XXFJson",
+                "XXFKeyboard",
                 "XXFTracker",
                 "XXFKeychain",
                 "XXFIdentifier",
@@ -335,6 +341,9 @@ let package = Package(
                 "XXFSwiftFormat",
                 // 自动布局框架
                 .product(name: "SnapKit", package: "SnapKit")
+            ],
+            swiftSettings: [
+                .define("IOS", .when(platforms: [.iOS]))
             ]
         ),
         .target(
@@ -349,7 +358,7 @@ let package = Package(
         .target(
             name: "XXFRefreshable",
             dependencies: [
-                .product(name: "MJRefresh", package: "MJRefresh"),
+                .product(name: "MJRefresh", package: "MJRefresh", condition: .when(platforms: [.iOS])),
                 "XXFFlow"
             ]
         ),
@@ -411,7 +420,7 @@ let package = Package(
             name: "XXFImageNukeLoader",
             dependencies: [
                 "XXFImageLoader",
-                .product(name: "Nuke", package: "Nuke")
+                .product(name: "Nuke", package: "Nuke", condition: .when(platforms: [.iOS]))
             ]
         ),
         .target(
@@ -451,6 +460,16 @@ let package = Package(
                 "XXFImageEditor",
                 .product(name: "BrightroomUI", package: "Brightroom", condition: .when(platforms: [.iOS])),
                 .product(name: "BrightroomEngine", package: "Brightroom", condition: .when(platforms: [.iOS]))
+            ]
+        ),
+        .target(
+            name: "XXFKeyboard",
+            dependencies: [
+                "XXFFoundation",
+                .product(name: "RxSwift", package: "RxSwift"),
+                .product(name: "RxCocoa", package: "RxSwift"),
+                .product(name: "RxKeyboard", package: "RxKeyboard", condition: .when(platforms: [.iOS])),
+                .product(name: "SnapKit", package: "SnapKit", condition: .when(platforms: [.iOS]))
             ]
         ),
         .testTarget(

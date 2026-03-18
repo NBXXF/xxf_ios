@@ -16,20 +16,27 @@
 @_exported import XXFHud
 @_exported import XXFIdentifier
 @_exported import XXFImageEditor
-@_exported import XXFImageEditorBrightroom
 @_exported import XXFImageLoader
+#if os(iOS)
+@_exported import XXFImageEditorBrightroom
+#endif
+#if os(iOS)
 @_exported import XXFImageNukeLoader
+#endif
 @_exported import XXFJson
 @_exported import XXFKeychain
 @_exported import XXFLog
-@_exported import XXFPerformance
 @_exported import XXFReusable
-@_exported import XXFRefreshable
 @_exported import XXFRouter
-// 自动布局框架
-@_exported import SnapKit
 @_exported import XXFSpeed
 @_exported import XXFSwiftFormat
 @_exported import XXFTracker
 @_exported import XXFViewModel
+#if os(iOS)
+@_exported import XXFKeyboard
+@_exported import XXFPerformance
+@_exported import XXFRefreshable
 @_exported import XXFUIKit
+// 自动布局框架
+@_exported import SnapKit
+#endif

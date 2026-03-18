@@ -1,3 +1,4 @@
+#if os(iOS)
 //
 //  MutiDataFectcher.swift
 //  xxf_ios
@@ -22,3 +23,4 @@ final class MutiDataLoader: DataLoading {
         }!.loadData(with: request, didReceiveData: didReceiveData, completion: completion)
     }
 }
+#endif

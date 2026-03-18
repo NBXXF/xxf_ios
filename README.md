@@ -83,8 +83,9 @@
   - [XXFAdapter - DiffableDataSource适配器](#13-xxfadapter---diffabledatasource适配器)
   - [XXFSwiftFormat - 代码格式化](#14-xxfswiftformat---代码格式化)
   - [XXFImageEditor - 图片编辑/裁切](#15-xxfimageeditor---图片编辑裁切)
+  - [XXFKeyboard - 键盘适配组件](#17-xxfkeyboard---键盘适配组件)
   - [XXFPerformance - 性能监控](#16-xxfperformance---性能监控)
-  - [其他模块](#17-其他模块)
+  - [其他模块](#18-其他模块)
 - [设计模式](#设计模式)
 - [最佳实践](#最佳实践)
 - [依赖关系](#依赖关系)
@@ -873,6 +874,185 @@ class CustomImageEditorProvider: ImageEditorProvider {
 
 ---
 
+## 17. XXFKeyboard - 键盘适配组件
+
+基于 [RxKeyboard](https://github.com/RxSwiftCommunity/RxKeyboard) 的键盘适配组件，提供类似 Android `adjustPan` 模式的容器视图。
+
+### 架构设计
+
+```
+XXFKeyboard
+├── KeyboardResizeContainer    ← 核心容器（自动调整高度适配键盘）
+├── XXFKeyboard                ← 模块入口（暴露 RxKeyboard 单例）
+└── RxKeyboard                 ← 底层依赖（键盘事件响应式封装）
+```
+
+### 核心特性
+
+| 特性 | 说明 |
+|------|------|
+| **自动高度调整** | 容器高度自动减去键盘高度 |
+| **动画同步** | 完美同步键盘动画曲线和时长 |
+| **响应式 API** | 基于 RxSwift/RxKeyboard |
+| **ScrollView 支持** | 自动处理 contentInset 和 contentOffset |
+| **点击收起键盘** | 内置 tap gesture 收起键盘 |
+
+### 使用示例
+
+#### 基础用法
+
+```swift
+import XXFKeyboard
+
+class ViewController: UIViewController {
+    private let disposeBag = DisposeBag()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        // 创建容器
+        let container = KeyboardResizeContainer()
+        view.addSubview(container)
+        container.snp.makeConstraints {
+            $0.edges.equalTo(view.safeAreaLayoutGuide)
+        }
+
+        // 绑定内容视图
+        let contentView = UIView()
+        container.bindContentView(contentView)
+
+        // 添加输入框
+        let textField = UITextField()
+        contentView.addSubview(textField)
+
+        // 点击空白处收起键盘
+        container.addTapToDismiss()
+    }
+}
+```
+
+#### 带 ScrollView 的用法
+
+```swift
+class FormViewController: UIViewController {
+    private let scrollView = UIScrollView()
+    private let disposeBag = DisposeBag()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let container = KeyboardResizeContainer()
+        view.addSubview(container)
+        container.snp.makeConstraints {
+            $0.edges.equalTo(view.safeAreaLayoutGuide)
+        }
+
+        // 绑定 scrollView，自动处理键盘遮挡
+        container.bindContentView(scrollView)
+        container.bindScrollView(scrollView)
+
+        // 添加内容...
+        container.addTapToDismiss()
+    }
+}
+```
+
+#### 订阅键盘事件
+
+```swift
+// 通过 XXFKeyboard 单例
+XXFKeyboard.instance.visibleHeight
+    .drive(onNext: { height in
+        print("键盘高度：\(height)")
+    })
+    .disposed(by: disposeBag)
+
+// 通过容器
+container.keyboardVisibleHeight
+    .drive(onNext: { height in
+        // 调整 UI
+    })
+    .disposed(by: disposeBag)
+```
+
+#### 类似消息列表的布局
+
+```swift
+class MessageViewController: UIViewController {
+    private let tableView = UITableView()
+    private let inputContainer = UIView()
+    private let textField = UITextField()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let container = KeyboardResizeContainer()
+        view.addSubview(container)
+        container.snp.makeConstraints {
+            $0.edges.equalTo(view.safeAreaLayoutGuide)
+        }
+
+        let contentView = UIView()
+        container.bindContentView(contentView)
+
+        // TableView
+        contentView.addSubview(tableView)
+        tableView.snp.makeConstraints {
+            $0.top.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(inputContainer.snp.top)
+        }
+
+        // 底部输入区
+        contentView.addSubview(inputContainer)
+        inputContainer.snp.makeConstraints {
+            $0.leading.trailing.bottom.equalToSuperview()
+            $0.height.equalTo(50)
+        }
+
+        container.bindScrollView(tableView)
+    }
+}
+```
+
+### API 参考
+
+#### KeyboardResizeContainer
+
+| 属性/方法 | 说明 |
+|-----------|------|
+| `keyboardVisibleHeight` | 键盘可见高度（Driver<CGFloat>） |
+| `keyboardFrame` | 键盘 frame（Driver<CGRect>） |
+| `currentKeyboardHeight` | 当前键盘高度 |
+| `bindContentView(_:)` | 绑定内容视图 |
+| `bindScrollView(_:)` | 绑定 ScrollView，自动处理 inset/offset |
+| `bindTextField(_:)` | 绑定 TextField |
+| `bindTextView(_:)` | 绑定 TextView |
+| `addTapToDismiss()` | 点击空白处收起键盘 |
+| `static create(in:contentView:edges:)` | 便捷创建方法 |
+
+### 安装
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/RxSwiftCommunity/RxKeyboard.git", from: "2.0.0")
+]
+
+targets: [
+    .target(
+        name: "YourTarget",
+        dependencies: ["XXFKeyboard"]
+    )
+]
+```
+
+### 平台支持
+
+- **iOS 15.0+**
+- 依赖：RxSwift 6.x, RxCocoa, RxKeyboard 2.x, SnapKit
+
+---
+
 ## 16. XXFPerformance - 性能监控
 
 提供**主线程卡顿检测**和 **FPS/CPU/内存实时监控悬浮窗**，采用协议抽象设计，底层可替换。
@@ -934,10 +1114,11 @@ monitor.start()
 | **XXFHud** | 提示组件 | Toast/Progress/Error HUD |
 | **XXFImageLoader** | 图片加载 | 适配器模式，支持 Nuke |
 | **XXFImageEditor** | 图片编辑/裁切 | 可替换 Provider，隔离 Brightroom |
+| **XXFKeyboard** | 键盘适配 | RxKeyboard 封装，adjustPan 模式 |
 | **XXFTracker** | 错误追踪 | Sentry/Bugsnag 支持 |
 | **XXFKeychain** | 安全存储 | Codable 支持 |
 | **XXFIdentifier** | 设备标识 | UUID 持久化 |
-| **XXFPerformance** | 性能监控 | 主线程卡顿检测 + FPS/CPU/内存悬浮窗（协议抽象，可替换底层） |
+| **XXFPerformance** | 性能监控 | 主线程卡顿检测 + FPS/CPU/内存悬浮窗 |
 | **XXFServer** | 内嵌服务器 | Vapor 驱动 |
 | **XXFDi** | 依赖注入 | Factory 封装 |
 | **SnapKit** | 自动布局 | 声明式约束语法 |
@@ -1016,7 +1197,8 @@ api.request(...)
 | swift-log | 日志标准 | 1.x |
 | Pulse | 日志可视化 | 4.x |
 | Nuke | 图片加载 | 12.x |
-| Brightroom | 图片编辑/裁切 | 2.x（iOS 13+） |
+| Brightroom | 图片编辑/裁切 | 2.x |
+| RxKeyboard | 键盘事件响应式封装 | 2.x |
 | GDPerformanceView-Swift | FPS/CPU/内存监控悬浮窗 | 2.x |
 | SnapKit | 自动布局 | 5.x |
 | MJRefresh | 下拉刷新 | 3.x |
@@ -1046,7 +1228,8 @@ XXFArch (一站式引入)
 ├── XXFSwiftFormat
 ├── XXFUIKit
 ├── XXFImageLoader ────────── XXFImageNukeLoader (Nuke)
-├── XXFImageEditor ────────── XXFImageEditorBrightroom (Brightroom 2.x, iOS 16+)
+├── XXFImageEditor ────────── XXFImageEditorBrightroom (Brightroom 2.x)
+├── XXFKeyboard ───────────── RxKeyboard (2.x)
 ├── XXFPerformance (BlockWatcher + GDPerformanceView-Swift)
 ├── SnapKit
 └── ...

@@ -1,3 +1,4 @@
+#if os(iOS)
 //
 //  ImageNukeLoaderAdapter.swift
 //  xxf_ios
@@ -171,3 +172,4 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
         view.nukeRequestId = nil
     }
 }
+#endif

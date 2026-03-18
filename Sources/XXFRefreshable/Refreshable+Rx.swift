@@ -5,23 +5,24 @@
 //  Created by xxf on 11/14.
 //
 
+#if canImport(UIKit)
 import UIKit
 import XXFFlow
 
 /**
- 【状态机控制 --> UI显示逻辑】
+【状态机控制 --> UI 显示逻辑】
 
- 用法一：
- public let refreshableState = RefreshableState().obs
- refreshableState.bind(to: scrollView.rx.refreshableState)
+用法一：
+public let refreshableState = RefreshableState().obs
+refreshableState.bind(to: scrollView.rx.refreshableState)
 
- 用法二：
- public let isRefreshing = false.obs
- isRefreshing.bind(to: scrollView.rx.refreshing)
+用法二：
+public let isRefreshing = false.obs
+isRefreshing.bind(to: scrollView.rx.refreshing)
 
- public let isLoadingMore = false.obs
- isLoadingMore.bind(to: scrollView.rx.loadingMore)
- */
+public let isLoadingMore = false.obs
+isLoadingMore.bind(to: scrollView.rx.loadingMore)
+*/
 
 public extension Reactive where Base: UIScrollView {
     // MARK: - 下拉刷新
@@ -113,3 +114,5 @@ public extension Reactive where Base: UIScrollView {
         }
     }
 }
+
+#endif

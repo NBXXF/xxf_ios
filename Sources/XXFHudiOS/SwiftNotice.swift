@@ -1,3 +1,4 @@
+#if os(iOS)
 //
 //  SwiftNotice.swift
 //  xxf_ios
@@ -458,3 +459,4 @@ private extension Selector {
         }
     }
 }
+#endif

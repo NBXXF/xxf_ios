@@ -1,3 +1,4 @@
+#if os(iOS)
 //
 //  NukeProxyDataFetcher.swift
 //  xxf_ios
@@ -49,3 +50,4 @@ final class NukeProxyDataFetcher: ImageDataFetcher, DataLoading {
         return AnyCancellableWrapper(task)
     }
 }
+#endif

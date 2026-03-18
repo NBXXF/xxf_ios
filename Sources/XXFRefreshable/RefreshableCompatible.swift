@@ -1,10 +1,11 @@
 //
 //  RefreshableCompatible.swift
 //  xxf_ios
-//  下拉刷新,上拉加载,抽象层
+//  下拉刷新，上拉加载，抽象层
 //  Created by xxf on 11/13.
 //
 
+#if canImport(UIKit)
 public protocol RefreshableCompatible {
     // MARK: 监听
 
@@ -42,3 +43,4 @@ public protocol RefreshableCompatible {
     /// 是否正在执行上拉加载
     func isLoadingMore() -> Bool
 }
+#endif

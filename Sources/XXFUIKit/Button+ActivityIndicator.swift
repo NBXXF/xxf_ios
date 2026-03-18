@@ -26,10 +26,6 @@ public extension UIButton {
 #elseif canImport(AppKit)
 import AppKit
 
-private enum AssociatedKeys {
-    static var progressIndicator = "progressIndicator"
-}
-
 public extension NSButton {
     /// 控制按钮是否显示 loading 指示器。
     ///
@@ -68,5 +64,11 @@ public extension NSButton {
         objc_setAssociatedObject(self, &AssociatedKeys.progressIndicator, indicator, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return indicator
     }
+}
+
+// MARK: - Private
+
+@MainActor private enum AssociatedKeys {
+    static var progressIndicator: UInt8 = 0
 }
 #endif

@@ -1,5 +1,6 @@
 import Foundation
 
+#if canImport(UIKit)
 @available(iOS 13.0, *)
 public protocol DiffableDataSourceAdapter<Section, Item> {
     associatedtype Section: Hashable
@@ -17,3 +18,4 @@ public protocol DiffableDataSourceAdapter<Section, Item> {
     /// 判断是否存在某个 section
     func hasSection(_ section: Section) -> Bool
 }
+#endif

@@ -422,6 +422,37 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
                 completion?(false)
             }
 
+        case .replaceRoot(let transition):
+            // macOS 替换根视图控制器
+            if let window = NSApplication.shared.keyWindow {
+                switch transition {
+                case .crossDissolve:
+                    NSAnimationContext.runAnimationGroup({ context in
+                        context.duration = 0.3
+                        context.allowsImplicitAnimation = true
+                        window.contentViewController = viewController
+                    }, completionHandler: {
+                        completion?(true)
+                    })
+                    return
+                case .none:
+                    window.contentViewController = viewController
+                case .slideFromRight, .slideFromBottom, .custom:
+                    // macOS 上使用淡入淡出作为默认动画
+                    NSAnimationContext.runAnimationGroup({ context in
+                        context.duration = 0.3
+                        context.allowsImplicitAnimation = true
+                        window.contentViewController = viewController
+                    }, completionHandler: {
+                        completion?(true)
+                    })
+                    return
+                }
+                completion?(true)
+            } else {
+                completion?(false)
+            }
+
         case .custom(let customNavigation):
             if let source = context.sourceViewController ?? topViewController() {
                 customNavigation(source, viewController)
