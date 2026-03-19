@@ -29,6 +29,8 @@
 /// }
 /// ```
 public enum ViewState<T> {
+    /// 空闲中...
+    case idle
     /// 加载中
     case loading
     /// 加载成功，携带数据
