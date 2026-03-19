@@ -46,7 +46,6 @@ import WebKit
 /// webView.load(URLRequest(url: url))
 ///
 public class CompactWebView: WKWebView {
-
     // MARK: - Shared
 
     /// 共享进程池
@@ -95,13 +94,14 @@ public class CompactWebView: WKWebView {
 
     // MARK: - Init
 
-    init(ephemeral: Bool = false) {
+    public init(ephemeral: Bool = false) {
         let config = Self.makeConfiguration(ephemeral: ephemeral)
         super.init(frame: .zero, configuration: config)
         setup()
     }
 
-    required init?(coder: NSCoder) { fatalError() }
+    @available(*, unavailable)
+    public required init?(coder: NSCoder) { fatalError() }
 
     deinit {
         // 无需处理任何 JSBridge 相关清理（已移除）
@@ -109,14 +109,14 @@ public class CompactWebView: WKWebView {
 
     // MARK: - Load
 
-    public override func load(_ request: URLRequest) -> WKNavigation? {
+    override public func load(_ request: URLRequest) -> WKNavigation? {
         lastRequest = request
         state = .loading
         startTimeout()
         return super.load(request)
     }
 
-    public override func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
+    override public func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
         lastRequest = nil
         state = .loading
         startTimeout()
@@ -126,7 +126,6 @@ public class CompactWebView: WKWebView {
     // MARK: - Setup
 
     private func setup() {
-
         navigationDelegate = self
         uiDelegate = self
 
@@ -206,7 +205,6 @@ public class CompactWebView: WKWebView {
 // MARK: - WKNavigationDelegate
 
 extension CompactWebView: WKNavigationDelegate {
-
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         cancelTimeout()
         reloadCount = 0
@@ -216,7 +214,6 @@ extension CompactWebView: WKNavigationDelegate {
     }
 
     public func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
-
         guard reloadCount < maxReloadCount else {
             state = .failed(nil)
             return
@@ -234,7 +231,6 @@ extension CompactWebView: WKNavigationDelegate {
         decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @Sendable @escaping (WKNavigationActionPolicy) -> Void
     ) {
-
         guard let url = navigationAction.request.url else {
             decisionHandler(.allow)
             return
@@ -263,8 +259,8 @@ extension CompactWebView: WKNavigationDelegate {
 
         // ===== 外部接管（只允许调用一次）=====
         if let external = externalNavigationDelegate,
-           external.responds(to: #selector(webView(_:decidePolicyFor:decisionHandler:))) {
-
+           external.responds(to: #selector(webView(_:decidePolicyFor:decisionHandler:)))
+        {
             external.webView?(webView, decidePolicyFor: navigationAction, decisionHandler: decisionHandler)
             return
         }
@@ -276,14 +272,12 @@ extension CompactWebView: WKNavigationDelegate {
 // MARK: - WKUIDelegate
 
 extension CompactWebView: WKUIDelegate {
-
     public func webView(
         _ webView: WKWebView,
         createWebViewWith configuration: WKWebViewConfiguration,
         for navigationAction: WKNavigationAction,
         windowFeatures: WKWindowFeatures
     ) -> WKWebView? {
-
         if navigationAction.targetFrame == nil {
             webView.load(navigationAction.request)
         }
