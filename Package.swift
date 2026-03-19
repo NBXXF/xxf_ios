@@ -115,6 +115,10 @@ let package = Package(
         .library(
             name: "XXFKeyboard",
             targets: ["XXFKeyboard"]
+        ),
+        .library(
+            name: "XXFCompress",
+            targets: ["XXFCompress"]
         )
     ],
     dependencies: [
@@ -339,6 +343,7 @@ let package = Package(
                 "XXFAdapter",
                 "XXFUIKit",
                 "XXFSwiftFormat",
+                "XXFCompress",
                 // 自动布局框架
                 .product(name: "SnapKit", package: "SnapKit")
             ],
@@ -461,6 +466,10 @@ let package = Package(
                 .product(name: "BrightroomUI", package: "Brightroom", condition: .when(platforms: [.iOS])),
                 .product(name: "BrightroomEngine", package: "Brightroom", condition: .when(platforms: [.iOS]))
             ]
+        ),
+        // MARK: - 图片压缩（Luban 风格，微信压缩算法）
+        .target(
+            name: "XXFCompress"
         ),
         .target(
             name: "XXFKeyboard",

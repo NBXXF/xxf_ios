@@ -30,6 +30,7 @@
 @_exported import XXFRouter
 @_exported import XXFSpeed
 @_exported import XXFSwiftFormat
+@_exported import XXFCompress
 @_exported import XXFTracker
 @_exported import XXFViewModel
 #if os(iOS)

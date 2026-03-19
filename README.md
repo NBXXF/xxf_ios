@@ -13,7 +13,7 @@
   <a href="https://developer.apple.com"><img src="https://img.shields.io/badge/Platform-iOS%2015%2B%20%7C%20macOS%2013%2B-blue.svg" alt="Platform"></a>
   <a href="https://swift.org/package-manager"><img src="https://img.shields.io/badge/SPM-Compatible-green.svg" alt="SPM"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-lightgrey.svg" alt="License"></a>
-  <img src="https://img.shields.io/badge/Modules-35+-purple.svg" alt="Modules">
+  <img src="https://img.shields.io/badge/Modules-36+-purple.svg" alt="Modules">
 </p>
 
 ---
