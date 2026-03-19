@@ -12,53 +12,41 @@ import CoreGraphics
     import AppKit
 #endif
 
-/// 屏幕 frame，一次性获取宽高
+/// 屏幕宽度
+@MainActor
+public var screenWidth: CGFloat {
+    #if canImport(UIKit)
+        return UIScreen.main.bounds.width
+    #elseif canImport(AppKit)
+        return NSScreen.main?.frame.width ?? 0
+    #else
+        return 0
+    #endif
+}
+
+/// 屏幕高度
+@MainActor
+public var screenHeight: CGFloat {
+    #if canImport(UIKit)
+        return UIScreen.main.bounds.height
+    #elseif canImport(AppKit)
+        return NSScreen.main?.frame.height ?? 0
+    #else
+        return 0
+    #endif
+}
+
+/// 屏幕 frame
 @MainActor
 public var screenFrame: CGRect {
     #if canImport(UIKit)
-        if #available(iOS 13.0, *) {
-            return MainActor.assumeIsolated {
-                UIScreen.main.bounds
-            }
-        } else {
-            var frame: CGRect = .zero
-            if Thread.isMainThread {
-                frame = UIScreen.main.bounds
-            } else {
-                DispatchQueue.main.sync {
-                    frame = UIScreen.main.bounds
-                }
-            }
-            return frame
-        }
+        return UIScreen.main.bounds
     #elseif canImport(AppKit)
-        if #available(macOS 10.15, *) {
-            return MainActor.assumeIsolated {
-                NSScreen.main?.frame ?? .zero
-            }
-        } else {
-            var frame: CGRect = .zero
-            if Thread.isMainThread {
-                frame = NSScreen.main?.frame ?? .zero
-            } else {
-                DispatchQueue.main.sync {
-                    frame = NSScreen.main?.frame ?? .zero
-                }
-            }
-            return frame
-        }
+        return NSScreen.main?.frame ?? .zero
     #else
         return .zero
     #endif
 }
-
-/// 屏幕宽度
-@MainActor
-public var screenWidth: CGFloat { screenFrame.width }
-
-/// 屏幕高度
-@MainActor
-public var screenHeight: CGFloat { screenFrame.height }
 
 // MARK: - 屏幕宽度比例扩展 (sw)
 
