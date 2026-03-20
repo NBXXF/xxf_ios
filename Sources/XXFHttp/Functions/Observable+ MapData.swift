@@ -32,4 +32,19 @@ public extension Observable where Element: BaseHttpResult {
             return .just(data)
         }
     }
+
+    /**
+     只关心状态
+     */
+    func mapSuccessOnly() -> Observable<Void> {
+        return flatMap { result -> Observable<Void> in
+            guard result.isSuccess() else {
+                return .error(ResponseError(
+                    statusCode: result.code,
+                    message: result.msg ?? "接口未知错误"
+                ))
+            }
+            return .just(())
+        }
+    }
 }
