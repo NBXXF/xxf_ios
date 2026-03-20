@@ -22,11 +22,20 @@ public enum CompressType: Sendable {
     case timeline
 }
 
+// MARK: - Compress Result
+
+public struct CompressResult: Sendable {
+    /// 压缩后的 JPEG 数据
+    public let data: Data
+    /// 如果设置了 targetDir，压缩后文件的 URL
+    public let fileURL: URL?
+}
+
 // MARK: - Compress Listener
 
 public protocol OnCompressListener: AnyObject, Sendable {
     func onStart()
-    func onSuccess(_ data: Data)
+    func onSuccess(_ result: CompressResult)
     func onError(_ error: Error)
 }
 
@@ -158,14 +167,17 @@ public final class Luban: @unchecked Sendable {
                     return try Self.compressImage(image, type: type, quality: quality)
                 }
 
+                var fileURL: URL?
                 if let dir = targetDir {
                     let fileName = UUID().uuidString + ".jpg"
-                    let fileURL = URL(fileURLWithPath: dir).appendingPathComponent(fileName)
-                    try data.write(to: fileURL)
+                    let url = URL(fileURLWithPath: dir).appendingPathComponent(fileName)
+                    try data.write(to: url)
+                    fileURL = url
                 }
 
+                let result = CompressResult(data: data, fileURL: fileURL)
                 DispatchQueue.main.async {
-                    listener?.onSuccess(data)
+                    listener?.onSuccess(result)
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -175,34 +187,52 @@ public final class Luban: @unchecked Sendable {
         }
     }
 
-    /// 同步压缩，返回 Data
-    public func get() throws -> Data {
+    /// 同步压缩，返回 CompressResult
+    public func get() throws -> CompressResult {
         guard let source else {
             throw CompressError.sourceNotSet
         }
         let type = self.compressType
         let quality = self.quality
-        return try autoreleasepool {
+        let targetDir = self.targetDir
+        let data: Data = try autoreleasepool {
             let image = try Self.resolveImage(from: source)
             return try Self.compressImage(image, type: type, quality: quality)
         }
+        var fileURL: URL?
+        if let dir = targetDir {
+            let fileName = UUID().uuidString + ".jpg"
+            let url = URL(fileURLWithPath: dir).appendingPathComponent(fileName)
+            try data.write(to: url)
+            fileURL = url
+        }
+        return CompressResult(data: data, fileURL: fileURL)
     }
 
     /// async/await 压缩
-    public func compress() async throws -> Data {
+    public func compress() async throws -> CompressResult {
         let source = self.source
         let type = self.compressType
         let quality = self.quality
+        let targetDir = self.targetDir
 
         guard let source else {
             throw CompressError.sourceNotSet
         }
 
         return try await Task.detached(priority: .userInitiated) {
-            try autoreleasepool {
+            let data: Data = try autoreleasepool {
                 let image = try Self.resolveImage(from: source)
                 return try Self.compressImage(image, type: type, quality: quality)
             }
+            var fileURL: URL?
+            if let dir = targetDir {
+                let fileName = UUID().uuidString + ".jpg"
+                let url = URL(fileURLWithPath: dir).appendingPathComponent(fileName)
+                try data.write(to: url)
+                fileURL = url
+            }
+            return CompressResult(data: data, fileURL: fileURL)
         }.value
     }
 
@@ -357,7 +387,7 @@ public final class Luban: @unchecked Sendable {
 public extension PlatformImage {
 
     /// 微信风格压缩（与 WXImageCompress 算法一致）
-    func lubanCompress(type: CompressType = .timeline, quality: CGFloat = 0.5) -> Data? {
+    func lubanCompress(type: CompressType = .timeline, quality: CGFloat = 0.5) -> CompressResult? {
         return try? Luban.with()
             .load(self)
             .setCompressType(type)

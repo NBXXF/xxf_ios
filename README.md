@@ -47,7 +47,7 @@
 │                                                                      │
 │  ⚡ 极致性能        │  🧩 模块化设计      │  🛡️ 生产级质量          │
 │  ─────────────     │  ─────────────     │  ─────────────          │
-│  • XXH3 31.5GB/s  │  • 35+独立模块     │  • 线程安全保证          │
+│  • XXH3 31.5GB/s  │  • 36+独立模块     │  • 线程安全保证          │
 │  • LRU O(1) 操作  │  • 按需引入        │  • 完善错误处理          │
 │  • 双层缓存系统    │  • 零耦合设计      │  • 内存泄漏防护          │
 │  • 零拷贝优化      │  • 协议驱动        │  • 崩溃恢复机制          │
@@ -85,7 +85,8 @@
   - [XXFImageEditor - 图片编辑/裁切](#15-xxfimageeditor---图片编辑裁切)
   - [XXFKeyboard - 键盘适配组件](#17-xxfkeyboard---键盘适配组件)
   - [XXFPerformance - 性能监控](#16-xxfperformance---性能监控)
-  - [其他模块](#18-其他模块)
+  - [XXFCompress - 图片压缩（Luban）](#18-xxfcompress---图片压缩luban)
+  - [其他模块](#19-其他模块)
 - [设计模式](#设计模式)
 - [最佳实践](#最佳实践)
 - [依赖关系](#依赖关系)
@@ -1106,7 +1107,48 @@ monitor.start()
 
 ---
 
-## 17. 其他模块
+## 18. XXFCompress - 图片压缩（Luban）
+
+基于微信朋友圈/聊天图片压缩算法的跨平台图片压缩模块，支持 iOS 和 macOS。核心算法参考 [WXImageCompress](https://github.com/hucool/WXImageCompress)，API 设计参考 Android [Luban](https://github.com/Curzibn/Luban) 链式调用风格。
+
+### 用法
+
+```swift
+import XXFCompress
+
+// 链式调用 + Listener 回调
+Luban.with()
+    .load(image)                          // 支持 UIImage/NSImage, Data, URL, String 路径
+    .setCompressType(.timeline)           // .session(短边800) / .timeline(短边1280)
+    .setQuality(0.5)                      // JPEG 压缩质量，默认 0.5
+    .setTargetDir(NSTemporaryDirectory()) // 可选：压缩后写入文件
+    .setCompressListener(self)            // 回调 onStart / onSuccess / onError
+    .launch()
+
+// 同步调用
+let data = try Luban.with().load(image).get()
+
+// async/await
+let data = try await Luban.with().load(image).compress()
+
+// UIImage/NSImage 便捷扩展
+let data = image.lubanCompress(type: .timeline)
+```
+
+### 压缩策略
+
+| 条件 | 策略 |
+|------|------|
+| 宽高均 ≤ boundary | 保持原尺寸 |
+| 宽高比 ≤ 2 | 长边缩至 boundary，短边等比缩放 |
+| 宽高比 > 2 且短边 ≥ boundary | 短边缩至 boundary，长边等比缩放 |
+| 宽高比 > 2 且短边 < boundary | 保持原尺寸 |
+
+> boundary: `.session` = 800, `.timeline` = 1280
+
+---
+
+## 19. 其他模块
 
 | 模块 | 核心功能 | 亮点 |
 |------|---------|------|
@@ -1229,6 +1271,7 @@ XXFArch (一站式引入)
 ├── XXFUIKit
 ├── XXFImageLoader ────────── XXFImageNukeLoader (Nuke)
 ├── XXFImageEditor ────────── XXFImageEditorBrightroom (Brightroom 2.x)
+├── XXFCompress (Luban 图片压缩)
 ├── XXFKeyboard ───────────── RxKeyboard (2.x)
 ├── XXFPerformance (BlockWatcher + GDPerformanceView-Swift)
 ├── SnapKit
