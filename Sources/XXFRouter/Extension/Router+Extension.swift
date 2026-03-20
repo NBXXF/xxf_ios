@@ -385,7 +385,15 @@ public extension Router {
             return success
 
         case .dismiss:
-            navigator.topViewController()?.dismiss(animated: options.animated, completion: completion)
+            // 找到被 present 出来的最顶层控制器（可能是 nav 或者 VC 自身），让 presentingVC 来 dismiss
+            if let topVC = navigator.topViewController() {
+                let presented = topVC.navigationController ?? topVC
+                if let presenting = presented.presentingViewController {
+                    presenting.dismiss(animated: options.animated, completion: completion)
+                } else {
+                    topVC.dismiss(animated: options.animated, completion: completion)
+                }
+            }
             return true
         }
     }
