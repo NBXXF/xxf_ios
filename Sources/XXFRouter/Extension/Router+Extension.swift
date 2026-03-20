@@ -225,6 +225,8 @@ public struct PopOptions: Sendable {
 
     /// 后退类型
     public enum PopType: Sendable {
+        /// 智能返回（如果是 present 出来的则 dismiss，否则 pop）
+        case smart
         /// 返回上一页
         case back
         /// 返回到根页面
@@ -238,19 +240,23 @@ public struct PopOptions: Sendable {
     public var popType: PopType
     public var animated: Bool
 
-    public init(type: PopType = .back, animated: Bool = true) {
+    public init(type: PopType = .smart, animated: Bool = true) {
         self.popType = type
         self.animated = animated
     }
 
     // MARK: - 预设配置
 
+    /// 智能返回（默认：如果是 present 出来的则 dismiss，否则 pop）
+    public static let smart = PopOptions(type: .smart)
     /// 返回上一页
     public static let back = PopOptions(type: .back)
     /// 返回到根页面
     public static let toRoot = PopOptions(type: .toRoot)
     /// 关闭模态视图
     public static let dismiss = PopOptions(type: .dismiss)
+    /// 智能返回（无动画）
+    public static let smartImmediate = PopOptions(type: .smart, animated: false)
     /// 返回上一页（无动画）
     public static let backImmediate = PopOptions(type: .back, animated: false)
     /// 返回根页面（无动画）
@@ -333,7 +339,8 @@ public extension Router {
     /// ## 使用示例
     ///
     /// ```swift
-    /// Router.shared.pop()                              // 返回上一页
+    /// Router.shared.pop()                              // 智能返回（自动判断 pop 或 dismiss）
+    /// Router.shared.pop(options: .back)               // 强制 pop
     /// Router.shared.pop(options: .toRoot)              // 返回根页面
     /// Router.shared.pop(options: .dismiss)             // 关闭模态
     /// Router.shared.pop(options: .to(pattern: "app://feed"))  // 返回指定页面
@@ -346,10 +353,22 @@ public extension Router {
     @MainActor
     @discardableResult
     func pop(
-        options: PopOptions = .back,
+        options: PopOptions = .smart,
         completion: (() -> Void)? = nil
     ) -> Any? {
         switch options.popType {
+        case .smart:
+            // 智能判断：如果当前页面是 present 出来的（没有导航控制器，或者是导航栈的根控制器），则 dismiss；否则 pop
+            if let topVC = navigator.topViewController(),
+               topVC.presentingViewController != nil,
+               topVC.navigationController == nil || topVC.navigationController?.viewControllers.count == 1 {
+                topVC.dismiss(animated: options.animated, completion: completion)
+                return topVC
+            }
+            let smartPoppedVC = navigator.currentNavigationController()?.popViewController(animated: options.animated)
+            completion?()
+            return smartPoppedVC
+
         case .back:
             let poppedVC = navigator.currentNavigationController()?.popViewController(animated: options.animated)
             completion?()
@@ -432,7 +451,7 @@ public extension UIViewController {
     /// ```
     @discardableResult
     func pop(
-        options: PopOptions = .back,
+        options: PopOptions = .smart,
         completion: (() -> Void)? = nil
     ) -> Any? {
         return Router.shared.pop(options: options, completion: completion)
@@ -590,6 +609,7 @@ public func routeURL(scheme: String = "app", host: String = "") -> RouteURLBuild
  ┌─────────────────────────────────────────────────────────────────────────┐
  │ PopOptions 预设                                                          │
  ├─────────────────────────┬───────────────────────────────────────────────┤
+ │ .smart                  │ 智能返回（优先 pop，不行则 dismiss）默认值      │
  │ .back                   │ 返回上一页                                     │
  │ .toRoot                 │ 返回到根页面                                   │
  │ .dismiss                │ 关闭模态视图                                    │
