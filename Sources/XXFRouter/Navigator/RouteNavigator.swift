@@ -313,6 +313,17 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
 
     // MARK: - 辅助方法
 
+    /// 递归查找当前最顶层的 ViewController
+    ///
+    /// ⚠️ 防递归死循环说明：
+    /// 当 presented 出来的 UINavigationController 的 viewControllers 被清空后（例如从栈中移除了所有 VC），
+    /// `nav.visibleViewController` 会返回 nil。
+    /// 如果此时直接递归 `findTopViewController(from: nil)`，会重新从 `keyWindow().rootViewController` 开始查找，
+    /// 最终又走到同一个空的 NavigationController，形成无限递归，导致栈溢出 EXC_BAD_ACCESS。
+    ///
+    /// 因此对 UINavigationController 和 UITabBarController 的子 VC 做 nil 判断：
+    /// - 子 VC 存在 → 继续递归
+    /// - 子 VC 为 nil → 检查是否有 presentedViewController，有则递归它；否则返回容器自身，终止递归
     @MainActor
     private static func findTopViewController(
         from viewController: UIViewController? = nil
@@ -320,11 +331,21 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
         let rootVC = viewController ?? keyWindow()?.rootViewController
 
         if let nav = rootVC as? UINavigationController {
-            return findTopViewController(from: nav.visibleViewController)
+            if let visible = nav.visibleViewController {
+                return findTopViewController(from: visible)
+            }
+            // nav 栈为空，尝试查找其 presented 的 VC，否则返回 nav 自身终止递归
+            if let presented = nav.presentedViewController {
+                return findTopViewController(from: presented)
+            }
+            return nav
         }
 
         if let tab = rootVC as? UITabBarController {
-            return findTopViewController(from: tab.selectedViewController)
+            if let selected = tab.selectedViewController {
+                return findTopViewController(from: selected)
+            }
+            return tab
         }
 
         if let presented = rootVC?.presentedViewController {
