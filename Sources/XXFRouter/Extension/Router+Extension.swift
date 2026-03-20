@@ -17,7 +17,9 @@ import AppKit
 #endif
 
 // MARK: - ═══════════════════════════════════════════════════════════════════
+
 // MARK: 导航选项（Navigate Options）
+
 // MARK: ═══════════════════════════════════════════════════════════════════
 
 #if canImport(UIKit)
@@ -40,7 +42,6 @@ import AppKit
 /// Router.shared.navigate(to: "app://login", options: options)
 /// ```
 public struct NavigateOptions: Sendable {
-
     // MARK: - 导航类型
 
     /// 导航类型
@@ -181,7 +182,7 @@ public struct NavigateOptions: Sendable {
 
     // MARK: - 转换为内部 RouteOptions
 
-    internal func toRouteOptions() -> RouteOptions {
+    func toRouteOptions() -> RouteOptions {
         let navigationType: NavigationType
         switch self.navigateType {
         case .push:
@@ -206,7 +207,9 @@ public struct NavigateOptions: Sendable {
 }
 
 // MARK: - ═══════════════════════════════════════════════════════════════════
+
 // MARK: 后退选项（Pop Options）
+
 // MARK: ═══════════════════════════════════════════════════════════════════
 
 /// 后退选项
@@ -222,7 +225,6 @@ public struct NavigateOptions: Sendable {
 /// Router.shared.pop(options: .to(pattern: "app://feed"))  // 返回指定页面
 /// ```
 public struct PopOptions: Sendable {
-
     /// 后退类型
     public enum PopType: Sendable {
         /// 智能返回（如果是 present 出来的则 dismiss，否则 pop）
@@ -277,11 +279,12 @@ public struct PopOptions: Sendable {
 }
 
 // MARK: - ═══════════════════════════════════════════════════════════════════
+
 // MARK: Router 简化 API
+
 // MARK: ═══════════════════════════════════════════════════════════════════
 
 public extension Router {
-
     // MARK: - Navigate（前进导航）
 
     /// 导航到指定路由
@@ -361,7 +364,8 @@ public extension Router {
             // 智能判断：如果当前页面是 present 出来的（没有导航控制器，或者是导航栈的根控制器），则 dismiss；否则 pop
             if let topVC = navigator.topViewController(),
                topVC.presentingViewController != nil,
-               topVC.navigationController == nil || topVC.navigationController?.viewControllers.count == 1 {
+               topVC.navigationController == nil || topVC.navigationController?.viewControllers.count == 1
+            {
                 topVC.dismiss(animated: options.animated, completion: completion)
                 return topVC
             }
@@ -387,12 +391,17 @@ public extension Router {
         case .dismiss:
             // 找到被 present 出来的最顶层控制器（可能是 nav 或者 VC 自身），让 presentingVC 来 dismiss
             if let topVC = navigator.topViewController() {
-                let presented = topVC.navigationController ?? topVC
-                if let presenting = presented.presentingViewController {
-                    presenting.dismiss(animated: options.animated, completion: completion)
-                } else {
-                    topVC.dismiss(animated: options.animated, completion: completion)
+                // 沿 parent 链向上找到被 present 出来的控制器
+                var current: UIViewController? = topVC
+                while let vc = current {
+                    if vc.presentingViewController != nil {
+                        vc.dismiss(animated: options.animated, completion: completion)
+                        return true
+                    }
+                    current = vc.parent
                 }
+                // fallback
+                topVC.dismiss(animated: options.animated, completion: completion)
             }
             return true
         }
@@ -424,11 +433,12 @@ public extension Router {
 }
 
 // MARK: - ═══════════════════════════════════════════════════════════════════
+
 // MARK: UIViewController 扩展
+
 // MARK: ═══════════════════════════════════════════════════════════════════
 
 public extension UIViewController {
-
     /// 导航到指定路由
     ///
     /// ```swift
@@ -476,7 +486,9 @@ public protocol RouteAwareViewController: AnyObject {
 #endif
 
 // MARK: - ═══════════════════════════════════════════════════════════════════
+
 // MARK: URL/String 扩展
+
 // MARK: ═══════════════════════════════════════════════════════════════════
 
 public extension URL {
@@ -488,7 +500,8 @@ public extension URL {
         var queryParams: RouteQueryItems = [:]
 
         if let components = URLComponents(url: self, resolvingAgainstBaseURL: false),
-           let queryItems = components.queryItems {
+           let queryItems = components.queryItems
+        {
             for item in queryItems {
                 queryParams[item.name] = item.value ?? ""
             }
@@ -518,7 +531,9 @@ public extension String {
 }
 
 // MARK: - ═══════════════════════════════════════════════════════════════════
+
 // MARK: 路由 URL 构建器
+
 // MARK: ═══════════════════════════════════════════════════════════════════
 
 /// 路由URL构建器
@@ -587,7 +602,9 @@ public func routeURL(scheme: String = "app", host: String = "") -> RouteURLBuild
 }
 
 // MARK: - ═══════════════════════════════════════════════════════════════════
+
 // MARK: 使用指南
+
 // MARK: ═══════════════════════════════════════════════════════════════════
 
 /*
