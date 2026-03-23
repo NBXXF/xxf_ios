@@ -1,5 +1,5 @@
 {
-  "originHash" : "83f353c9a0ed98cfa60bcb7fcb76df79495da8943c0f210fc43907c8bd95238f",
+  "originHash" : "09092c2148184371165ec37aac0af6f9c0a453adaabb83e8646114748e18c6e3",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -132,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NBXXF/PulseCompat",
       "state" : {
-        "revision" : "19ebf382695e89d3d8af9734e8e7209246fcfb72",
-        "version" : "4.3.9"
+        "revision" : "20da7a3f3684bfcae1e7a070e6fbcff57128ef65",
+        "version" : "4.4.2"
       }
     },
     {
