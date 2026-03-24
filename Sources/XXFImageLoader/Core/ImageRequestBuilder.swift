@@ -7,22 +7,6 @@
 
 import Foundation
 
-/// 缩略图选项
-public struct ThumbnailOptions {
-    /// 宽度（像素）
-    public let w: Int?
-    /// 高度（像素）
-    public let h: Int?
-    /// 质量（1-100）
-    public let q: Int?
-
-    public init(w: Int? = nil, h: Int? = nil, q: Int? = nil) {
-        self.w = w
-        self.h = h
-        self.q = q
-    }
-}
-
 public class ImageRequestBuilder {
     private var url: URL
     private let adapter: ImageLoaderAdapter
@@ -34,6 +18,7 @@ public class ImageRequestBuilder {
     private var completion: ((Result<Void, Swift.Error>) -> Void)?
 
     // MARK: - 缩略图参数
+
     private var thumbnailOptions: ThumbnailOptions?
     private var extraParameters: [String: String] = [:]
 
