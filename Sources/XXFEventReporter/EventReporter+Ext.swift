@@ -2,7 +2,7 @@
 //  EventReporter.swift
 //  xxf_ios
 //  事件上报模块入口
-//  Created by Claude on 2026/3/24.
+//  Created by xxf on 2019/5/28.
 //
 
 import Foundation
