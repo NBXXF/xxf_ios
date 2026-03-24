@@ -3,7 +3,7 @@
 //  xxf_ios
 //  Firebase Analytics 事件上报渠道
 //  Created by xxf on 2019/5/28.
-//
+// https://firebase.google.com/docs/analytics/ios/get-started?hl=zh-cn
 #if os(iOS)
 import FirebaseAnalytics
 import Foundation
