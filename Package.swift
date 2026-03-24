@@ -119,6 +119,10 @@ let package = Package(
         .library(
             name: "XXFCompress",
             targets: ["XXFCompress"]
+        ),
+        .library(
+            name: "XXFEventReporter",
+            targets: ["XXFEventReporter"]
         )
     ],
     dependencies: [
@@ -344,6 +348,7 @@ let package = Package(
                 "XXFUIKit",
                 "XXFSwiftFormat",
                 "XXFCompress",
+                "XXFEventReporter",
                 // 自动布局框架
                 .product(name: "SnapKit", package: "SnapKit")
             ],
@@ -470,6 +475,12 @@ let package = Package(
         // MARK: - 图片压缩（Luban 风格，微信压缩算法）
         .target(
             name: "XXFCompress"
+        ),
+        .target(
+            name: "XXFEventReporter",
+            dependencies: [
+                "XXFFoundation"
+            ]
         ),
         .target(
             name: "XXFKeyboard",
