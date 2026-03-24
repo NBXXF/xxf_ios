@@ -494,7 +494,8 @@ let package = Package(
             name: "XXFEventReporterFirebase",
             dependencies: [
                 "XXFEventReporter",
-                .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk",condition: .when(platforms: [.iOS]))
+                .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS])),
+                .product(name: "FirebaseCore", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS]))
             ]
         ),
         .target(

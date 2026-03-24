@@ -4,7 +4,7 @@
 //  Firebase Analytics 事件上报渠道
 //  Created by xxf on 2019/5/28.
 //
-
+#if os(iOS)
 import FirebaseAnalytics
 import Foundation
 import XXFEventReporter
@@ -74,3 +74,4 @@ public extension FirebaseEventChannel {
         FirebaseEventChannel()
     }
 }
+#endif
