@@ -2,7 +2,7 @@
 //  Reporter.swift
 //  xxf_ios
 //  事件上报，支持内部多渠道
-//  Created by xxf
+//  Created by xxf on 2019/5/28.
 //
 
 import Foundation

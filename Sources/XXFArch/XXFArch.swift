@@ -32,6 +32,9 @@
 @_exported import XXFSwiftFormat
 @_exported import XXFCompress
 @_exported import XXFEventReporter
+#if os(iOS)
+@_exported import XXFEventReporterFirebase
+#endif
 @_exported import XXFTracker
 @_exported import XXFViewModel
 #if os(iOS)

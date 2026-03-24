@@ -1,7 +1,7 @@
 //
 //  CompactWebView.swift
 //
-
+#if canImport(UIKit)
 import UIKit
 import WebKit
 
@@ -284,3 +284,4 @@ extension CompactWebView: WKUIDelegate {
         return nil
     }
 }
+#endif

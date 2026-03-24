@@ -2,7 +2,7 @@
 //  EventChannel.swift
 //  xxf_ios
 //  事件上报渠道，支持多个渠道同时上报
-//  Created by xxf
+//  Created by xxf on 2019/5/28.
 //
 
 import Foundation

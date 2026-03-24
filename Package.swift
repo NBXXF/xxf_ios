@@ -123,6 +123,10 @@ let package = Package(
         .library(
             name: "XXFEventReporter",
             targets: ["XXFEventReporter"]
+        ),
+        .library(
+            name: "XXFEventReporterFirebase",
+            targets: ["XXFEventReporterFirebase"]
         )
     ],
     dependencies: [
@@ -175,6 +179,9 @@ let package = Package(
 
         // 图片编辑器（fork 版，修复了官方 2.x 未声明 macOS 导致 Verge 11.x 报错的问题）
         .package(url: "https://github.com/NBXXF/Brightroom.git", from: "2.10.2"),
+
+        // Firebase
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.10.0"),
 
         // 性能监控（FPS、CPU、内存）
         .package(url: "https://github.com/dani-gavrilov/GDPerformanceView-Swift.git", from: "2.1.1")
@@ -349,6 +356,7 @@ let package = Package(
                 "XXFSwiftFormat",
                 "XXFCompress",
                 "XXFEventReporter",
+                .target(name: "XXFEventReporterFirebase", condition: .when(platforms: [.iOS])),
                 // 自动布局框架
                 .product(name: "SnapKit", package: "SnapKit")
             ],
@@ -480,6 +488,13 @@ let package = Package(
             name: "XXFEventReporter",
             dependencies: [
                 "XXFFoundation"
+            ]
+        ),
+        .target(
+            name: "XXFEventReporterFirebase",
+            dependencies: [
+                "XXFEventReporter",
+                .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk",condition: .when(platforms: [.iOS]))
             ]
         ),
         .target(
