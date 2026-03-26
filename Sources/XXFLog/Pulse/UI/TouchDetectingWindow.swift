@@ -64,6 +64,47 @@ open class TouchDetectingWindow<WindowType: BaseWindow>: BaseWindow {
     /// 允许的最大时间间隔（默认 3 秒）
     private let maxInterval: TimeInterval
 
+    /// 有效的点击区域（nil 表示不限制区域）
+    ///
+    /// 使用示例：
+    /// ```swift
+    /// // 方式1：获取导航栏区域（在 ViewController 中）
+    /// let navBarHeight = navigationController?.navigationBar.frame.height ?? 44
+    /// let statusBarHeight = view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+    /// let navBarArea = CGRect(x: 0, y: statusBarHeight, width: UIScreen.main.bounds.width, height: navBarHeight)
+    ///
+    /// // 方式2：在 SceneDelegate 中使用（推荐）
+    /// func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+    ///     guard let windowScene = scene as? UIWindowScene else { return }
+    ///
+    ///     // 获取状态栏高度
+    ///     let statusBarH = windowScene.statusBarManager?.statusBarFrame.height ?? 0
+    ///     // 导航栏标准高度
+    ///     let navBarH: CGFloat = 44
+    ///     // 构建导航栏区域
+    ///     let navBarArea = CGRect(
+    ///         x: 0,
+    ///         y: statusBarH,
+    ///         width: windowScene.coordinateSpace.bounds.width,
+    ///         height: navBarH
+    ///     )
+    ///
+    ///     let window = TouchDetectingWindow(
+    ///         windowScene: windowScene,
+    ///         validArea: navBarArea
+    ///     )
+    ///     self.window = window
+    ///     window.rootViewController = UIHostingController(rootView: ContentView())
+    ///     window.makeKeyAndVisible()
+    /// }
+    ///
+    /// // 方式3：固定屏幕顶部 88pt 区域（状态栏 + 导航栏）
+    /// let topArea = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 88)
+    ///
+    /// let window = TouchDetectingWindow(windowScene: scene, validArea: topArea)
+    /// ```
+    private let validArea: CGRect?
+
     // MARK: - 初始化
 
     #if os(iOS)
@@ -81,11 +122,32 @@ open class TouchDetectingWindow<WindowType: BaseWindow>: BaseWindow {
         self.requiredTaps = requiredTaps
         self.maxDistance = maxDistance
         self.maxInterval = maxInterval
+        self.validArea = nil
         super.init(windowScene: windowScene)
     }
 
     @available(*, unavailable)
     public required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    /// iOS 初始化方法（支持指定点击区域）
+    /// - Parameters:
+    ///   - windowScene: UIWindowScene 实例
+    ///   - validArea: 有效的点击区域，只有在这个区域内点击才生效
+    ///   - requiredTaps: 触发所需的连续点击次数，默认 5 次
+    ///   - maxDistance: 允许的最大点击距离偏移（pt），默认 44pt
+    ///   - maxInterval: 允许的最大时间间隔（秒），默认 3 秒
+    public init(windowScene: UIWindowScene,
+                validArea: CGRect,
+                requiredTaps: Int = 5,
+                maxDistance: CGFloat = 44,
+                maxInterval: TimeInterval = 3)
+    {
+        self.requiredTaps = requiredTaps
+        self.maxDistance = maxDistance
+        self.maxInterval = maxInterval
+        self.validArea = validArea
+        super.init(windowScene: windowScene)
+    }
 
     /// 重写 sendEvent 以捕获所有触摸事件
     /// - Parameter event: UIEvent 事件
@@ -120,6 +182,33 @@ open class TouchDetectingWindow<WindowType: BaseWindow>: BaseWindow {
         self.requiredTaps = requiredTaps
         self.maxDistance = maxDistance
         self.maxInterval = maxInterval
+        self.validArea = nil
+        super.init(contentRect: contentRect, styleMask: style, backing: backingStoreType, defer: flag)
+    }
+
+    /// macOS 初始化方法（支持指定点击区域）
+    /// - Parameters:
+    ///   - contentRect: 窗口内容区域
+    ///   - validArea: 有效的点击区域，只有在这个区域内点击才生效
+    ///   - style: 窗口样式
+    ///   - backingStoreType: 后备存储类型
+    ///   - flag: 是否延迟创建
+    ///   - requiredTaps: 触发所需的连续点击次数，默认 5 次
+    ///   - maxDistance: 允许的最大点击距离偏移（pt），默认 44pt
+    ///   - maxInterval: 允许的最大时间间隔（秒），默认 3 秒
+    public init(contentRect: NSRect,
+                validArea: CGRect,
+                styleMask style: NSWindow.StyleMask = [.titled, .closable, .resizable],
+                backing backingStoreType: NSWindow.BackingStoreType = .buffered,
+                defer flag: Bool = false,
+                requiredTaps: Int = 5,
+                maxDistance: CGFloat = 44,
+                maxInterval: TimeInterval = 3)
+    {
+        self.requiredTaps = requiredTaps
+        self.maxDistance = maxDistance
+        self.maxInterval = maxInterval
+        self.validArea = validArea
         super.init(contentRect: contentRect, styleMask: style, backing: backingStoreType, defer: flag)
     }
 
@@ -137,13 +226,19 @@ open class TouchDetectingWindow<WindowType: BaseWindow>: BaseWindow {
     /// - Parameter location: 点击位置
     ///
     /// 逻辑说明：
-    /// 1. 记录当前点击的时间和位置
-    /// 2. 保持数组长度不超过 requiredTaps（滑动窗口）
-    /// 3. 检查是否满足触发条件：
+    /// 1. 如果指定了 validArea，检查点击是否在区域内
+    /// 2. 记录当前点击的时间和位置
+    /// 3. 保持数组长度不超过 requiredTaps（滑动窗口）
+    /// 4. 检查是否满足触发条件：
     ///    - 点击次数达到 requiredTaps
     ///    - 所有点击在 maxInterval 时间内完成
     ///    - 所有点击位置在 maxDistance 范围内
     private func handleTap(at location: CGPoint) {
+        // 检查是否在有效区域内（如果指定了区域）
+        if let validArea = validArea, !validArea.contains(location) {
+            return
+        }
+
         let now = Date().timeIntervalSince1970
 
         // 记录本次点击
