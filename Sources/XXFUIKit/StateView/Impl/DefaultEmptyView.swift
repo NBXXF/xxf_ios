@@ -66,7 +66,11 @@ open class DefaultEmptyView: UIView, IEmptyView {
         print("⚠️ Rubik-Medium font not found, falling back to system font")
         #endif
         return .systemFont(ofSize: 20, weight: .medium)
-    }()
+    }() {
+        didSet {
+            if let title = title { updateTitleLabel() }
+        }
+    }
 
     /// 描述字体（默认 Inter Regular 14pt）
     public var messageFont: UIFont = {
@@ -77,7 +81,11 @@ open class DefaultEmptyView: UIView, IEmptyView {
         print("⚠️ Inter-Regular font not found, falling back to system font")
         #endif
         return .systemFont(ofSize: 14, weight: .regular)
-    }()
+    }() {
+        didSet {
+            if let message = message { updateMessageLabel() }
+        }
+    }
 
     /// 按钮字体（默认 Inter SemiBold 14pt）
     public var buttonFont: UIFont = {
@@ -85,19 +93,39 @@ open class DefaultEmptyView: UIView, IEmptyView {
             return font
         }
         return .systemFont(ofSize: 14, weight: .semibold)
-    }()
+    }() {
+        didSet {
+            retryButton.titleLabel?.font = buttonFont
+        }
+    }
 
     /// 标题颜色（默认 label，适配深色模式）
-    public var titleColor: UIColor = .label
+    public var titleColor: UIColor = .label {
+        didSet {
+            if let title = title { updateTitleLabel() }
+        }
+    }
 
     /// 描述颜色（默认 label 40% 透明度）
-    public var messageColor: UIColor = .label.withAlphaComponent(0.4)
+    public var messageColor: UIColor = .label.withAlphaComponent(0.4) {
+        didSet {
+            if let message = message { updateMessageLabel() }
+        }
+    }
 
     /// 按钮背景色（默认 systemGray6）
-    public var buttonBackgroundColor: UIColor = .systemGray6
+    public var buttonBackgroundColor: UIColor = .systemGray6 {
+        didSet {
+            retryButton.backgroundColor = buttonBackgroundColor
+        }
+    }
 
     /// 按钮标题颜色（默认 label）
-    public var buttonTitleColor: UIColor = .label
+    public var buttonTitleColor: UIColor = .label {
+        didSet {
+            retryButton.setTitleColor(buttonTitleColor, for: .normal)
+        }
+    }
 
     // MARK: - Other Properties
 
