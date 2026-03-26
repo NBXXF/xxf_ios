@@ -53,7 +53,7 @@ public enum System {
         return "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)"
     }()
 
-    public static var timestampMillis: Int {
-        Int(Date().timeIntervalSince1970 * 1000)
+    public static var timestampMillis: Int64 {
+        Date().timestampMillis
     }
 }
