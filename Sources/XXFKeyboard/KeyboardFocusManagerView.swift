@@ -75,7 +75,7 @@ open class KeyboardFocusManagerView: UIView {
         gesture.delaysTouchesEnded = false
         gesture.delegate = self
         // 只允许垂直方向
-        gesture.direction = .vertical
+      ///  gesture.direction = .vertical
         return gesture
     }()
 
