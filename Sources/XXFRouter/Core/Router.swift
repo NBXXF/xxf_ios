@@ -519,10 +519,13 @@ public final class Router: @unchecked Sendable {
             let originalQueryParams = queryParameters
 
             // 将额外参数转换为可发送的字符串字典
-            var sendableExtraParams: [String: String] = [:]
-            for (key, value) in extraParameters {
-                sendableExtraParams[key] = String(describing: value)
-            }
+            let sendableExtraParams: [String: String] = {
+                var dict: [String: String] = [:]
+                for (key, value) in extraParameters {
+                    dict[key] = String(describing: value)
+                }
+                return dict
+            }()
 
             interceptorManager.intercept(context: context) { [weak self] result in
                 Task { @MainActor in
