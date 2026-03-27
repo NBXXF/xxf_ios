@@ -51,11 +51,26 @@ public extension UIPasteboard {
         return true
     }
 
-    /// 复制任意值（String → JSON → CustomStringConvertible → fallback）
+    /// 复制任意值（String → Codable模型 → JSON → CustomStringConvertible → fallback）
     @discardableResult
     func setAuto(_ value: Any) -> Bool {
-        if let str = value as? String { string = str; return true }
-        if JSONSerialization.isValidJSONObject(value) { return setJSON(value) }
+        // 1. String 直接设置
+        if let str = value as? String {
+            string = str
+            return true
+        }
+
+        // 2. Encodable 模型（优先尝试编码为 JSON）
+        if let encodable = value as? Encodable {
+            return setModel(encodable)
+        }
+
+        // 3. 标准 JSON 对象（Dictionary/Array）
+        if JSONSerialization.isValidJSONObject(value) {
+            return setJSON(value)
+        }
+
+        // 4. 兜底：使用 CustomStringConvertible 或描述字符串
         string = (value as? CustomStringConvertible)?.description ?? String(describing: value)
         return true
     }
@@ -110,11 +125,25 @@ public extension NSPasteboard {
         return writeString(str)
     }
 
-    /// 复制任意值（String → JSON → CustomStringConvertible → fallback）
+    /// 复制任意值（String → Codable模型 → JSON → CustomStringConvertible → fallback）
     @discardableResult
     func setAuto(_ value: Any) -> Bool {
-        if let str = value as? String { return writeString(str) }
-        if JSONSerialization.isValidJSONObject(value) { return setJSON(value) }
+        // 1. String 直接设置
+        if let str = value as? String {
+            return writeString(str)
+        }
+
+        // 2. Encodable 模型（优先尝试编码为 JSON）
+        if let encodable = value as? Encodable {
+            return setModel(encodable)
+        }
+
+        // 3. 标准 JSON 对象（Dictionary/Array）
+        if JSONSerialization.isValidJSONObject(value) {
+            return setJSON(value)
+        }
+
+        // 4. 兜底：使用 CustomStringConvertible 或描述字符串
         let str = (value as? CustomStringConvertible)?.description ?? String(describing: value)
         return writeString(str)
     }
