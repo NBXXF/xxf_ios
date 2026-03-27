@@ -52,6 +52,9 @@ open class KeyboardFocusManagerView: UIView {
         didSet { panGesture.isEnabled = isPanToDismissEnabled }
     }
 
+    /// dismissKeyboard 方法的回调闭包
+    public var onDismissKeyboard: (() -> Void)?
+
     /// 滚动触发收起的阈值速度
     public var scrollVelocityThreshold: CGFloat = 50.0
 
@@ -416,6 +419,7 @@ open class KeyboardFocusManagerView: UIView {
     /// 收起键盘
     public func dismissKeyboard() {
         endEditing(true)
+        onDismissKeyboard?()
     }
 }
 
