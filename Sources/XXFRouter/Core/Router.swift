@@ -504,12 +504,15 @@ public final class Router: @unchecked Sendable {
             let entryPriority = findResult?.entry.priority
 
             // 将路径参数转换为可发送的字符串字典
-            var sendableParams: [String: String] = [:]
-            if let params = findResult?.parameters {
-                for (key, value) in params {
-                    sendableParams[key] = String(describing: value)
+            let sendableParams: [String: String] = {
+                var dict: [String: String] = [:]
+                if let params = findResult?.parameters {
+                    for (key, value) in params {
+                        dict[key] = String(describing: value)
+                    }
                 }
-            }
+                return dict
+            }()
 
             // 保存原始上下文信息用于后续恢复
             let originalURL = url
