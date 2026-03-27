@@ -11,6 +11,9 @@ public class DefaultErrorHandler: ErrorHandler {
     public nonisolated(unsafe) static var shared: ErrorHandler = DefaultErrorHandler()
 
     public func handle(error: any Error, toastPosition _: Int) {
+        if error.isRxDisposedError {
+            return
+        }
         // 使用 ProgressHUD、Toast 或其他方式展示
         showToast(text: convert(error: error)) // 调用泛型版本
     }
