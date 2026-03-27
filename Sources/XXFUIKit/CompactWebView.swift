@@ -226,7 +226,7 @@ extension CompactWebView: WKNavigationDelegate {
         }
     }
 
-    @objc private func webView(
+    @objc public func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @Sendable @escaping (WKNavigationActionPolicy) -> Void
