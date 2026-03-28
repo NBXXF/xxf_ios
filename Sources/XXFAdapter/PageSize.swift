@@ -5,16 +5,22 @@
 //  Created by xxf on 2022/11/12.
 //
 
+#if os(iOS) || os(tvOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#elseif os(watchOS)
+import WatchKit
+#endif
 
-/// 分页条数常量
 public enum PageSize {
-    /// 推荐拉取条数
+    /// 推荐分页条数
     public static var count: Int {
-        #if os(iOS)
+        #if os(iOS) || os(tvOS)
         if UIDevice.current.userInterfaceIdiom == .phone {
             return 20
         } else {
-            // iPad 可以单独设置，如果需要
+            // iPad 可单独设置
             return 40
         }
         #elseif os(macOS)
