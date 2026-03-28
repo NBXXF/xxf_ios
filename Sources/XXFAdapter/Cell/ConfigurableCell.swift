@@ -27,20 +27,15 @@
 ///
 /// // 3. 在 tableView(_:cellForRowAt:) 中使用
 /// let user = users[indexPath.row]
-/// cell.configure(with: user)
 /// cell.configure(with: user, payloads: ["highlight": true])
 /// ```
 public protocol ConfigurableCell {
     /// 关联类型 - 数据模型类型
     associatedtype Model
 
-    /// 基础配置 Cell 数据
-    /// - Parameter model: 数据模型，用于填充 Cell 内容
-    func configure(with model: Model)
-
     /// 带额外参数配置 Cell 数据
     /// - Parameters:
     ///   - model: 数据模型，用于填充 Cell 内容
     ///   - payloads: 额外的上下文数据，如高亮标记、展开状态等，可用于局部刷新
-    func configure(with model: Model, payloads: [Any])
+    func configure(with model: Model, payloads: [Any]?)
 }

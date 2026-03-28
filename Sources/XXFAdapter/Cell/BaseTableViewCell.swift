@@ -17,14 +17,9 @@ open class BaseTableViewCell<Model>: UITableViewCell, ConfigurableCell {
     /// 当前绑定的数据模型，便于其他方法访问
     open private(set) var model: Model?
 
-    /// 基础配置，存储 model
-    open func configure(with model: Model) {
-        self.model = model
-    }
-
     /// 带额外参数的配置，子类可重写以实现局部刷新
-    open func configure(with model: Model, payloads: [Any]) {
-        configure(with: model)
+    open func configure(with model: Model, payloads: [Any]?) {
+        self.model = model
         // 子类处理 payloads 实现局部刷新
     }
 
