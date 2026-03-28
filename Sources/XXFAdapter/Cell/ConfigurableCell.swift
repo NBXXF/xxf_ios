@@ -33,8 +33,8 @@ public protocol ConfigurableCell {
     /// 关联类型 - 数据模型类型
     associatedtype Model
 
-    /// 当前绑定的数据模型（内部存储，外部只读）
-    var model: Model? { get }
+    /// 当前绑定的数据模型
+    var model: Model? { get set }
 
     /// 带额外参数配置 Cell 数据
     /// - Parameters:

@@ -7,6 +7,7 @@
 
 #if canImport(UIKit)
 import UIKit
+
 /// UITableViewCell 的基类，统一实现 ConfigurableCell
 
 open class BaseTableViewCell<Model>: UITableViewCell, ConfigurableCell {
@@ -15,7 +16,7 @@ open class BaseTableViewCell<Model>: UITableViewCell, ConfigurableCell {
     // MARK: - 数据绑定
 
     /// 当前绑定的数据模型，便于其他方法访问
-    open private(set) var model: Model?
+    open var model: Model?
 
     /// 带额外参数的配置，子类可重写以实现局部刷新
     open func configure(with model: Model, payloads: [Any]?) {
