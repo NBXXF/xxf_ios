@@ -6,7 +6,7 @@
 //
 
 #if canImport(UIKit)
-
+import UIKit
 /// UITableViewCell 的基类，统一实现 ConfigurableCell
 
 open class BaseTableViewCell<Model>: UITableViewCell, ConfigurableCell {

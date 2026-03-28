@@ -5,6 +5,7 @@
 //  Created by xxf on 2022/11/12.
 //
 #if canImport(UIKit)
+import UIKit
 // BaseCell 继承 UICollectionViewCell，同时实现 ConfigurableCell 协议
 open class BaseCollectionViewCell<Model>: UICollectionViewCell, ConfigurableCell {
     // 协议要求的类型别名
