@@ -12,6 +12,8 @@ import XXFFoundation
 public typealias JSON = Json
 
 public enum Json {
+    @available(*, deprecated, message: "JSONDecoder caching is unsafe")
+    public static var useCache = false /// 暂时不要用缓存,有野指针崩溃风险
     private static let decoderKey = "com.xxf.json.ThreadLocalDecoderWrapper"
     private static let encoderKey = "com.xxf.json.ThreadLocalEncoderWrapper"
 
@@ -86,22 +88,29 @@ public enum Json {
     // MARK: - 线程局部 JSONDecoder
 
     private static var threadLocalDecoder: JSONDecoder {
-        let threadDict = Thread.current.threadDictionary
-        if
-            let wrapper = threadDict[decoderKey] as? ThreadLocalDecoderWrapper,
-            wrapper.version == configVersion
-        {
-            return wrapper.decoder
+        if !useCache {
+            return makeDecoder()
         } else {
-            let decoder = makeDecoder()
-            threadDict[decoderKey] = ThreadLocalDecoderWrapper(version: configVersion, decoder: decoder)
-            return decoder
+            let threadDict = Thread.current.threadDictionary
+            if
+                let wrapper = threadDict[decoderKey] as? ThreadLocalDecoderWrapper,
+                wrapper.version == configVersion
+            {
+                return wrapper.decoder
+            } else {
+                let decoder = makeDecoder()
+                threadDict[decoderKey] = ThreadLocalDecoderWrapper(version: configVersion, decoder: decoder)
+                return decoder
+            }
         }
     }
 
     // MARK: - 线程局部 JSONEncoder
 
     private static var threadLocalEncoder: JSONEncoder {
+        if !useCache {
+            return makeEncoder()
+        }
         let threadDict = Thread.current.threadDictionary
         if
             let wrapper = threadDict[encoderKey] as? ThreadLocalEncoderWrapper,
