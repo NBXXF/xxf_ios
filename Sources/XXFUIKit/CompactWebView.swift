@@ -2,6 +2,7 @@
 //  CompactWebView.swift
 //
 #if canImport(UIKit)
+import AVFoundation
 import UIKit
 import WebKit
 
@@ -282,6 +283,27 @@ extension CompactWebView: WKUIDelegate {
             webView.load(navigationAction.request)
         }
         return nil
+    }
+
+    /// 避免网页里面多次弹窗问题
+    public func webView(_ webView: WKWebView,
+                        requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                        initiatedByFrame frame: WKFrameInfo,
+                        type: WKMediaCaptureType,
+                        decisionHandler: @escaping (WKPermissionDecision) -> Void)
+    {
+        if type == .camera {
+            let status = AVCaptureDevice.authorizationStatus(for: .video)
+            if status == .authorized {
+                decisionHandler(.grant) // App授权过，网页直接允许，无弹窗
+            } else {
+                // App没授权，交给系统弹窗处理
+                decisionHandler(.prompt)
+            }
+        } else {
+            // 其他权限继续走默认弹窗（prompt），保留原有逻辑
+            decisionHandler(.prompt)
+        }
     }
 }
 #endif
