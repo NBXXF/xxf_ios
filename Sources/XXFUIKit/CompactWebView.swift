@@ -270,40 +270,4 @@ extension CompactWebView: WKNavigationDelegate {
     }
 }
 
-// MARK: - WKUIDelegate
-
-extension CompactWebView: WKUIDelegate {
-    public func webView(
-        _ webView: WKWebView,
-        createWebViewWith configuration: WKWebViewConfiguration,
-        for navigationAction: WKNavigationAction,
-        windowFeatures: WKWindowFeatures
-    ) -> WKWebView? {
-        if navigationAction.targetFrame == nil {
-            webView.load(navigationAction.request)
-        }
-        return nil
-    }
-
-    /// 避免网页里面多次弹窗问题
-    public func webView(_ webView: WKWebView,
-                        requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-                        initiatedByFrame frame: WKFrameInfo,
-                        type: WKMediaCaptureType,
-                        decisionHandler: @escaping (WKPermissionDecision) -> Void)
-    {
-        if type == .camera {
-            let status = AVCaptureDevice.authorizationStatus(for: .video)
-            if status == .authorized {
-                decisionHandler(.grant) // App授权过，网页直接允许，无弹窗
-            } else {
-                // App没授权，交给系统弹窗处理
-                decisionHandler(.prompt)
-            }
-        } else {
-            // 其他权限继续走默认弹窗（prompt），保留原有逻辑
-            decisionHandler(.prompt)
-        }
-    }
-}
 #endif
