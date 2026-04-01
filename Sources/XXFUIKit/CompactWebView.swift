@@ -46,7 +46,7 @@ import WebKit
 /// let webView = CompactWebView()
 /// webView.load(URLRequest(url: url))
 ///
-public class CompactWebView: WKWebView {
+open class CompactWebView: WKWebView {
     // MARK: - Shared
 
     /// 共享进程池
@@ -60,21 +60,21 @@ public class CompactWebView: WKWebView {
 
     // MARK: - Public
 
-    weak var externalNavigationDelegate: WKNavigationDelegate?
-    weak var externalUIDelegate: WKUIDelegate?
+    open weak var externalNavigationDelegate: WKNavigationDelegate?
+    open weak var externalUIDelegate: WKUIDelegate?
 
     /// 超时回调
-    var onTimeout: (() -> Void)?
+    open var onTimeout: (() -> Void)?
 
     /// 加载状态
-    enum State {
+    public enum State {
         case idle
         case loading
         case success
         case failed(Error?)
     }
 
-    private(set) var state: State = .idle
+    open private(set) var state: State = .idle
 
     // MARK: - Private
 
@@ -82,7 +82,7 @@ public class CompactWebView: WKWebView {
 
     // timeout
     private var timeoutTask: DispatchWorkItem?
-    var timeoutInterval: TimeInterval = 15
+    open var timeoutInterval: TimeInterval = 15
 
     // crash reload 控制
     private var reloadCount = 0
@@ -95,7 +95,7 @@ public class CompactWebView: WKWebView {
 
     // MARK: - Init
 
-    public init(ephemeral: Bool = false) {
+    open init(ephemeral: Bool = false) {
         let config = Self.makeConfiguration(ephemeral: ephemeral)
         super.init(frame: .zero, configuration: config)
         setup()
@@ -110,14 +110,14 @@ public class CompactWebView: WKWebView {
 
     // MARK: - Load
 
-    override public func load(_ request: URLRequest) -> WKNavigation? {
+    override open func load(_ request: URLRequest) -> WKNavigation? {
         lastRequest = request
         state = .loading
         startTimeout()
         return super.load(request)
     }
 
-    override public func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
+    override open func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
         lastRequest = nil
         state = .loading
         startTimeout()
@@ -206,7 +206,7 @@ public class CompactWebView: WKWebView {
 // MARK: - WKNavigationDelegate
 
 extension CompactWebView: WKNavigationDelegate {
-    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    open func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         cancelTimeout()
         reloadCount = 0
         state = .success
@@ -214,7 +214,7 @@ extension CompactWebView: WKNavigationDelegate {
         externalNavigationDelegate?.webView?(webView, didFinish: navigation)
     }
 
-    public func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+    open func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         guard reloadCount < maxReloadCount else {
             state = .failed(nil)
             return
@@ -227,7 +227,7 @@ extension CompactWebView: WKNavigationDelegate {
         }
     }
 
-    @objc public func webView(
+    @objc open func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @Sendable @escaping (WKNavigationActionPolicy) -> Void

@@ -7,7 +7,7 @@ import AVFoundation
 import WebKit
 
 extension CompactWebView: WKUIDelegate {
-    public func webView(
+    open func webView(
         _ webView: WKWebView,
         createWebViewWith configuration: WKWebViewConfiguration,
         for navigationAction: WKNavigationAction,
@@ -20,7 +20,7 @@ extension CompactWebView: WKUIDelegate {
     }
 
     /// 处理网页权限请求,这种方式避免多次弹窗,代理到宿主, 但是h5 再其他浏览器依旧不行,是js用法问题
-    public func webView(_ webView: WKWebView,
+    open func webView(_ webView: WKWebView,
                         requestMediaCapturePermissionFor origin: WKSecurityOrigin,
                         initiatedByFrame frame: WKFrameInfo,
                         type: WKMediaCaptureType,
