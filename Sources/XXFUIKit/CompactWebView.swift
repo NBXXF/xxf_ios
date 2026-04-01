@@ -95,7 +95,7 @@ open class CompactWebView: WKWebView {
 
     // MARK: - Init
 
-    open init(ephemeral: Bool = false) {
+    public init(ephemeral: Bool = false) {
         let config = Self.makeConfiguration(ephemeral: ephemeral)
         super.init(frame: .zero, configuration: config)
         setup()
