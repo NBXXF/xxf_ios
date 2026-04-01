@@ -165,6 +165,9 @@ open class CompactWebView: WKWebView {
         config.preferences.javaScriptCanOpenWindowsAutomatically = false
 
         config.defaultWebpagePreferences.preferredContentMode = .mobile
+        config.preferences.javaScriptEnabled = true
+        config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        config.defaultWebpagePreferences.allowsContentJavaScript = true
 
         // ⚠️ JS Bridge 已移除（不再注入任何 handler / script）
 
