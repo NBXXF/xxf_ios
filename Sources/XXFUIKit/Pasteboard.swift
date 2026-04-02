@@ -46,7 +46,7 @@ public extension UIPasteboard {
         encoder.outputFormatting = makeEncoderFormatting(pretty: pretty)
         guard let data = try? encoder.encode(model),
               let str = String(data: data, encoding: .utf8) else { return false }
-        string = str
+        string = str.replacingOccurrences(of: "\\/", with: "/")
         return true
     }
 
