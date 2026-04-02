@@ -27,7 +27,6 @@ import UIKit
 
 @MainActor
 public extension UIPasteboard {
-
     // MARK: Set
 
     /// 复制 JSON（支持 Dictionary / Array）
@@ -36,7 +35,7 @@ public extension UIPasteboard {
         guard JSONSerialization.isValidJSONObject(object),
               let data = try? JSONSerialization.data(withJSONObject: object, options: makeJSONOptions(pretty: pretty)),
               let str = String(data: data, encoding: .utf8) else { return false }
-        string = str
+        string = str.replacingOccurrences(of: "\\/", with: "/")
         return true
     }
 
@@ -103,7 +102,6 @@ import AppKit
 
 @MainActor
 public extension NSPasteboard {
-
     // MARK: Set
 
     /// 复制 JSON（支持 Dictionary / Array）
