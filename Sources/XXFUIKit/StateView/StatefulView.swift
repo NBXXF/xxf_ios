@@ -139,7 +139,7 @@ open class StatefulView: UIView {
     /// 更新状态（状态之间互斥）
     /// - Parameter state: 目标状态
     /// - Parameter animated: 是否使用动画（默认 true）
-    public func update(state: State, animated: Bool = true) {
+    open func update(state: State, animated: Bool = true) {
         let duration = animated ? animationDuration : 0
         let token = UUID()
         animationToken = token
