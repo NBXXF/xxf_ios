@@ -17,18 +17,6 @@
 #if canImport(UIKit)
 import UIKit
 
-// MARK: - 枚举定义
-
-/// 图片相对于文字的位置
-/// 参考 Android Button 的 drawableLeft/Top/Right/Bottom
-public enum UIControlButtonImagePosition: Int, CaseIterable {
-    case left   = 0  // 图片在文字左侧
-    case right  = 1  // 图片在文字右侧
-    case top    = 2  // 图片在文字上方
-    case bottom = 3  // 图片在文字下方
-}
-
-
 // MARK: - UIControlButton
 
 /// 继承自 UIControl 的自定义按钮，API 设计参考 UIButton
@@ -46,8 +34,8 @@ public enum UIControlButtonImagePosition: Int, CaseIterable {
 /// button.setTitle("点击", for: .normal)
 /// button.setTitle("高亮", for: .highlighted)
 /// button.setImage(UIImage(named: "icon"), for: .normal)
-/// button.imagePosition = .left
-/// button.imageTextSpacing = 8
+/// button.imagePlacement = .leading
+/// button.imagePadding = 8
 /// button.contentInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
 /// button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
 /// ```
@@ -124,12 +112,12 @@ open class UIControlButton: UIControl {
 
     // MARK: - 外观属性（@IBInspectable）
 
-    /// 图片位置，默认为左侧
+    /// 图片位置，默认为 leading（左侧，RTL 环境为右侧）
     /// - Note: 修改此属性会立即更新布局
-    public var imagePosition: UIControlButtonImagePosition = .left {
+    public var imagePlacement: NSDirectionalRectEdge = .leading {
         didSet {
-            guard imagePosition != oldValue else { return }
-            updateLayoutForImagePosition()
+            guard imagePlacement != oldValue else { return }
+            updateLayoutForImagePlacement()
         }
     }
 
@@ -157,10 +145,10 @@ open class UIControlButton: UIControl {
 
     /// 图片和文字之间的间距，默认为 8
     @IBInspectable
-    public var imageTextSpacing: CGFloat = 8 {
+    public var imagePadding: CGFloat = 8 {
         didSet {
-            guard imageTextSpacing != oldValue else { return }
-            contentStackView.spacing = imageTextSpacing
+            guard imagePadding != oldValue else { return }
+            contentStackView.spacing = imagePadding
         }
     }
 
@@ -269,7 +257,7 @@ open class UIControlButton: UIControl {
         setupViewHierarchy()
         setupConstraints()
         setupDefaultValues()
-        updateLayoutForImagePosition()
+        updateLayoutForImagePlacement()
         updateContentAlignment()
     }
 
@@ -552,18 +540,18 @@ open class UIControlButton: UIControl {
     // MARK: - 布局更新
 
     /// 根据图片位置更新布局
-    private func updateLayoutForImagePosition() {
+    private func updateLayoutForImagePlacement() {
         // 移除现有子视图
         contentStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         // 根据位置设置轴方向和子视图顺序
-        switch imagePosition {
-        case .left:
+        switch imagePlacement {
+        case .leading:
             contentStackView.axis = .horizontal
             contentStackView.addArrangedSubview(imageView)
             contentStackView.addArrangedSubview(titleLabel)
 
-        case .right:
+        case .trailing:
             contentStackView.axis = .horizontal
             contentStackView.addArrangedSubview(titleLabel)
             contentStackView.addArrangedSubview(imageView)
@@ -577,6 +565,12 @@ open class UIControlButton: UIControl {
             contentStackView.axis = .vertical
             contentStackView.addArrangedSubview(titleLabel)
             contentStackView.addArrangedSubview(imageView)
+
+        default:
+            // 其他值默认使用 leading 行为
+            contentStackView.axis = .horizontal
+            contentStackView.addArrangedSubview(imageView)
+            contentStackView.addArrangedSubview(titleLabel)
         }
 
         // 更新对齐方式
@@ -820,12 +814,10 @@ open class UIControlButton: UIControl {
     // MARK: - @IBInspectable 支持
 
     @IBInspectable
-    var imagePositionIndex: Int {
-        get { imagePosition.rawValue }
+    var imagePlacementIndex: Int {
+        get { Int(imagePlacement.rawValue) }
         set {
-            if let position = UIControlButtonImagePosition(rawValue: newValue) {
-                imagePosition = position
-            }
+            imagePlacement = NSDirectionalRectEdge(rawValue: UInt(newValue))
         }
     }
 
@@ -982,20 +974,20 @@ public extension UIControlButton {
     /// - Parameters:
     ///   - title: 标题（normal 状态）
     ///   - image: 图片（normal 状态）
-    ///   - position: 图片位置
-    ///   - spacing: 图文间距
+    ///   - placement: 图片位置
+    ///   - padding: 图文间距
     /// - Returns: self，支持链式调用
     @discardableResult
     func configure(
         title: String? = nil,
         image: UIImage? = nil,
-        position: UIControlButtonImagePosition = .left,
-        spacing: CGFloat = 8
+        placement: NSDirectionalRectEdge = .leading,
+        padding: CGFloat = 8
     ) -> Self {
         setTitle(title, for: .normal)
         setImage(image, for: .normal)
-        imagePosition = position
-        imageTextSpacing = spacing
+        imagePlacement = placement
+        imagePadding = padding
         return self
     }
 
@@ -1047,8 +1039,8 @@ public extension UIControlButton {
         public var attributedTitle: NSAttributedString?
         public var image: UIImage?
         public var backgroundImage: UIImage?
-        public var imagePosition: UIControlButtonImagePosition = .left
-        public var imageTextSpacing: CGFloat = 8
+        public var imagePlacement: NSDirectionalRectEdge = .leading
+        public var imagePadding: CGFloat = 8
         public var contentInsets: UIEdgeInsets = .init(top: 8, left: 16, bottom: 8, right: 16)
         public var contentHorizontalAlignment: UIControl.ContentHorizontalAlignment = .center
         public var contentVerticalAlignment: UIControl.ContentVerticalAlignment = .center
@@ -1080,8 +1072,8 @@ public extension UIControlButton {
         if let backgroundImage = configuration.backgroundImage {
             setBackgroundImage(backgroundImage, for: .normal)
         }
-        imagePosition = configuration.imagePosition
-        imageTextSpacing = configuration.imageTextSpacing
+        imagePlacement = configuration.imagePlacement
+        imagePadding = configuration.imagePadding
         contentInsets = configuration.contentInsets
         contentHorizontalAlignment = configuration.contentHorizontalAlignment
         contentVerticalAlignment = configuration.contentVerticalAlignment
