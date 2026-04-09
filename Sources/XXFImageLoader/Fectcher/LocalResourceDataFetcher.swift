@@ -2,7 +2,7 @@
 //  LocalReourceDataFetcher.swift
 //  xxf_ios
 //  本地图片文件获取,必须nuke:isLocalResourcesSupportEnabled = false // 禁用内部直接读取,这样会走自定义的loaderFecther
-//  Created by xxf on 2026/8/19.
+//  Created by xxf on 2023/8/19.
 //
 import XXFFoundation
 import XXFImage

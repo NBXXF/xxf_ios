@@ -2,7 +2,7 @@
 //  PlatformImageView+ImageLoader.swift
 //  xxf_ios
 //  图片加载快捷拓展
-//  Created by xxf on 2026/8/19.
+//  Created by xxf on 2023/8/19.
 //
 
 import Foundation

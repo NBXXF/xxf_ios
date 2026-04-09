@@ -2,7 +2,7 @@
 //  VCViewModelBinding.swift
 //  xxf_ios
 //  vc级别的viewModel装饰器
-//  Created by xxf on 2026/8/14.
+//  Created by xxf on 2023/8/14.
 //
 
 #if os(macOS)

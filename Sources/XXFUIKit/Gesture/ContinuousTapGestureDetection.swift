@@ -5,7 +5,7 @@
 //  连续点击手势检测器
 //  可用于监听任意组件，连续点击 N 次后触发回调，不影响原有事件分发
 //
-//  Created by Claude on 2026/03/31.
+//  Created by Claude on 2023/03/31.
 //
 
 #if os(iOS)

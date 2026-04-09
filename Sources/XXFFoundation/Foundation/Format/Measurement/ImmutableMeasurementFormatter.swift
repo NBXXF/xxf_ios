@@ -2,7 +2,7 @@
 //  ImmutableMeasurementFormatter.swift
 //  xxf_ios
 //  通用测量单位格式化工具，线程安全，高效复用
-//  Created by xxf on 2026/8/15.
+//  Created by xxf on 2023/8/15.
 //
 
 import CoreGraphics

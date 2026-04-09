@@ -2,7 +2,7 @@
 //  SwiftFormatConfig.swift
 //  xxf_ios
 //
-//  Created by xxf on 2026/11/12.
+//  Created by xxf on 2023/11/12.
 //
 
 // xxf_ios/XXFSwiftFormat/SwiftFormatConfig.swift

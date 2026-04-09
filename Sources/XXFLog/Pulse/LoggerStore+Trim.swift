@@ -2,7 +2,7 @@
 //  LoggerStore+Trim.swift
 //  xxf_ios
 //
-//  Created by xxf on 2026/8/26.
+//  Created by xxf on 2023/8/26.
 //
 import Atomics
 import Foundation
