@@ -28,13 +28,6 @@ public enum UIControlButtonImagePosition: Int, CaseIterable {
     case bottom = 3  // 图片在文字下方
 }
 
-/// 内容对齐方式
-public enum UIControlButtonContentAlignment: Int, CaseIterable {
-    case center  = 0  // 居中对齐
-    case leading = 1  // 左对齐（水平）/顶部对齐（垂直）
-    case trailing = 2 // 右对齐（水平）/底部对齐（垂直）
-    case fill    = 3  // 填充
-}
 
 // MARK: - UIControlButton
 
@@ -141,19 +134,23 @@ open class UIControlButton: UIControl {
     }
 
     /// 水平方向内容对齐方式，默认为居中
-    /// - Note: 效果类似于 UIButton.contentHorizontalAlignment
-    public var contentHorizontalAlignment: UIControlButtonContentAlignment = .center {
-        didSet {
-            guard contentHorizontalAlignment != oldValue else { return }
+    /// - Note: 复写 UIControl.contentHorizontalAlignment，自定义布局行为
+    override open var contentHorizontalAlignment: UIControl.ContentHorizontalAlignment {
+        get { super.contentHorizontalAlignment }
+        set {
+            guard contentHorizontalAlignment != newValue else { return }
+            super.contentHorizontalAlignment = newValue
             updateContentAlignment()
         }
     }
 
     /// 垂直方向内容对齐方式，默认为居中
-    /// - Note: 效果类似于 UIButton.contentVerticalAlignment
-    public var contentVerticalAlignment: UIControlButtonContentAlignment = .center {
-        didSet {
-            guard contentVerticalAlignment != oldValue else { return }
+    /// - Note: 复写 UIControl.contentVerticalAlignment，自定义布局行为
+    override open var contentVerticalAlignment: UIControl.ContentVerticalAlignment {
+        get { super.contentVerticalAlignment }
+        set {
+            guard contentVerticalAlignment != newValue else { return }
+            super.contentVerticalAlignment = newValue
             updateContentAlignment()
         }
     }
@@ -337,11 +334,8 @@ open class UIControlButton: UIControl {
     }
 
     private func setupDefaultValues() {
-        // 默认样式
-        backgroundColor = .systemBlue
-
-        // 默认标题样式
-        titleLabel.textColor = .white
+        // 默认标题样式（与 UIButton 一致，透明背景）
+        titleLabel.textColor = .systemBlue
         titleLabel.font = .systemFont(ofSize: 16)
 
         // 默认状态
@@ -619,7 +613,7 @@ open class UIControlButton: UIControl {
             wrapperLeadingConstraint?.isActive = true
             wrapperTrailingConstraint?.isActive = true
 
-        case .leading:
+        case .left, .leading:
             wrapperCenterXConstraint?.isActive = false
             wrapperLeadingConstraint = contentWrapperView.leadingAnchor.constraint(
                 equalTo: leadingAnchor, constant: contentInsets.left)
@@ -628,7 +622,7 @@ open class UIControlButton: UIControl {
             wrapperLeadingConstraint?.isActive = true
             wrapperTrailingConstraint?.isActive = true
 
-        case .trailing:
+        case .right, .trailing:
             wrapperCenterXConstraint?.isActive = false
             wrapperLeadingConstraint = contentWrapperView.leadingAnchor.constraint(
                 greaterThanOrEqualTo: leadingAnchor, constant: contentInsets.left)
@@ -645,6 +639,9 @@ open class UIControlButton: UIControl {
                 equalTo: trailingAnchor, constant: -contentInsets.right)
             wrapperLeadingConstraint?.isActive = true
             wrapperTrailingConstraint?.isActive = true
+
+        @unknown default:
+            break
         }
     }
 
@@ -664,7 +661,7 @@ open class UIControlButton: UIControl {
             wrapperTopConstraint?.isActive = true
             wrapperBottomConstraint?.isActive = true
 
-        case .leading:
+        case .top:
             wrapperCenterYConstraint?.isActive = false
             wrapperTopConstraint = contentWrapperView.topAnchor.constraint(
                 equalTo: topAnchor, constant: contentInsets.top)
@@ -673,7 +670,7 @@ open class UIControlButton: UIControl {
             wrapperTopConstraint?.isActive = true
             wrapperBottomConstraint?.isActive = true
 
-        case .trailing:
+        case .bottom:
             wrapperCenterYConstraint?.isActive = false
             wrapperTopConstraint = contentWrapperView.topAnchor.constraint(
                 greaterThanOrEqualTo: topAnchor, constant: contentInsets.top)
@@ -690,6 +687,9 @@ open class UIControlButton: UIControl {
                 equalTo: bottomAnchor, constant: -contentInsets.bottom)
             wrapperTopConstraint?.isActive = true
             wrapperBottomConstraint?.isActive = true
+
+        @unknown default:
+            break
         }
     }
 
@@ -801,14 +801,6 @@ open class UIControlButton: UIControl {
         }
     }
 
-    @available(iOS 9.0, *)
-    override open var isFocused: Bool {
-        didSet {
-            guard isFocused != oldValue else { return }
-            updateCurrentState()
-        }
-    }
-
     // MARK: - 布局
 
     override open func layoutSubviews() {
@@ -841,7 +833,7 @@ open class UIControlButton: UIControl {
     var contentHorizontalAlignmentIndex: Int {
         get { contentHorizontalAlignment.rawValue }
         set {
-            if let alignment = UIControlButtonContentAlignment(rawValue: newValue) {
+            if let alignment = UIControl.ContentHorizontalAlignment(rawValue: newValue) {
                 contentHorizontalAlignment = alignment
             }
         }
@@ -851,7 +843,7 @@ open class UIControlButton: UIControl {
     var contentVerticalAlignmentIndex: Int {
         get { contentVerticalAlignment.rawValue }
         set {
-            if let alignment = UIControlButtonContentAlignment(rawValue: newValue) {
+            if let alignment = UIControl.ContentVerticalAlignment(rawValue: newValue) {
                 contentVerticalAlignment = alignment
             }
         }
@@ -1058,10 +1050,10 @@ public extension UIControlButton {
         public var imagePosition: UIControlButtonImagePosition = .left
         public var imageTextSpacing: CGFloat = 8
         public var contentInsets: UIEdgeInsets = .init(top: 8, left: 16, bottom: 8, right: 16)
-        public var contentHorizontalAlignment: UIControlButtonContentAlignment = .center
-        public var contentVerticalAlignment: UIControlButtonContentAlignment = .center
-        public var backgroundColor: UIColor = .systemBlue
-        public var titleColor: UIColor = .white
+        public var contentHorizontalAlignment: UIControl.ContentHorizontalAlignment = .center
+        public var contentVerticalAlignment: UIControl.ContentVerticalAlignment = .center
+        public var backgroundColor: UIColor? = nil
+        public var titleColor: UIColor = .systemBlue
         public var titleFont: UIFont = .systemFont(ofSize: 16)
         public var cornerRadius: CGFloat = 0
         public var imageSize: CGSize?
@@ -1093,7 +1085,9 @@ public extension UIControlButton {
         contentInsets = configuration.contentInsets
         contentHorizontalAlignment = configuration.contentHorizontalAlignment
         contentVerticalAlignment = configuration.contentVerticalAlignment
-        backgroundColor = configuration.backgroundColor
+        if let bgColor = configuration.backgroundColor {
+            backgroundColor = bgColor
+        }
         setTitleColor(configuration.titleColor, for: .normal)
         titleFont = configuration.titleFont
         cornerRadius = configuration.cornerRadius
