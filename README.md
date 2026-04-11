@@ -87,6 +87,9 @@
   - [XXFImageEditor - 图片编辑/裁切](#15-xxfimageeditor---图片编辑裁切)
   - [XXFPhotoPicker - 图片视频选择器](#16-xxfphotopicker---图片视频选择器)
   - [XXFKeyboard - 键盘适配组件](#17-xxfkeyboard---键盘适配组件)
+    - [KeyboardResizeContainer](#keyboardresizecontainer---自适应容器)
+    - [KeyboardPanelContainer](#keyboardpanelcontainer---面板容器)
+    - [KeyboardHeightProvider](#keyboardheightprovider---全局键盘高度缓存)
   - [XXFPerformance - 性能监控](#18-xxfperformance---性能监控)
   - [XXFCompress - 图片压缩（Luban）](#19-xxfcompress---图片压缩luban)
   - [其他模块](#20-其他模块)
@@ -182,9 +185,10 @@ Router.shared.navigate(to: "app://profile/123")
 │        └─────────────────────────────────────────────────┘          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                        UI工具层 (UI Utilities)                       │
-│  XXFReusable · XXFRefreshable · XXFAdapter · XXFImageEditor · XXFPhotoPicker · SnapKit │
+│  XXFReusable · XXFRefreshable · XXFAdapter · XXFImageEditor ·        │
+│  XXFPhotoPicker · KeyboardPanelContainer · SnapKit · MJRefresh       │
 │        ┌─────────────────────────────────────────────────┐          │
-│        │    Cell复用、下拉刷新、数据源适配、自动布局         │          │
+│        │  Cell复用、下拉刷新、数据源适配、图片编辑、键盘面板   │          │
 │        └─────────────────────────────────────────────────┘          │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -1098,15 +1102,168 @@ class CustomPhotoPickerProvider: PhotoPickerProvider {
 
 ## 17. XXFKeyboard - 键盘适配组件
 
-基于 [RxKeyboard](https://github.com/RxSwiftCommunity/RxKeyboard) 的键盘适配组件，提供类似 Android `adjustPan` 模式的容器视图。
+基于 [RxKeyboard](https://github.com/RxSwiftCommunity/RxKeyboard) 的键盘适配组件，提供多种键盘处理方案。
 
 ### 架构设计
 
 ```
 XXFKeyboard
-├── KeyboardResizeContainer    ← 核心容器（自动调整高度适配键盘）
-├── XXFKeyboard                ← 模块入口（暴露 RxKeyboard 单例）
-└── RxKeyboard                 ← 底层依赖（键盘事件响应式封装）
+├── KeyboardResizeContainer    ← 自适应容器（内容区域自动上移）
+├── KeyboardPanelContainer     ← 面板容器（高度等于键盘高度）
+├── KeyboardHeightProvider     ← 全局键盘高度缓存
+├── XXFKeyboard                ← 模块入口
+└── RxKeyboard                 ← 底层依赖
+```
+
+### 组件对比
+
+| 组件 | 高度行为 | 适用场景 | 键盘收起时高度 |
+|------|----------|----------|----------------|
+| `KeyboardResizeContainer` | 父视图高度 - 键盘高度 | 表单页面、聊天列表 | 占满全屏 |
+| `KeyboardPanelContainer` | 等于键盘高度 | 表情面板、功能面板 | 取决于 mode |
+
+### 启动配置
+
+```swift
+// AppDelegate.swift
+func application(_ application: UIApplication,
+                 didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    // 开启全局键盘高度监听（用于 KeyboardPanelContainer 的 .always 模式）
+    KeyboardHeightProvider.shared.startMonitoring()
+    return true
+}
+```
+
+---
+
+### KeyboardResizeContainer - 自适应容器
+
+类似 Android `adjustPan` 模式，容器高度自动减去键盘高度，内容区域保持在键盘上方。
+
+#### 核心特性
+
+| 特性 | 说明 |
+|------|------|
+| **自动高度调整** | 容器高度 = 父视图高度 - 键盘高度 |
+| **动画同步** | 完美同步键盘动画曲线和时长 |
+| **ScrollView 支持** | 自动处理 contentInset 和 contentOffset |
+| **点击收起键盘** | 内置 tap gesture 收起键盘 |
+
+#### 使用示例
+
+```swift
+import XXFKeyboard
+
+class ViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        // 创建容器
+        let container = KeyboardResizeContainer()
+        view.addSubview(container)
+        container.snp.makeConstraints {
+            $0.edges.equalTo(view.safeAreaLayoutGuide)
+        }
+
+        // 绑定内容视图
+        let contentView = UIView()
+        container.bindContentView(contentView)
+
+        // 添加输入框
+        let textField = UITextField()
+        contentView.addSubview(textField)
+
+        // 点击空白处收起键盘
+        container.addTapToDismiss()
+    }
+}
+```
+
+---
+
+### KeyboardPanelContainer - 面板容器
+
+容器高度与键盘高度保持同步，适用于表情面板、功能面板、底部工具栏等场景。
+
+#### 显示模式
+
+| 模式 | 行为 | 初始高度 | 键盘收起时 |
+|------|------|----------|------------|
+| `.auto` | 跟随键盘显示/隐藏 | 0 | 高度为 0 |
+| `.always` | 始终占用键盘高度 | 预估高度 | 保持高度 |
+| `.alwaysWithInitialHeight(CGFloat)` | 始终显示指定高度 | 指定值 | 保持高度 |
+
+#### 使用示例
+
+```swift
+// 自动模式：表情面板跟随键盘显示/隐藏
+let emojiPanel = KeyboardPanelContainer(mode: .auto)
+view.addSubview(emojiPanel)
+emojiPanel.snp.makeConstraints {
+    $0.leading.trailing.bottom.equalToSuperview()
+}
+
+// 添加表情网格
+let collectionView = UICollectionView(...)
+emojiPanel.bindContentView(collectionView)
+```
+
+#### 总是显示模式
+
+```swift
+// 总是显示模式：底部工具栏始终占用键盘高度
+let toolbar = KeyboardPanelContainer(mode: .always)
+// 首次显示使用预估高度（约 291pt），键盘弹出后自动修正
+```
+
+#### 动态切换模式
+
+```swift
+let panel = KeyboardPanelContainer(mode: .auto)
+
+// 切换到总是显示模式（键盘收起后仍保持高度）
+panel.mode = .always
+
+// 切换回自动模式
+panel.mode = .auto
+```
+
+#### 监听高度变化
+
+```swift
+panel.onHeightChanged = { height in
+    print("面板高度变化: \(height)")
+}
+```
+
+---
+
+### KeyboardHeightProvider - 全局键盘高度缓存
+
+iOS 没有官方 API 可以预测键盘高度，本类通过全局单例缓存键盘高度，解决首次显示时的预估高度问题。
+
+#### 预估高度参考
+
+| 设备 | 屏幕尺寸 | 预估高度 |
+|------|----------|----------|
+| iPhone SE/8 | 667pt | 216pt |
+| iPhone 12/13/14/15/16 | 812-852pt | 291pt |
+| iPhone Plus/Max | 932pt | 301pt |
+| iPhone 16 Pro Max | 956pt | 311pt |
+| iPad | - | 400pt |
+
+#### 使用示例
+
+```swift
+// 获取当前键盘高度（缓存值或预估值）
+let height = KeyboardHeightProvider.shared.currentHeight
+
+// 判断是否有缓存值
+if KeyboardHeightProvider.shared.hasCachedHeight {
+    print("使用真实高度: \(height)")
+} else {
+    print("使用预估高度: \(height)")
+}
 ```
 
 ### 核心特性
@@ -1380,7 +1537,7 @@ let data = image.lubanCompress(type: .timeline)
 | **XXFImageEditorBrightroom** | 图片编辑器实现 | Brightroom 2.x 驱动 |
 | **XXFPhotoPicker** | 图片视频选择器 | 可替换 Provider，隔离 ZLPhotoBrowser |
 | **XXFPhotoPickerZl** | 图片选择器实现 | ZLPhotoBrowser 4.x 驱动 |
-| **XXFKeyboard** | 键盘适配 | RxKeyboard 封装，adjustPan 模式 |
+| **XXFKeyboard** | 键盘适配 | KeyboardResizeContainer + KeyboardPanelContainer + KeyboardHeightProvider |
 | **XXFCompress** | 图片压缩 | Luban 算法，微信式压缩 |
 | **XXFRouter** | 路由框架 | 拦截器 + 降级策略 |
 | **XXFServer** | 内嵌服务器 | Vapor 驱动 |
