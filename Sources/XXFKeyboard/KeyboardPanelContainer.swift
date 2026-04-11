@@ -115,6 +115,17 @@ open class KeyboardPanelContainer: UIView {
 
     // MARK: - Layout
 
+    override open func didMoveToSuperview() {
+        super.didMoveToSuperview()
+
+        // 确保高度约束已创建
+        if superview != nil && heightConstraint == nil {
+            self.snp.makeConstraints { make in
+                heightConstraint = make.height.equalTo(0).constraint
+            }
+        }
+    }
+
     override open func layoutSubviews() {
         super.layoutSubviews()
 
@@ -149,10 +160,16 @@ open class KeyboardPanelContainer: UIView {
         case .auto:
             startAutoMode()
         case .always:
+            // 停止自动模式监听
+            keyboardDisposable?.dispose()
+            keyboardDisposable = nil
             // 使用 Provider 的标准高度（缓存或预估）
             let height = KeyboardHeightProvider.shared.standardHeight
             updateHeight(height, animated: true)
         case .alwaysWithInitialHeight(let height):
+            // 停止自动模式监听
+            keyboardDisposable?.dispose()
+            keyboardDisposable = nil
             updateHeight(height, animated: true)
         }
     }
@@ -162,7 +179,7 @@ open class KeyboardPanelContainer: UIView {
         // 重新订阅 RxKeyboard,每次订阅会发送以前最后一次的
         keyboardDisposable?.dispose()
         keyboardDisposable = RxKeyboard.instance.visibleHeight
-            .throttle(.milliseconds(50), latest: true, scheduler: MainScheduler.instance) // 限制更新频率
+            .throttle(.milliseconds(50), latest: true) // 限制更新频率
             .drive(onNext: { [weak self] height in
                 guard let self = self else { return }
                 self.lastKeyboardHeight = height
