@@ -205,6 +205,10 @@ open class KeyboardPanelContainer: UIView {
     }
 
     public var onHeightChanged: ((CGFloat) -> Void)?
+    
+    deinit{
+        keyboardDisposable?.dispose()
+    }
 
     // MARK: - Factory
 
