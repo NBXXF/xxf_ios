@@ -6,11 +6,11 @@
 //
 
 #if os(iOS)
-import UIKit
-import RxSwift
 import RxCocoa
 import RxKeyboard
+import RxSwift
 import SnapKit
+import UIKit
 
 /// KeyboardPanelContainer - 键盘面板容器
 ///
@@ -51,7 +51,6 @@ import SnapKit
 /// - 高度变化小于 0.5pt 时忽略，避免微小抖动
 @MainActor
 open class KeyboardPanelContainer: UIView {
-
     // MARK: - Display Mode
 
     public enum DisplayMode: Equatable {
@@ -97,6 +96,8 @@ open class KeyboardPanelContainer: UIView {
     // 状态标记
     private var isInitialLayoutDone = false
     private var lastKeyboardHeight: CGFloat = 0
+
+    private var keyboardDisposable: Disposable?
 
     // MARK: - Initialization
 
@@ -158,15 +159,15 @@ open class KeyboardPanelContainer: UIView {
 
     private func startAutoMode() {
         // 清理之前的订阅（除了通知监听）
-        // 重新订阅 RxKeyboard
-        RxKeyboard.instance.visibleHeight
+        // 重新订阅 RxKeyboard,每次订阅会发送以前最后一次的
+        keyboardDisposable?.dispose()
+        keyboardDisposable = RxKeyboard.instance.visibleHeight
             .throttle(.milliseconds(50), latest: true, scheduler: MainScheduler.instance) // 限制更新频率
             .drive(onNext: { [weak self] height in
                 guard let self = self else { return }
                 self.lastKeyboardHeight = height
                 self.updateHeight(height, animated: true)
             })
-            .disposed(by: disposeBag)
     }
 
     // MARK: - Height Update
