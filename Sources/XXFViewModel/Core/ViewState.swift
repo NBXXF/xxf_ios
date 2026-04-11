@@ -28,7 +28,7 @@
 ///     showCompletedView()
 /// }
 /// ```
-public enum ViewState<T> {
+public enum ViewState<T>: ObsConvertible {
     /// 空闲中...
     case idle
     /// 加载中

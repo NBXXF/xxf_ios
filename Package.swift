@@ -112,6 +112,16 @@ let package = Package(
             name: "XXFImageEditorBrightroom",
             targets: ["XXFImageEditorBrightroom"]
         ),
+        // MARK: - 图片视频选择器（抽象层，无第三方依赖）
+        .library(
+            name: "XXFPhotoPicker",
+            targets: ["XXFPhotoPicker"]
+        ),
+        // MARK: - 图片视频选择器（ZLPhotoBrowser 实现，iOS only）
+        .library(
+            name: "XXFPhotoPickerZl",
+            targets: ["XXFPhotoPickerZl"]
+        ),
         .library(
             name: "XXFKeyboard",
             targets: ["XXFKeyboard"]
@@ -179,6 +189,9 @@ let package = Package(
 
         // 图片编辑器（fork 版，修复了官方 2.x 未声明 macOS 导致 Verge 11.x 报错的问题）
         .package(url: "https://github.com/NBXXF/Brightroom.git", from: "2.10.2"),
+
+        // 图片视频选择器
+        .package(url: "https://github.com/longitachi/ZLPhotoBrowser.git", from: "4.5.8"),
 
         // Firebase
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.10.0"),
@@ -351,6 +364,8 @@ let package = Package(
                 "XXFImageNukeLoader",
                 "XXFImageEditor",
                 "XXFImageEditorBrightroom",
+                "XXFPhotoPicker",
+                .target(name: "XXFPhotoPickerZl", condition: .when(platforms: [.iOS])),
                 "XXFAdapter",
                 "XXFUIKit",
                 "XXFSwiftFormat",
@@ -478,6 +493,18 @@ let package = Package(
                 "XXFImageEditor",
                 .product(name: "BrightroomUI", package: "Brightroom", condition: .when(platforms: [.iOS])),
                 .product(name: "BrightroomEngine", package: "Brightroom", condition: .when(platforms: [.iOS]))
+            ]
+        ),
+        // MARK: - 图片视频选择器（抽象层，无第三方依赖）
+        .target(
+            name: "XXFPhotoPicker"
+        ),
+        // MARK: - 图片视频选择器（ZLPhotoBrowser 实现，iOS only）
+        .target(
+            name: "XXFPhotoPickerZl",
+            dependencies: [
+                "XXFPhotoPicker",
+                .product(name: "ZLPhotoBrowser", package: "ZLPhotoBrowser", condition: .when(platforms: [.iOS]))
             ]
         ),
         // MARK: - 图片压缩（Luban 风格，微信压缩算法）

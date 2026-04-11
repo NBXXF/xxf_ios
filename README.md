@@ -36,6 +36,8 @@
 | Cell 注册繁琐易错 | **XXFReusable** - 自动注册，类型安全出队 |
 | 下拉刷新状态混乱 | **XXFRefreshable** - 状态机+RxSwift 集成 |
 | AI 流式响应难处理 | **SSE 支持** - 标准 Server-Sent Events 解析 |
+| 图片选择器功能单一 | **XXFPhotoPicker** - 图片/视频/相机 + 裁剪，可替换 Provider |
+| 图片压缩质量难平衡 | **XXFCompress** - Luban 智能压缩算法 |
 | 自动布局代码冗长 | **SnapKit** - 声明式约束语法 |
 
 ### 核心优势
@@ -83,10 +85,11 @@
   - [XXFAdapter - DiffableDataSource适配器](#13-xxfadapter---diffabledatasource适配器)
   - [XXFSwiftFormat - 代码格式化](#14-xxfswiftformat---代码格式化)
   - [XXFImageEditor - 图片编辑/裁切](#15-xxfimageeditor---图片编辑裁切)
+  - [XXFPhotoPicker - 图片视频选择器](#16-xxfphotopicker---图片视频选择器)
   - [XXFKeyboard - 键盘适配组件](#17-xxfkeyboard---键盘适配组件)
-  - [XXFPerformance - 性能监控](#16-xxfperformance---性能监控)
-  - [XXFCompress - 图片压缩（Luban）](#18-xxfcompress---图片压缩luban)
-  - [其他模块](#19-其他模块)
+  - [XXFPerformance - 性能监控](#18-xxfperformance---性能监控)
+  - [XXFCompress - 图片压缩（Luban）](#19-xxfcompress---图片压缩luban)
+  - [其他模块](#20-其他模块)
 - [设计模式](#设计模式)
 - [最佳实践](#最佳实践)
 - [依赖关系](#依赖关系)
@@ -179,7 +182,7 @@ Router.shared.navigate(to: "app://profile/123")
 │        └─────────────────────────────────────────────────┘          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                        UI工具层 (UI Utilities)                       │
-│    XXFReusable · XXFRefreshable · XXFAdapter · SnapKit · MJRefresh   │
+│  XXFReusable · XXFRefreshable · XXFAdapter · XXFImageEditor · XXFPhotoPicker · SnapKit │
 │        ┌─────────────────────────────────────────────────┐          │
 │        │    Cell复用、下拉刷新、数据源适配、自动布局         │          │
 │        └─────────────────────────────────────────────────┘          │
@@ -875,6 +878,224 @@ class CustomImageEditorProvider: ImageEditorProvider {
 
 ---
 
+## 16. XXFPhotoPicker - 图片视频选择器
+
+可替换的图片视频选择器门面，与底层选择库完全解耦，支持图片/视频选择、相机拍摄、裁剪等功能。
+
+### 架构设计
+
+```
+XXFPhotoPicker                     ← 公共 API 层（无第三方依赖）
+    PhotoPicker (门面单例)
+    PhotoPickerProvider (协议)
+    PhotoPickerConfiguration / PhotoCropConfiguration
+    PhotoPickerResult / PhotoPickerError
+
+XXFPhotoPickerZl                   ← ZLPhotoBrowser 实现（iOS 15+）
+    ZLPhotoPickerProvider
+```
+
+与 `XXFImageEditor → XXFImageEditorBrightroom` 完全相同的分层模式，切换底层库只需替换一个 provider 赋值，调用方代码零改动。
+
+### 安装
+
+```swift
+// Package.swift
+targets: [
+    .target(
+        name: "MyApp",
+        dependencies: [
+            "XXFPhotoPicker",           // 公共 API（调用方）
+            "XXFPhotoPickerZl"          // ZLPhotoBrowser 实现（注册方，通常仅在 App target）
+        ]
+    )
+]
+```
+
+> **注意**：`XXFPhotoPickerZl` 基于 [ZLPhotoBrowser](https://github.com/longitachi/ZLPhotoBrowser) 4.x，要求 **iOS 15+**。
+> `XXFPhotoPicker` 本身不依赖任何第三方库，可在 iOS 15+ 使用。
+
+### 配置（只需一次）
+
+```swift
+// AppDelegate / @main，在使用前注册 provider
+import XXFPhotoPickerZl
+
+PhotoPicker.shared.provider = ZLPhotoPickerProvider()
+```
+
+### 图片视频选择
+
+```swift
+import XXFPhotoPicker
+
+// 默认单选图片
+PhotoPicker.shared.presentPicker(from: self) { result in
+    switch result {
+    case .success(let results):
+        for item in results {
+            if let image = item.image {
+                // 处理图片
+                imageView.image = image
+            }
+            if let videoURL = item.videoURL {
+                // 处理视频
+                playVideo(url: videoURL)
+            }
+        }
+    case .failure(.cancelled):
+        break  // 用户取消，可安全忽略
+    case .failure(let e):
+        print(e.localizedDescription)
+    }
+}
+
+// 多选图片（最多9张）
+PhotoPicker.shared.presentPicker(
+    from: self,
+    configuration: PhotoPickerConfiguration(
+        selectionMode: .multiple,
+        maxSelectionCount: 9
+    )
+) { result in ... }
+
+// 选择视频
+PhotoPicker.shared.presentPicker(
+    from: self,
+    configuration: PhotoPickerConfiguration(
+        mediaType: .video
+    )
+) { result in ... }
+
+// 图片+视频混合选择
+PhotoPicker.shared.presentPicker(
+    from: self,
+    configuration: PhotoPickerConfiguration(
+        mediaType: .mixed,
+        selectionMode: .multiple,
+        maxSelectionCount: 9
+    )
+) { result in ... }
+```
+
+### 相机拍摄
+
+```swift
+// 拍照
+PhotoPicker.shared.presentCamera(from: self) { result in
+    switch result {
+    case .success(let item):
+        if let image = item.image {
+            imageView.image = image
+        }
+    case .failure(let error):
+        print(error.localizedDescription)
+    }
+}
+
+// 拍摄视频
+PhotoPicker.shared.presentCamera(
+    from: self,
+    configuration: CameraConfiguration(mediaType: .video)
+) { result in ... }
+```
+
+### 带裁剪的选择
+
+```swift
+// 选择单张图片并裁剪为 1:1 正方形
+PhotoPicker.shared.presentPicker(
+    from: self,
+    configuration: PhotoPickerConfiguration(
+        selectionMode: .single,
+        cropConfiguration: PhotoCropConfiguration(
+            aspectRatio: .square
+        )
+    )
+) { result in ... }
+
+// 固定 16:9 比例
+PhotoPicker.shared.presentPicker(
+    from: self,
+    configuration: PhotoPickerConfiguration(
+        selectionMode: .single,
+        cropConfiguration: PhotoCropConfiguration(
+            aspectRatio: .ratio16x9,
+            isResizable: false  // 锁定比例
+        )
+    )
+) { result in ... }
+```
+
+### 自定义主题色
+
+```swift
+PhotoPicker.shared.presentPicker(
+    from: self,
+    configuration: PhotoPickerConfiguration(
+        themeColor: PhotoPickerColor(
+            primaryColor: .systemBlue,
+            backgroundColor: .systemBackground,
+            textColor: .label
+        )
+    )
+) { result in ... }
+```
+
+### 配置选项
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `mediaType` | `PhotoPickerMediaType` | `.image` | 媒体类型：`.image`, `.video`, `.mixed` |
+| `selectionMode` | `PhotoPickerSelectionMode` | `.single` | 选择模式：`.single`, `.multiple` |
+| `maxSelectionCount` | `Int` | `9` | 最大选择数量（多选时有效） |
+| `allowSelectOriginal` | `Bool` | `true` | 是否允许选择原图 |
+| `allowTakePhoto` | `Bool` | `true` | 是否允许拍摄照片 |
+| `allowTakeVideo` | `Bool` | `true` | 是否允许拍摄视频 |
+| `cropConfiguration` | `PhotoCropConfiguration?` | `nil` | 裁剪配置（单选图片时有效） |
+| `themeColor` | `PhotoPickerColor?` | `nil` | 主题色配置 |
+
+### 裁剪比例选项
+
+| 枚举值 | 效果 |
+|--------|------|
+| `.freeform`（默认） | 自由比例，用户可任意调整 |
+| `.square` | 锁定 1:1 正方形 |
+| `.ratio4x3` | 锁定 4:3 比例 |
+| `.ratio16x9` | 锁定 16:9 比例 |
+| `.ratio(width: 3, height: 4)` | 锁定指定整数比例 |
+
+### 替换底层库（隔离性演示）
+
+```swift
+// 替换为其他实现，调用方代码完全不需要改动
+PhotoPicker.shared.provider = CustomPhotoPickerProvider()
+```
+
+自定义 Provider 只需实现两个方法：
+
+```swift
+@MainActor
+class CustomPhotoPickerProvider: PhotoPickerProvider {
+
+    func makePickerViewController(
+        configuration: PhotoPickerConfiguration,
+        completion: @escaping @Sendable (Result<[PhotoPickerResult], PhotoPickerError>) -> Void
+    ) -> UIViewController {
+        // 返回自定义选择器 VC
+    }
+
+    func makeCameraViewController(
+        configuration: CameraConfiguration,
+        completion: @escaping @Sendable (Result<PhotoPickerResult, PhotoPickerError>) -> Void
+    ) -> UIViewController {
+        // 返回自定义相机 VC
+    }
+}
+```
+
+---
+
 ## 17. XXFKeyboard - 键盘适配组件
 
 基于 [RxKeyboard](https://github.com/RxSwiftCommunity/RxKeyboard) 的键盘适配组件，提供类似 Android `adjustPan` 模式的容器视图。
@@ -1054,7 +1275,7 @@ targets: [
 
 ---
 
-## 16. XXFPerformance - 性能监控
+## 18. XXFPerformance - 性能监控
 
 提供**主线程卡顿检测**和 **FPS/CPU/内存实时监控悬浮窗**，采用协议抽象设计，底层可替换。
 
@@ -1107,7 +1328,7 @@ monitor.start()
 
 ---
 
-## 18. XXFCompress - 图片压缩（Luban）
+## 19. XXFCompress - 图片压缩（Luban）
 
 基于微信朋友圈/聊天图片压缩算法的跨平台图片压缩模块，支持 iOS 和 macOS。核心算法参考 [WXImageCompress](https://github.com/hucool/WXImageCompress)，API 设计参考 Android [Luban](https://github.com/Curzibn/Luban) 链式调用风格。
 
@@ -1150,20 +1371,53 @@ let data = image.lubanCompress(type: .timeline)
 
 ## 19. 其他模块
 
+### 已暴露模块（可直接使用）
+
 | 模块 | 核心功能 | 亮点 |
 |------|---------|------|
-| **XXFViewModel** | MVVM 架构 | 自动生命周期管理 |
-| **XXFHud** | 提示组件 | Toast/Progress/Error HUD |
-| **XXFImageLoader** | 图片加载 | 适配器模式，支持 Nuke |
+| **XXFArch** | 一站式集成 | 引入单个模块即可使用全部功能 |
 | **XXFImageEditor** | 图片编辑/裁切 | 可替换 Provider，隔离 Brightroom |
+| **XXFImageEditorBrightroom** | 图片编辑器实现 | Brightroom 2.x 驱动 |
+| **XXFPhotoPicker** | 图片视频选择器 | 可替换 Provider，隔离 ZLPhotoBrowser |
+| **XXFPhotoPickerZl** | 图片选择器实现 | ZLPhotoBrowser 4.x 驱动 |
 | **XXFKeyboard** | 键盘适配 | RxKeyboard 封装，adjustPan 模式 |
-| **XXFTracker** | 错误追踪 | Sentry/Bugsnag 支持 |
-| **XXFKeychain** | 安全存储 | Codable 支持 |
-| **XXFIdentifier** | 设备标识 | UUID 持久化 |
-| **XXFPerformance** | 性能监控 | 主线程卡顿检测 + FPS/CPU/内存悬浮窗 |
+| **XXFCompress** | 图片压缩 | Luban 算法，微信式压缩 |
+| **XXFRouter** | 路由框架 | 拦截器 + 降级策略 |
 | **XXFServer** | 内嵌服务器 | Vapor 驱动 |
-| **XXFDi** | 依赖注入 | Factory 封装 |
-| **SnapKit** | 自动布局 | 声明式约束语法 |
+| **XXFDatabaseGrdb** | 数据库实现 | GRDB.swift 驱动 |
+| **XXFTrackerBugsnag** | 错误追踪 | Bugsnag 实现 |
+| **XXFTrackerSentry** | 错误追踪 | Sentry 实现 |
+| **XXFEventReporter** | 事件上报 | 抽象接口层 |
+| **XXFEventReporterFirebase** | 事件上报实现 | Firebase Analytics 驱动 |
+| **XXFHudiOS** | HUD 组件（iOS） | Toast/Progress/Error |
+| **XXFHudMac** | HUD 组件（macOS） | Toast/Progress/Error |
+| **SnapKit** | 自动布局 | 声明式约束语法（Re-export） |
+
+### 内部模块（通过 XXFArch 间接使用）
+
+以下模块已包含在 XXFArch 中，但暂不单独对外暴露：
+
+| 模块 | 核心功能 | 备注 |
+|------|---------|------|
+| XXFViewModel | MVVM 架构 | 自动生命周期管理 |
+| XXFHud | HUD 抽象层 | 平台无关接口 |
+| XXFImageLoader | 图片加载抽象 | 适配器模式 |
+| XXFImageNukeLoader | 图片加载实现 | Nuke 驱动 |
+| XXFTracker | 错误追踪抽象 | 接口定义 |
+| XXFKeychain | 安全存储 | Codable 支持 |
+| XXFIdentifier | 设备标识 | UUID 持久化 |
+| XXFPerformance | 性能监控 | 卡顿检测 + FPS/CPU/内存 |
+| XXFDi | 依赖注入 | Factory 封装 |
+| XXFHttp | 网络请求 | Moya + RxSwift |
+| XXFDatabase | 数据库抽象 | Repository 模式 |
+| XXFCache | 缓存系统 | 双层缓存 |
+| XXFBus | 事件总线 | RxSwift 驱动 |
+| XXFLog | 日志系统 | swift-log + Pulse |
+| XXFJson | JSON 处理 | Codable 扩展 |
+| XXFFoundation | 基础设施 | 基础类型 + 工具函数 |
+| XXFFlow | 响应式流 | RxSwift 扩展 |
+| XXFSpeed | 高性能工具 | XXHash |
+| XXFExtensions | 扩展集合 | SwifterSwift 扩展 |
 
 ---
 
@@ -1240,6 +1494,7 @@ api.request(...)
 | Pulse | 日志可视化 | 4.x |
 | Nuke | 图片加载 | 12.x |
 | Brightroom | 图片编辑/裁切 | 2.x |
+| ZLPhotoBrowser | 图片视频选择器 | 4.x |
 | RxKeyboard | 键盘事件响应式封装 | 2.x |
 | GDPerformanceView-Swift | FPS/CPU/内存监控悬浮窗 | 2.x |
 | SnapKit | 自动布局 | 5.x |
@@ -1271,6 +1526,7 @@ XXFArch (一站式引入)
 ├── XXFUIKit
 ├── XXFImageLoader ────────── XXFImageNukeLoader (Nuke)
 ├── XXFImageEditor ────────── XXFImageEditorBrightroom (Brightroom 2.x)
+├── XXFPhotoPicker ────────── XXFPhotoPickerZl (ZLPhotoBrowser 4.x)
 ├── XXFCompress (Luban 图片压缩)
 ├── XXFKeyboard ───────────── RxKeyboard (2.x)
 ├── XXFPerformance (BlockWatcher + GDPerformanceView-Swift)

@@ -1,5 +1,5 @@
 {
-  "originHash" : "9a7a4a620314308b5de36147f52138bfe56fdb0addecece7b13e9aa1f2eae18e",
+  "originHash" : "1ef0cb5088974b66ef0141a4d42ea7a6336ff5296fb744fbc9fdb115b4d6df2a",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -575,6 +575,15 @@
       "state" : {
         "revision" : "331aa39bd71f828a8866876d667a60ed90c198c9",
         "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "zlphotobrowser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/longitachi/ZLPhotoBrowser.git",
+      "state" : {
+        "revision" : "21360c8db53ed1d0f6382d661efee1a6258a01b7",
+        "version" : "4.7.4"
       }
     }
   ],
