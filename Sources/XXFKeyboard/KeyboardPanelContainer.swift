@@ -207,6 +207,10 @@ open class KeyboardPanelContainer: UIView {
     /// 是否已完成初始布局
     private var isInitialLayoutDone = false
 
+    /// 上次已知的键盘高度（用于跟踪键盘实际状态）
+    /// - Note: 这个值反映键盘的实际显示高度，0 表示键盘收起
+    private var lastKnownKeyboardHeight: CGFloat = 0
+
     // MARK: - Initialization
 
     /// 初始化
@@ -286,22 +290,26 @@ open class KeyboardPanelContainer: UIView {
     /// 应用模式切换
     ///
     /// 当 `mode` 属性被修改时调用，立即根据新模式调整高度。
+    /// 考虑键盘实际状态，确保切换后高度与预期一致。
     private func applyModeChange(from oldMode: DisplayMode, to newMode: DisplayMode) {
         switch newMode {
         case .auto:
-            // 切换到自动模式：如果键盘未显示过，高度变为 0
-            let targetHeight = KeyboardHeightProvider.shared.hasCachedHeight
-                ? currentKeyboardHeight
-                : 0
+            // 切换到自动模式：根据键盘实际状态设置高度
+            // 如果键盘当前显示（lastKnownKeyboardHeight > 0），使用实际高度
+            // 如果键盘当前收起（lastKnownKeyboardHeight = 0），高度为 0
+            let targetHeight = lastKnownKeyboardHeight
             updateHeight(targetHeight, animated: true)
 
         case .always:
-            // 切换到总是显示：使用缓存高度
-            let cachedHeight = KeyboardHeightProvider.shared.currentHeight
-            updateHeight(cachedHeight, animated: true)
+            // 切换到总是显示：使用 Provider 的高度（内存 → 持久化 → 预估）
+            // 如果键盘当前显示，优先使用实际高度；否则使用缓存/预估高度
+            let targetHeight = lastKnownKeyboardHeight > 0
+                ? lastKnownKeyboardHeight
+                : KeyboardHeightProvider.shared.currentHeight
+            updateHeight(targetHeight, animated: true)
 
         case .alwaysWithInitialHeight(let height):
-            // 切换到指定高度
+            // 切换到指定高度：直接使用指定值
             updateHeight(height, animated: true)
         }
     }
@@ -335,9 +343,13 @@ open class KeyboardPanelContainer: UIView {
     private func handleKeyboardFrameChange(_ frame: CGRect) {
         let keyboardHeight = calculateKeyboardHeight(from: frame)
 
+        // 记录实际键盘高度（用于模式切换时判断键盘状态）
+        lastKnownKeyboardHeight = keyboardHeight
+
         switch mode {
         case .auto:
             // 自动模式：总是跟随键盘高度
+            // 键盘显示时 height = 键盘高度，键盘收起时 height = 0
             updateHeight(keyboardHeight, animated: true)
 
         case .always, .alwaysWithInitialHeight:

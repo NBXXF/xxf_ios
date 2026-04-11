@@ -1240,9 +1240,22 @@ panel.onHeightChanged = { height in
 
 ### KeyboardHeightProvider - 全局键盘高度缓存
 
-iOS 没有官方 API 可以预测键盘高度，本类通过全局单例缓存键盘高度，解决首次显示时的预估高度问题。
+iOS 没有官方 API 可以预测键盘高度，本类通过 **UserDefaults 持久化缓存**解决首次显示时的预估高度问题。即使 App 重启，也能使用上次缓存的真实高度。
 
-#### 预估高度参考
+#### 高度获取优先级
+
+1. **内存缓存**（当前会话已获取）
+2. **UserDefaults 持久化缓存**（上次使用时的真实高度）
+3. **预估高度**（基于设备类型的保守估计）
+
+#### 缓存策略
+
+- **持久化存储**: 使用 `UserDefaults` 保存，App 重启后仍然有效
+- **设备区分**: 根据屏幕尺寸生成缓存 Key，区分不同设备（iPhone/iPad）
+- **方向区分**: 分别缓存横屏和竖屏的键盘高度
+- **自动更新**: 键盘弹出时自动检测并更新缓存
+
+#### 预估高度参考（备用）
 
 | 设备 | 屏幕尺寸 | 预估高度 |
 |------|----------|----------|
@@ -1255,15 +1268,11 @@ iOS 没有官方 API 可以预测键盘高度，本类通过全局单例缓存�
 #### 使用示例
 
 ```swift
-// 获取当前键盘高度（缓存值或预估值）
+// 获取当前键盘高度（按优先级：内存 → 持久化 → 预估）
 let height = KeyboardHeightProvider.shared.currentHeight
 
-// 判断是否有缓存值
-if KeyboardHeightProvider.shared.hasCachedHeight {
-    print("使用真实高度: \(height)")
-} else {
-    print("使用预估高度: \(height)")
-}
+// 重置缓存（清除内存和持久化缓存）
+KeyboardHeightProvider.shared.reset()
 ```
 
 ### 核心特性

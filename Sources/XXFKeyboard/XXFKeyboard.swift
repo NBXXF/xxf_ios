@@ -15,16 +15,38 @@ import RxKeyboard
 /// 主要组件：
 /// - KeyboardResizeContainer: 类似 Android adjustPan 的容器，自动调整高度适配键盘
 /// - KeyboardPanelContainer: 高度等于键盘高度的容器，用于表情/功能面板
-/// - KeyboardHeightProvider: 全局键盘高度缓存，解决首次显示高度问题
+/// - KeyboardHeightProvider: 全局键盘高度缓存（UserDefaults 持久化），解决首次显示高度问题
 /// - KeyboardFocusManagerView: 聊天列表键盘管理容器，支持滚动/滑动/点击收起键盘
 ///
-/// 启动配置（建议在 AppDelegate 中调用）：
+/// ## 核心特性
+///
+/// - **UserDefaults 持久化**: 键盘高度自动保存，App 重启后仍可用
+/// - **设备区分**: 根据屏幕尺寸生成缓存 Key，区分 iPhone/iPad
+/// - **方向区分**: 分别缓存横屏和竖屏的键盘高度
+/// - **自动更新**: 键盘弹出时自动检测并更新缓存
+///
+/// ## 启动配置
+///
+/// 建议在 AppDelegate 中启动监听（只需一次）：
+///
 /// ```swift
 /// import XXFKeyboard
 ///
-/// // 开启全局键盘高度监听（用于 KeyboardPanelContainer 的 .always 模式）
-/// KeyboardHeightProvider.shared.startMonitoring()
+/// // AppDelegate.swift
+/// func application(_ application: UIApplication,
+///                  didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+///     // 开启全局键盘高度监听
+///     // 会自动从 UserDefaults 读取上次缓存的高度
+///     KeyboardHeightProvider.shared.startMonitoring()
+///     return true
+/// }
 /// ```
+///
+/// ## 高度获取优先级
+///
+/// 1. **内存缓存**（当前会话已获取）
+/// 2. **UserDefaults 持久化缓存**（上次使用时的真实高度）
+/// 3. **预估高度**（基于设备类型的保守估计）
 ///
 /// 使用示例：
 /// ```swift
