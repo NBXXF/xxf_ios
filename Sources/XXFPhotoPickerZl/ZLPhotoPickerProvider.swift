@@ -26,30 +26,28 @@ public final class ZLPhotoPickerProvider: PhotoPickerProvider {
         // 应用自定义配置
         applyConfiguration(configuration)
 
-        let photoPreviewSheet = ZLPhotoPreviewSheet()
+        let photoPicker = ZLPhotoPicker()
 
-        photoPreviewSheet.selectImageBlock = { [weak photoPreviewSheet] (images, assets, isOriginal) in
-            guard let sheet = photoPreviewSheet else {
+        photoPicker.selectImageBlock = { [weak photoPicker] (results, isOriginal) in
+            guard let picker = photoPicker else {
                 completion(.failure(.unknown(NSError(domain: "ZLPhotoPicker", code: -1, userInfo: [NSLocalizedDescriptionKey: "选择器已释放"]))))
                 return
             }
 
-            // ZLPhotoBrowser 已经处理视频导出，images 数组包含视频封面图
-            // 如果需要视频文件，需要通过 PHAsset 导出
-            self.processSelectedAssets(
-                images: images,
-                assets: assets,
+            // 处理选择的资源
+            self.processResults(
+                results: results,
                 isOriginal: isOriginal,
-                sheet: sheet,
+                picker: picker,
                 completion: completion
             )
         }
 
-        photoPreviewSheet.cancelBlock = {
+        photoPicker.cancelBlock = {
             completion(.failure(.cancelled))
         }
 
-        return ZLPhotoPickerWrapperViewController(photoPreviewSheet: photoPreviewSheet)
+        return ZLPhotoPickerWrapperViewController(photoPicker: photoPicker)
     }
 
     public func makeCameraViewController(
@@ -86,99 +84,34 @@ public final class ZLPhotoPickerProvider: PhotoPickerProvider {
 
     // MARK: - Private
 
-    /// 处理选择的资源（图片/视频）
-    private func processSelectedAssets(
-        images: [UIImage],
-        assets: [PHAsset],
+    /// 处理选择的结果
+    private func processResults(
+        results: [ZLResultModel],
         isOriginal: Bool,
-        sheet: ZLPhotoPreviewSheet,
+        picker: ZLPhotoPicker,
         completion: @escaping @Sendable (Result<[PhotoPickerResult], PhotoPickerError>) -> Void
     ) {
-        let dispatchGroup = DispatchGroup()
-        var results: [PhotoPickerResult] = []
-        var exportError: PhotoPickerError?
-        let resultsLock = NSLock()
-
-        for (image, asset) in zip(images, assets) {
-            if asset.mediaType == .video {
-                // 导出视频
-                dispatchGroup.enter()
-                exportVideo(asset: asset) { result in
-                    switch result {
-                    case .success(let url):
-                        let videoResult = PhotoPickerResult(
-                            mediaType: .video,
-                            image: image, // 视频封面
-                            videoURL: url,
-                            isOriginal: false,
-                            assetIdentifier: asset.localIdentifier
-                        )
-                        resultsLock.lock()
-                        results.append(videoResult)
-                        resultsLock.unlock()
-                    case .failure(let error):
-                        resultsLock.lock()
-                        exportError = error
-                        resultsLock.unlock()
-                    }
-                    dispatchGroup.leave()
-                }
+        let photoResults: [PhotoPickerResult] = results.map { result in
+            if result.asset.mediaType == .video {
+                return PhotoPickerResult(
+                    mediaType: .video,
+                    image: result.image,
+                    videoURL: nil,  // ZLPhotoBrowser 已经处理视频，这里返回封面图
+                    isOriginal: false,
+                    assetIdentifier: result.asset.localIdentifier
+                )
             } else {
-                // 图片直接添加到结果
-                let photoResult = PhotoPickerResult(
+                return PhotoPickerResult(
                     mediaType: .image,
-                    image: image,
+                    image: result.image,
                     videoURL: nil,
                     isOriginal: isOriginal,
-                    assetIdentifier: asset.localIdentifier
+                    assetIdentifier: result.asset.localIdentifier
                 )
-                results.append(photoResult)
             }
         }
 
-        dispatchGroup.notify(queue: .main) {
-            sheet.hide {
-                if let error = exportError {
-                    completion(.failure(error))
-                } else {
-                    completion(.success(results))
-                }
-            }
-        }
-    }
-
-    /// 导出视频到临时目录
-    private func exportVideo(
-        asset: PHAsset,
-        completion: @escaping (Result<URL, PhotoPickerError>) -> Void
-    ) {
-        let options = PHVideoRequestOptions()
-        options.version = .original
-        options.deliveryMode = .highQualityFormat
-        options.isNetworkAccessAllowed = true
-
-        PHImageManager.default().requestExportSession(forVideo: asset, options: options, exportPreset: AVAssetExportPresetHighestQuality) { exportSession, info in
-            guard let exportSession = exportSession else {
-                completion(.failure(.assetLoadFailed(NSError(domain: "ZLPhotoPicker", code: -1, userInfo: [NSLocalizedDescriptionKey: "无法创建视频导出会话"]))))
-                return
-            }
-
-            let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).mp4")
-            exportSession.outputURL = outputURL
-            exportSession.outputFileType = .mp4
-            exportSession.shouldOptimizeForNetworkUse = true
-
-            exportSession.exportAsynchronously {
-                switch exportSession.status {
-                case .completed:
-                    completion(.success(outputURL))
-                case .failed, .cancelled:
-                    completion(.failure(.videoExportFailed(exportSession.error ?? NSError(domain: "ZLPhotoPicker", code: -1))))
-                default:
-                    break
-                }
-            }
-        }
+        completion(.success(photoResults))
     }
 
     private func applyConfiguration(_ config: PhotoPickerConfiguration) {
@@ -233,14 +166,12 @@ public final class ZLPhotoPickerProvider: PhotoPickerProvider {
             zlConfig.allowEditImage = false
         }
 
-        // 主题色
+        // 主题色（在 ZLPhotoUIConfiguration 中设置）
         if let themeColor = config.themeColor {
-            zlConfig.themeColorDeploy.mainColor = themeColor.primaryColor
+            let uiConfig = ZLPhotoUIConfiguration.default()
+            uiConfig.themeColor = themeColor.primaryColor
             if let bgColor = themeColor.backgroundColor {
-                zlConfig.themeColorDeploy.previewBgColor = bgColor
-            }
-            if let textColor = themeColor.textColor {
-                zlConfig.themeColorDeploy.previewBtnBgColor = textColor
+                uiConfig.previewVCBgColor = bgColor
             }
         }
     }
@@ -248,13 +179,13 @@ public final class ZLPhotoPickerProvider: PhotoPickerProvider {
 
 // MARK: - ZLPhotoBrowser Wrapper
 
-/// 包装器，将 ZLPhotoPreviewSheet 包装成 UIViewController
+/// 包装器，将 ZLPhotoPicker 包装成 UIViewController
 private final class ZLPhotoPickerWrapperViewController: UIViewController {
 
-    private let photoPreviewSheet: ZLPhotoPreviewSheet
+    private let photoPicker: ZLPhotoPicker
 
-    init(photoPreviewSheet: ZLPhotoPreviewSheet) {
-        self.photoPreviewSheet = photoPreviewSheet
+    init(photoPicker: ZLPhotoPicker) {
+        self.photoPicker = photoPicker
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -269,7 +200,7 @@ private final class ZLPhotoPickerWrapperViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        photoPreviewSheet.showPreview(animate: true, sender: self)
+        photoPicker.showPreview(animate: true, sender: self)
     }
 }
 

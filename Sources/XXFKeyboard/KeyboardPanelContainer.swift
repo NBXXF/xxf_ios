@@ -21,34 +21,7 @@ import UIKit
 /// - **实时跟随**: 使用 `RxKeyboard.instance.visibleHeight` 实时获取键盘高度
 /// - **防抖布局**: 使用 `throttle` 限制布局频率（避免 iPad 拖动时性能问题）
 /// - **模式切换**: 支持 `.auto` / `.always` / `.alwaysWithInitialHeight` 三种模式
-///
-/// ## 显示模式
-///
-/// ### `.auto` - 自动适配（默认）
-/// 键盘收起时高度为 0，弹出时等于键盘实时高度。
-///
-/// ```swift
-/// let emojiPanel = KeyboardPanelContainer(mode: .auto)
-/// // 键盘收起: height = 0
-/// // 键盘弹出: height = 291pt (跟随键盘)
-/// ```
-///
-/// ### `.always` - 总是显示
-/// 始终显示键盘标准高度（使用 `KeyboardHeightProvider.standardHeight`）。
-/// 键盘收起后仍保持高度，适用于需要预占位的场景。
-///
-/// ```swift
-/// let toolbar = KeyboardPanelContainer(mode: .always)
-/// // 高度 = Provider.standardHeight（缓存值或预估值）
-/// ```
-///
-/// ### `.alwaysWithInitialHeight(CGFloat)` - 固定高度
-/// 始终显示指定高度，不受键盘影响。
-///
-/// ## 性能优化
-///
-/// - 布局更新使用 `throttle(0.05)`，限制为每秒最多 20 次
-/// - 高度变化小于 0.5pt 时忽略，避免微小抖动
+/// - **防跳动**: 从 always 切换到 auto 时，使用 `.skip(1)` 跳过 RxKeyboard 的过期首值
 @MainActor
 open class KeyboardPanelContainer: UIView {
     // MARK: - Display Mode
@@ -78,7 +51,7 @@ open class KeyboardPanelContainer: UIView {
     public var mode: DisplayMode {
         didSet {
             guard mode != oldValue else { return }
-            applyModeChange()
+            applyModeChange(from: oldValue)
         }
     }
 
@@ -93,10 +66,11 @@ open class KeyboardPanelContainer: UIView {
     private var animationDuration: TimeInterval = 0.25
     private var animationOptions: UIView.AnimationOptions = .curveEaseInOut
 
-    // 状态标记
+    // 布局状态
     private var isInitialLayoutDone = false
     private var lastKeyboardHeight: CGFloat = 0
 
+    // Rx 订阅
     private var keyboardDisposable: Disposable?
 
     // MARK: - Initialization
@@ -118,7 +92,6 @@ open class KeyboardPanelContainer: UIView {
     override open func didMoveToSuperview() {
         super.didMoveToSuperview()
 
-        // 确保高度约束已创建
         if superview != nil && heightConstraint == nil {
             self.snp.makeConstraints { make in
                 heightConstraint = make.height.equalTo(0).constraint
@@ -131,14 +104,13 @@ open class KeyboardPanelContainer: UIView {
 
         if !isInitialLayoutDone {
             isInitialLayoutDone = true
-            applyModeChange() // 首次布局时应用当前模式
+            applyModeChange(from: mode)
         }
     }
 
     // MARK: - Setup
 
     private func setupKeyboardObserver() {
-        // 获取键盘动画参数
         NotificationCenter.default.rx.notification(UIResponder.keyboardWillChangeFrameNotification)
             .subscribe(onNext: { [weak self] notification in
                 self?.extractAnimationParams(from: notification)
@@ -155,31 +127,46 @@ open class KeyboardPanelContainer: UIView {
 
     // MARK: - Mode Handling
 
-    private func applyModeChange() {
+    private func applyModeChange(from oldMode: DisplayMode) {
         switch mode {
         case .auto:
-            startAutoMode()
+            // 关键修复：如果从 always 切换到 auto，使用 skip(1) 跳过 RxKeyboard 的首个过期值
+            // 因为此时 becomeFirstResponder() 可能已经触发，但 RxKeyboard 的 BehaviorRelay
+            // 会立即同步发送 lastValue（可能是键盘收起状态的 0），导致跳动
+            let fromAlways = (oldMode == .always)
+            startAutoMode(skipFirstValue: fromAlways)
         case .always:
-            // 停止自动模式监听
             keyboardDisposable?.dispose()
             keyboardDisposable = nil
-            // 使用 Provider 的标准高度（缓存或预估）
             let height = KeyboardHeightProvider.shared.standardHeight
             updateHeight(height, animated: true)
         case .alwaysWithInitialHeight(let height):
-            // 停止自动模式监听
             keyboardDisposable?.dispose()
             keyboardDisposable = nil
             updateHeight(height, animated: true)
         }
     }
 
-    private func startAutoMode() {
-        // 清理之前的订阅（除了通知监听）
-        // 重新订阅 RxKeyboard,每次订阅会发送以前最后一次的
+    /// 启动 Auto 模式
+    /// - Parameter skipFirstValue: 是否跳过第一个值（用于解决 always→auto 切换时的跳动问题）
+    private func startAutoMode(skipFirstValue: Bool) {
         keyboardDisposable?.dispose()
-        keyboardDisposable = RxKeyboard.instance.visibleHeight
-            .throttle(.milliseconds(50), latest: true) // 限制更新频率
+
+        // 使用 Driver 保证在主线程且共享
+        let driver = RxKeyboard.instance.visibleHeight
+
+        // 如果需要跳过首值（从 always 切换），转换为 Observable 使用 skip(1) 再转回
+        let finalDriver: Driver<CGFloat>
+        if skipFirstValue {
+            finalDriver = driver.asObservable()
+                .skip(1)  // 跳过 BehaviorRelay 的 lastValue（过期值）
+                .asDriver(onErrorJustReturn: 0)
+        } else {
+            finalDriver = driver
+        }
+
+        keyboardDisposable = finalDriver
+            .throttle(.milliseconds(50), latest: true)
             .drive(onNext: { [weak self] height in
                 guard let self = self else { return }
                 self.lastKeyboardHeight = height
@@ -222,8 +209,8 @@ open class KeyboardPanelContainer: UIView {
     }
 
     public var onHeightChanged: ((CGFloat) -> Void)?
-    
-    deinit{
+
+    deinit {
         keyboardDisposable?.dispose()
     }
 
