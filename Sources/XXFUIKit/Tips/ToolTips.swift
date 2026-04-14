@@ -20,7 +20,7 @@ import XXFFoundation
 /// 提供两层 API：
 /// 1) 简单模式：`show(from:text:onTap:)`
 /// 2) 可配置模式：`show(from:text:configuration:onTap:onDismiss:)`
-public final class ToolTips: UIView {
+open class ToolTips: UIView {
     public enum PreferredPlacement {
         /// 自动根据上下可用空间决定显示在 anchor 上方或下方。
         case automatic
@@ -158,7 +158,7 @@ public final class ToolTips: UIView {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) {
+    public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -166,7 +166,7 @@ public final class ToolTips: UIView {
         outsideDismissWorkItem?.cancel()
     }
 
-    override func layoutSubviews() {
+    open override func layoutSubviews() {
         super.layoutSubviews()
         updatePlacementIfNeeded()
     }
@@ -322,7 +322,7 @@ public final class ToolTips: UIView {
 
     // MARK: - Event
 
-    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let bubblePoint = bubbleContainer.convert(point, from: self)
         if bubbleContainer.bounds.contains(bubblePoint) {
             return super.hitTest(point, with: event)
