@@ -54,14 +54,14 @@ public final class ToolTips: UIView {
     }
 
     public struct AppearanceConfiguration {
-        public var backgroundColor: UIColor = UIColor.neutral.white100
+        public var backgroundColor: UIColor = UIColor.white
         /// 默认文本样式来自 SPM（ToolTipsTextStyle）。
         public var textColor: UIColor = ToolTipsTextStyle.defaultTextColor
         public var font: UIFont = ToolTipsTextStyle.defaultFont
         public var textAlignment: NSTextAlignment = .center
         /// 点击按下态背景色（作用于 actionControl）。
-        public var highlightColor: UIColor = UIColor.neutral.black6
-        public var shadowColor: UIColor = UIColor.neutral.black10
+        public var highlightColor: UIColor = PlatformColor(hex: 0x000000, alpha: 0.06)
+        public var shadowColor: UIColor = PlatformColor(hex: 0x000000, alpha: 0.10)
         public var shadowOffset: CGSize = .init(width: 0, height: 12.pt)
         public var shadowRadius: CGFloat = 30.pt
         public var shadowOpacity: Float = 1
