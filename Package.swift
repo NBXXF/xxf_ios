@@ -112,12 +112,16 @@ let package = Package(
             name: "XXFImageEditorBrightroom",
             targets: ["XXFImageEditorBrightroom"]
         ),
+
         // MARK: - 图片视频选择器（抽象层，无第三方依赖）
+
         .library(
             name: "XXFPhotoPicker",
             targets: ["XXFPhotoPicker"]
         ),
+
         // MARK: - 图片视频选择器（ZLPhotoBrowser 实现，iOS only）
+
         .library(
             name: "XXFPhotoPickerZl",
             targets: ["XXFPhotoPickerZl"]
@@ -179,7 +183,7 @@ let package = Package(
         // toast
         .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3"),
         // refresh
-        .package(url: "https://github.com/CoderMJLee/MJRefresh.git",from: "3.7.9"),
+        .package(url: "https://github.com/CoderMJLee/MJRefresh.git", from: "3.7.9"),
         // disk cache
         .package(url: "https://github.com/hyperoslo/Cache.git", from: "7.4.0"),
         // 路由框架底层
@@ -326,9 +330,9 @@ let package = Package(
             dependencies: [
                 "XXFFlow",
                 "XXFFoundation",
-                .product(name: "Toast", package: "toast-swift",condition: .when(platforms: [.iOS])),
+                .product(name: "Toast", package: "toast-swift", condition: .when(platforms: [.iOS]))
 //                .product(name: "XXFHudiOS", package: "XXFHudiOS",condition: .when(platforms: [.iOS])),
-              
+
                 // .product(name: "ProgressHUD", package: "ProgressHUD"),
             ]
         ),
@@ -428,7 +432,11 @@ let package = Package(
             name: "XXFTracker"
         ),
         .target(
-            name: "XXFUIKit"
+            name: "XXFUIKit",
+            dependencies: [
+                "XXFFoundation",
+                .product(name: "SnapKit", package: "SnapKit", condition: .when(platforms: [.iOS]))
+            ]
         ),
         .target(
             name: "XXFKeychain"
@@ -472,7 +480,9 @@ let package = Package(
                 .product(name: "Sentry", package: "sentry-cocoa")
             ]
         ),
+
         // MARK: - 路由框架
+
         .target(
             name: "XXFRouter",
             dependencies: [
@@ -480,11 +490,15 @@ let package = Package(
                 .product(name: "URLMatcher", package: "URLNavigator")
             ]
         ),
+
         // MARK: - 图片编辑器（抽象层，无第三方依赖）
+
         .target(
             name: "XXFImageEditor"
         ),
+
         // MARK: - 图片编辑器（Brightroom 实现，iOS only）
+
         // Brightroom 的 Package.swift 中 macOS 版本声明与其依赖 Verge 不一致
         // 使用 .when(platforms: [.iOS]) 限制仅在 iOS 上链接 Brightroom，避免 macOS 构建报错
         .target(
@@ -495,11 +509,15 @@ let package = Package(
                 .product(name: "BrightroomEngine", package: "Brightroom", condition: .when(platforms: [.iOS]))
             ]
         ),
+
         // MARK: - 图片视频选择器（抽象层，无第三方依赖）
+
         .target(
             name: "XXFPhotoPicker"
         ),
+
         // MARK: - 图片视频选择器（ZLPhotoBrowser 实现，iOS only）
+
         .target(
             name: "XXFPhotoPickerZl",
             dependencies: [
@@ -507,7 +525,9 @@ let package = Package(
                 .product(name: "ZLPhotoBrowser", package: "ZLPhotoBrowser", condition: .when(platforms: [.iOS]))
             ]
         ),
+
         // MARK: - 图片压缩（Luban 风格，微信压缩算法）
+
         .target(
             name: "XXFCompress"
         ),
