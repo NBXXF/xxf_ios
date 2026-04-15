@@ -6,9 +6,8 @@
 //
 import XXFFoundation
 import XXFImage
-#if canImport(UIKit)
-    import UIKit
-#elseif canImport(AppKit)
+import UniformTypeIdentifiers
+#if canImport(AppKit)
     import AppKit
 #endif
 
@@ -34,7 +33,6 @@ public final class LocalResourceDataFetcher: ImageDataFetcher {
     // MARK: 加载本地文件缩略图
 
     final class LocalReourceDataTask: Cancellable, @unchecked Sendable {
-        private let request: URLRequest
         private let fetchQueue: OperationQueue
         private let fileLoadURL: URL
         private let completion: @Sendable (Result<Data, any Error>) -> Void
@@ -46,7 +44,6 @@ public final class LocalResourceDataFetcher: ImageDataFetcher {
              fetchQueue: OperationQueue,
              completion: @escaping @Sendable (Result<Data, any Error>) -> Void)
         {
-            self.request = request
             self.fetchQueue = fetchQueue
             self.completion = completion
             /// 不能影响文件加载
@@ -70,6 +67,13 @@ public final class LocalResourceDataFetcher: ImageDataFetcher {
                 [weak self] in
                 guard let self = self, !self.cancelled else { return }
                 do {
+                    if fileLoadURL.isFileURL,
+                       let thumbnailData = LocalFileCoverTool.coverDataIfPlayableMedia(for: fileLoadURL)
+                    {
+                        self.completion(.success(thumbnailData))
+                        return
+                    }
+
                     #if canImport(AppKit)
                         /// macOS: 不是图片就先获取系统图标
                         if !isImageFile(url: fileLoadURL) {

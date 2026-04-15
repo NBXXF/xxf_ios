@@ -9,7 +9,8 @@ import Foundation
 
 extension ImageLoaderAdapter {
     var imageFectchers: [ImageDataFetcher] {
-        return [ // LocalFileThumbnailDataFetcher(),
+        return [
+            LocalFileThumbnailDataFetcher(),
             LocalResourceDataFetcher()
         ]
     }
