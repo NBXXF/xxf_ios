@@ -5,53 +5,82 @@
 //  Created by xxf on 7/9.
 //
 import CoreGraphics
+import Foundation
 
 #if canImport(UIKit)
-    import UIKit
+    @preconcurrency import UIKit
 #elseif canImport(AppKit)
-    import AppKit
+    @preconcurrency import AppKit
 #endif
 
-/// 屏幕分辨率缩放参数
-@MainActor
+@inline(__always)
+private func runOnMain(_ work: @MainActor () -> CGFloat) -> CGFloat {
+    if Thread.isMainThread {
+        return MainActor.assumeIsolated {
+            work()
+        }
+    }
+
+    var result: CGFloat = 1
+    DispatchQueue.main.sync {
+        result = MainActor.assumeIsolated {
+            work()
+        }
+    }
+    return result
+}
+
+private final class ScreenScaleCacheBox: @unchecked Sendable {
+    static let shared = ScreenScaleCacheBox()
+
+    private let lock = NSLock()
+    private var cachedValue: CGFloat?
+
+    func get() -> CGFloat? {
+        lock.lock()
+        defer { lock.unlock() }
+        return cachedValue
+    }
+
+    func set(_ value: CGFloat) {
+        lock.lock()
+        cachedValue = value
+        lock.unlock()
+    }
+
+    func clear() {
+        lock.lock()
+        cachedValue = nil
+        lock.unlock()
+    }
+}
+
+/// 屏幕分辨率缩放参数（线程安全）
 public var screenScale: CGFloat {
+    if let cached = ScreenScaleCacheBox.shared.get() {
+        return cached
+    }
+
+    let value: CGFloat
     #if canImport(UIKit)
-        if #available(iOS 13.0, *) {
-            // Swift 5.9+ 主线程隔离安全访问
-            return MainActor.assumeIsolated {
-                UIScreen.main.scale
-            }
-        } else {
-            // 旧系统版本 fallback：确保在主线程访问
-            var scale: CGFloat = 2
-            if Thread.isMainThread {
-                scale = UIScreen.main.scale
-            } else {
-                DispatchQueue.main.sync {
-                    scale = UIScreen.main.scale
-                }
-            }
-            return scale
+        value = runOnMain {
+            UIScreen.main.scale
         }
     #elseif canImport(AppKit)
-        if #available(macOS 10.15, *) {
-            return MainActor.assumeIsolated {
-                NSScreen.main?.backingScaleFactor ?? 2
-            }
-        } else {
-            var scale: CGFloat = 2
-            if Thread.isMainThread {
-                scale = NSScreen.main?.backingScaleFactor ?? 2
-            } else {
-                DispatchQueue.main.sync {
-                    scale = NSScreen.main?.backingScaleFactor ?? 2
-                }
-            }
-            return scale
+        value = runOnMain {
+            NSScreen.main?.backingScaleFactor ?? 2
         }
     #else
-        return 1 // 其他平台
+        value = 1 // 其他平台
     #endif
+
+    ScreenScaleCacheBox.shared.set(value)
+    return value
+}
+
+/// 清空 `screenScale` 缓存（如外接屏变化后可调用）
+public func invalidateScreenScaleCache() {
+    ScreenScaleCacheBox.shared.clear()
 }
 
 // MARK: 像素适配
