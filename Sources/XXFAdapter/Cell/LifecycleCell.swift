@@ -9,6 +9,7 @@
 import UIKit
 
 // MARK: - 官方能力 vs 本协议补充对照表
+
 //
 // | UICollectionViewDelegate 事件 | UICollectionViewCell 官方自带 | 本协议补充         |
 // |------------------------------|------------------------------|------------------|
@@ -28,7 +29,7 @@ import UIKit
 
 protocol LifecycleCell: AnyObject {
     /// cell 是否正在显示
-    ///
+    /// 需要业务自己回调或者使用LifecycleCollectionViewDelegate
     /// - 说明:
     ///   该字段由 `UICollectionViewDelegate` 的
     ///   `collectionView(_:willDisplay:forItemAt:)` 和
@@ -74,6 +75,7 @@ extension LifecycleCell {
 }
 
 // MARK: - 调用示例（由外部 Delegate 维护 isDisplaying）
+
 //
 // extension ViewController: UICollectionViewDelegate {
 //
@@ -119,6 +121,7 @@ extension LifecycleCell {
 // }
 //
 // MARK: - Cell 内部使用示例
+
 //
 // final class MyCell: UICollectionViewCell, LifecycleCell {
 //     var isDisplaying: Bool = false {
