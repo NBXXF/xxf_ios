@@ -4,6 +4,13 @@ import UIKit
 import AppKit
 #endif
 import Foundation
+import ImageIO
+#if canImport(UniformTypeIdentifiers)
+import UniformTypeIdentifiers
+#endif
+#if canImport(Photos)
+import Photos
+#endif
 
 // MARK: - Cross-platform typealias
 
@@ -162,14 +169,14 @@ public final class Luban: @unchecked Sendable {
                 guard let source else {
                     throw CompressError.sourceNotSet
                 }
-                let data: Data = try autoreleasepool {
-                    let image = try Self.resolveImage(from: source)
-                    return try Self.compressImage(image, type: type, quality: quality)
+                let processed = try autoreleasepool {
+                    try Self.processSource(source, type: type, quality: quality)
                 }
+                let data = processed.data
 
                 var fileURL: URL?
                 if let dir = targetDir {
-                    let fileName = UUID().uuidString + ".jpg"
+                    let fileName = UUID().uuidString + ".\(processed.outputExtension)"
                     let url = URL(fileURLWithPath: dir).appendingPathComponent(fileName)
                     try data.write(to: url)
                     fileURL = url
@@ -195,13 +202,13 @@ public final class Luban: @unchecked Sendable {
         let type = self.compressType
         let quality = self.quality
         let targetDir = self.targetDir
-        let data: Data = try autoreleasepool {
-            let image = try Self.resolveImage(from: source)
-            return try Self.compressImage(image, type: type, quality: quality)
+        let processed = try autoreleasepool {
+            try Self.processSource(source, type: type, quality: quality)
         }
+        let data = processed.data
         var fileURL: URL?
         if let dir = targetDir {
-            let fileName = UUID().uuidString + ".jpg"
+            let fileName = UUID().uuidString + ".\(processed.outputExtension)"
             let url = URL(fileURLWithPath: dir).appendingPathComponent(fileName)
             try data.write(to: url)
             fileURL = url
@@ -221,13 +228,13 @@ public final class Luban: @unchecked Sendable {
         }
 
         return try await Task.detached(priority: .userInitiated) {
-            let data: Data = try autoreleasepool {
-                let image = try Self.resolveImage(from: source)
-                return try Self.compressImage(image, type: type, quality: quality)
+            let processed = try autoreleasepool {
+                try Self.processSource(source, type: type, quality: quality)
             }
+            let data = processed.data
             var fileURL: URL?
             if let dir = targetDir {
-                let fileName = UUID().uuidString + ".jpg"
+                let fileName = UUID().uuidString + ".\(processed.outputExtension)"
                 let url = URL(fileURLWithPath: dir).appendingPathComponent(fileName)
                 try data.write(to: url)
                 fileURL = url
@@ -237,6 +244,43 @@ public final class Luban: @unchecked Sendable {
     }
 
     // MARK: - Core（WXImageCompress 算法）
+
+    private static func processSource(_ source: CompressSource, type: CompressType, quality: CGFloat) throws -> (data: Data, outputExtension: String) {
+        if let originalData = try Self.resolveSourceData(from: source), Self.isAnimatedImageData(originalData) {
+            return (originalData, Self.fileExtension(from: originalData) ?? "gif")
+        }
+
+        switch source {
+        case .file(let url):
+            if Self.isLivePhoto(from: url), let originalData = try Self.resolveSourceData(from: source) {
+                return (originalData, url.pathExtension.isEmpty ? "jpg" : url.pathExtension)
+            }
+        case .path(let path):
+            let url = URL(fileURLWithPath: path)
+            if Self.isLivePhoto(from: url), let originalData = try Self.resolveSourceData(from: source) {
+                return (originalData, url.pathExtension.isEmpty ? "jpg" : url.pathExtension)
+            }
+        default:
+            break
+        }
+
+        let image = try Self.resolveImage(from: source)
+        let compressedData = try Self.compressImage(image, type: type, quality: quality)
+        return (compressedData, "jpg")
+    }
+
+    private static func resolveSourceData(from source: CompressSource) throws -> Data? {
+        switch source {
+        case .image:
+            return nil
+        case .data(let data):
+            return data
+        case .file(let url):
+            return try Data(contentsOf: url)
+        case .path(let path):
+            return try Data(contentsOf: URL(fileURLWithPath: path))
+        }
+    }
 
     private static func resolveImage(from source: CompressSource) throws -> PlatformImage {
         switch source {
@@ -258,6 +302,55 @@ public final class Luban: @unchecked Sendable {
             return img
             #endif
         }
+    }
+
+    private static func isAnimatedImageData(_ data: Data) -> Bool {
+        guard let src = CGImageSourceCreateWithData(data as CFData, nil) else { return false }
+        return CGImageSourceGetCount(src) > 1
+    }
+
+    private static func isLivePhoto(from url: URL) -> Bool {
+        #if canImport(Photos)
+        if url.scheme == "phasset" {
+            let localIdentifier = url.absoluteString.replacingOccurrences(of: "phasset://", with: "")
+            let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier], options: nil)
+            guard let asset = fetchResult.firstObject else { return false }
+            return asset.mediaSubtypes.contains(.photoLive)
+        }
+        #endif
+
+        let movURL = url.deletingPathExtension().appendingPathExtension("mov")
+        if FileManager.default.fileExists(atPath: movURL.path) {
+            return true
+        }
+
+        guard let data = try? Data(contentsOf: url),
+              let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any],
+              let makerApple = properties[kCGImagePropertyMakerAppleDictionary as String] as? [String: Any] else {
+            return false
+        }
+        return makerApple["17"] != nil
+    }
+
+    private static func fileExtension(from data: Data) -> String? {
+        guard
+            let src = CGImageSourceCreateWithData(data as CFData, nil),
+            let type = CGImageSourceGetType(src)
+        else {
+            return nil
+        }
+        #if canImport(UniformTypeIdentifiers)
+        if let ext = UTType(type as String)?.preferredFilenameExtension {
+            return ext
+        }
+        #endif
+        let typeString = type as String
+        if typeString.contains("gif") { return "gif" }
+        if typeString.contains("webp") { return "webp" }
+        if typeString.contains("png") { return "png" }
+        if typeString.contains("jpeg") || typeString.contains("jpg") { return "jpg" }
+        return nil
     }
 
     /// 核心压缩：先缩放到目标尺寸，再 JPEG 压缩
