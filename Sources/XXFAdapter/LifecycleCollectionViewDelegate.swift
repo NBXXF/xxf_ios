@@ -5,6 +5,7 @@
 //  Created by xxf
 //
 #if canImport(UIKit)
+import UIKit
 open class LifecycleCollectionViewDelegate: NSObject, UICollectionViewDelegate
 {
     open func collectionView(_ collectionView: UICollectionView,

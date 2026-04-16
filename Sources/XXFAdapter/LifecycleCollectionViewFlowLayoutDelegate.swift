@@ -6,6 +6,7 @@
 //
 
 #if canImport(UIKit)
+import UIKit
 open class LifecycleCollectionViewFlowLayoutDelegate: NSObject, UICollectionViewDelegateFlowLayout
 {
     open func collectionView(_ collectionView: UICollectionView,
