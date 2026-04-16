@@ -17,7 +17,7 @@ open class BaseCollectionViewCell<Model>: UICollectionViewCell, ConfigurableCell
     /// 当前绑定的数据模型，便于其他方法访问
     open var model: Model?
 
-    open var isDisplaying: Bool = true
+    open var isDisplaying: Bool = false
 
     /// 带额外参数的配置，子类可重写以实现局部刷新
     open func configure(with model: Model, payloads: [Any]?) {
