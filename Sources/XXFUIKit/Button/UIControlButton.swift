@@ -153,7 +153,10 @@ open class UIControlButton: UIControl {
     }
 
     /// 是否显示加载指示器
-    /// - Note: 显示时会隐藏 imageView 和 titleLabel，并禁用用户交互
+    /// - Note: 对齐官方 UIButton.Configuration.showsActivityIndicator 行为：
+    ///   - indicator 替换 imageView 位置，跟随 imagePlacement（leading/trailing/top/bottom）
+    ///   - titleLabel 保持可见
+    ///   - 不会自动修改 isUserInteractionEnabled，是否可点由调用方通过 isEnabled 控制
     @IBInspectable
     public var showsActivityIndicator: Bool = false {
         didSet {
@@ -230,10 +233,6 @@ open class UIControlButton: UIControl {
     private var wrapperCenterXConstraint: NSLayoutConstraint?
     private var wrapperCenterYConstraint: NSLayoutConstraint?
 
-    /// 加载状态前保存的内容显示状态
-    private var wasImageHidden: Bool = false
-    private var wasTitleHidden: Bool = false
-
     /// 标志位：是否已初始化
     private var isInitialized: Bool = false
 
@@ -271,8 +270,7 @@ open class UIControlButton: UIControl {
         addSubview(contentWrapperView)
         contentWrapperView.addSubview(contentStackView)
 
-        // 添加加载指示器（最上层）
-        addSubview(activityIndicator)
+        // activityIndicator 按需插入 contentStackView 中（对齐官方行为：替换 imageView 位置）
     }
 
     private func setupConstraints() {
@@ -312,12 +310,6 @@ open class UIControlButton: UIControl {
             contentStackView.trailingAnchor.constraint(equalTo: contentWrapperView.trailingAnchor),
             contentStackView.topAnchor.constraint(equalTo: contentWrapperView.topAnchor),
             contentStackView.bottomAnchor.constraint(equalTo: contentWrapperView.bottomAnchor)
-        ])
-
-        // 加载指示器居中
-        NSLayoutConstraint.activate([
-            activityIndicator.centerXAnchor.constraint(equalTo: centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
 
@@ -575,6 +567,11 @@ open class UIControlButton: UIControl {
 
         // 更新对齐方式
         updateStackViewAlignment()
+
+        // 若正在 loading，重建 stack 后需重新把 indicator 放回 imageView 位置
+        if showsActivityIndicator {
+            insertActivityIndicatorInStack()
+        }
     }
 
     /// 更新 StackView 内部对齐
@@ -710,24 +707,30 @@ open class UIControlButton: UIControl {
     }
 
     /// 更新加载指示器状态
+    /// 对齐官方 UIButton.Configuration.showsActivityIndicator 行为：
+    /// - indicator 替换 imageView 位置，跟随 imagePlacement
+    /// - titleLabel 保持可见
+    /// - 不修改 isUserInteractionEnabled
     private func updateActivityIndicatorState() {
         if showsActivityIndicator {
-            // 保存当前状态
-            wasImageHidden = imageView.isHidden
-            wasTitleHidden = titleLabel.isHidden
-
-            // 隐藏内容，显示指示器
-            imageView.isHidden = true
-            titleLabel.isHidden = true
+            insertActivityIndicatorInStack()
             activityIndicator.startAnimating()
-            isUserInteractionEnabled = false
         } else {
-            // 恢复状态（基于当前实际状态，而非缓存值，防止外部修改导致不一致）
-            imageView.isHidden = wasImageHidden || (imageView.image == nil)
-            titleLabel.isHidden = wasTitleHidden || (titleLabel.text?.isEmpty ?? true)
             activityIndicator.stopAnimating()
-            isUserInteractionEnabled = true
+            activityIndicator.removeFromSuperview()
+            // 恢复 imageView 显示（基于是否有图片）
+            imageView.isHidden = (imageView.image == nil)
         }
+    }
+
+    /// 将 activityIndicator 插入 contentStackView 中 imageView 所在位置，并隐藏 imageView
+    private func insertActivityIndicatorInStack() {
+        guard let imageIndex = contentStackView.arrangedSubviews.firstIndex(of: imageView) else {
+            return
+        }
+        activityIndicator.removeFromSuperview()
+        contentStackView.insertArrangedSubview(activityIndicator, at: imageIndex)
+        imageView.isHidden = true
     }
 
     // MARK: - 状态更新
