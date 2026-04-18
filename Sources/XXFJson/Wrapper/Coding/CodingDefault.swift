@@ -40,6 +40,45 @@ import Foundation
 ///   访问 `Provider.defaultValue`，无需 Mirror 反射
 /// - 通过 `KeyedDecodingContainer.decode(_:forKey:)` 重载，把 "key 缺失" 也纳入
 ///   fallback 逻辑
+///
+/// ## 与「枚举自己重写 `init(from:)`」方案的区别
+///
+/// 针对**自定义枚举**的未知值兜底，有两种常见写法：
+///
+/// **A. 枚举内重写 `init(from:)`（类型自带兜底）**
+/// ```swift
+/// extension Status {
+///     init(from decoder: Decoder) throws {
+///         let raw = try decoder.singleValueContainer().decode(String.self)
+///         self = Self(rawValue: raw) ?? .unknown
+///     }
+/// }
+/// ```
+///
+/// **B. `@CodingDefault<Provider>`（字段级兜底）**
+/// ```swift
+/// @CodingDefault<DefaultStatusProvider> var status: Status
+/// ```
+///
+/// | 维度 | A. 枚举 `init(from:)` | B. `@CodingDefault` |
+/// | --- | --- | --- |
+/// | 适用类型 | **仅自定义类型**（基本类型 `String`/`Int`/`Bool` 的 Codable 无法被 extension 覆盖） | **任意类型**（基本类型、集合、枚举、自定义模型） |
+/// | 兜底范围 | 该类型**所有使用场景**（数组、字典、嵌套、可选、直接解码）都自动生效 | **仅被包装的字段**生效；裸用 `[Status]`、嵌套字段漏加包装器则不生效 |
+/// | key 缺失 / null | 处理不了（外层容器先抛 `keyNotFound`，进不到 `init(from:)`） | ✅ 通过 `KeyedDecodingContainer` 重载统一兜底 |
+/// | 类型不匹配（`"1"` ↔ `1`） | 需在 `init(from:)` 里手写多类型尝试 | ✅ 泛型 `decode` 失败自动回落默认值 |
+/// | 默认值灵活度 | 全局一个默认值，写死在枚举里 | 同一类型可在不同字段配不同 `Provider` |
+/// | 对类型的侵入 | 改动枚举本身 | 枚举保持纯净，策略在字段上声明 |
+///
+/// ### 选型建议
+///
+/// - **基本类型 / 集合 / 字段缺失 / 类型容错** → 必须用 `@CodingDefault`
+///   （Swift 禁止 extension 覆盖 `String`/`Int` 等已有 Codable 实现）
+/// - **自定义枚举想要"哪里用都不会崩"** → 在枚举里重写 `init(from:)`，保证兜底
+/// - **既想安全、又想字段级可配置默认值** → 两者叠加：枚举内 `init(from:)` 做兜底，
+///   字段上再用 `@CodingDefault` 指定该字段独有的默认值
+///
+/// > 小结：`init(from:)` 是**类型自带的安全网**，`@CodingDefault` 是**字段级的策略装饰器**，
+/// > 二者互补而非互斥。项目里通常并存使用。
 @propertyWrapper
 public struct CodingDefault<Provider: CodingDefaultValueProvider>: Codable {
 
