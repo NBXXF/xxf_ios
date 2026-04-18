@@ -128,3 +128,21 @@ public extension KeyedDecodingContainer {
         try decodeIfPresent(type, forKey: key) ?? CodingDefault<P>()
     }
 }
+
+// MARK: - Equatable / Hashable
+
+/// 当业务模型需要遵循 `Equatable` / `Hashable`（如用于 `Set`、字典 key、
+/// `Diffable` 数据源等），属性包装器本身也必须具备这些能力，否则外层
+/// 自动合成会失败。这里条件式转发到底层 `Value`：只要 `Value` 满足，
+/// `CodingDefault<Provider>` 就自动满足。
+extension CodingDefault: Equatable where Value: Equatable {
+    public static func == (lhs: CodingDefault<Provider>, rhs: CodingDefault<Provider>) -> Bool {
+        lhs.wrappedValue == rhs.wrappedValue
+    }
+}
+
+extension CodingDefault: Hashable where Value: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(wrappedValue)
+    }
+}
