@@ -569,6 +569,163 @@ let json = try Json.toJson(user)
 let copy: User = try Json.copy(original)  // 深拷贝
 ```
 
+### XXFJson.Wrapper - 属性装饰器增强解码
+
+参考 DefaultCodable / BetterCodable / Gson `@JsonAdapter` 设计的**零反射**属性装饰器库，
+解决原生 `Codable` 不够宽容、后端脏数据难处理的问题。
+
+#### 设计原则
+
+- **零 Mirror 反射**：所有字段配置走类型级泛型参数（Provider 模式），编译期展开，运行时无反射开销
+- **无需额外协议**：业务模型直接遵循原生 `Codable`，不用 `init()`、不用 `JSONCodable`
+- **向后兼容**：未装饰的字段完全走 Swift 合成路径，不干扰
+
+#### 核心装饰器
+
+| 装饰器 | 作用 | 示例 |
+|-------|------|------|
+| `@CodingDefault<Provider>` | key 缺失 / null / 类型不匹配时回退到 `Provider.defaultValue` | `@CodingDefault<EmptyString> var name: String` |
+| `@CodingDate` | ISO8601 字符串 / 秒/毫秒时间戳自动解析（Date 或 Date?） | `@CodingDate var createdAt: Date?` |
+| `@CodingLenient` | `"123"↔123` / `1↔true` 等基础类型宽松转换 | `@CodingLenient var age: Int = 0` |
+| `@CodingBy<Adapter>` | Gson 风格自定义适配器 | `@CodingBy<MyAdapter> var x: Bool` |
+
+被忽略的字段用原生 `CodingKeys` 排除即可，不需要装饰器。
+
+#### 基础用法
+
+```swift
+struct User: Codable {
+    @CodingDefault<EmptyString> var name: String
+    @CodingDefault<EmptyInt> var age: Int
+    @CodingDefault<False> var isVip: Bool
+    @CodingDefault<EmptyArray<String>> var tags: [String]
+    @CodingDefault<EmptyDict<String, String>> var extras: [String: String]
+}
+```
+
+#### 内置 Provider
+
+| Provider | Value | 默认值 |
+|---|---|---|
+| `EmptyString` | `String` | `""` |
+| `EmptyInt` / `EmptyInt8/16/32/64` | `Int` / `Int8/16/32/64` | `0` |
+| `EmptyUInt` / `EmptyUInt8/16/32/64` | `UInt` / `UInt8/16/32/64` | `0` |
+| `EmptyFloat` / `EmptyDouble` | `Float` / `Double` | `0` |
+| `True` / `False` | `Bool` | `true` / `false` |
+| `EmptyArray<T>` | `[T]` | `[]` |
+| `EmptyDict<K,V>` | `[K: V]` | `[:]` |
+| `EmptySet<T>` | `Set<T>` | `[]` |
+| `DistantPast` / `DistantFuture` / `Now` / `Epoch` | `Date` | 对应时间 |
+
+#### 自定义 Provider
+
+```swift
+enum DefaultOrderStatus: CodingDefaultValueProvider {
+    static let defaultValue: OrderStatus = .unknown
+}
+
+struct Order: Codable {
+    @CodingDefault<DefaultOrderStatus> var status: OrderStatus
+}
+```
+
+#### 自定义 Adapter（Gson `@JsonAdapter` 风格）
+
+```swift
+/// 适配 "0" / "1" / "true" ↔ Bool
+struct StringBoolAdapter: CodingAdapter {
+    static func decode(from decoder: Decoder) throws -> Bool {
+        let c = try decoder.singleValueContainer()
+        if let b = try? c.decode(Bool.self) { return b }
+        if let s = try? c.decode(String.self) {
+            return ["1", "true", "yes", "y"].contains(s.lowercased())
+        }
+        return false
+    }
+    static func encode(_ value: Bool, to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        try c.encode(value ? "1" : "0")
+    }
+}
+
+struct User: Codable {
+    @CodingBy<StringBoolAdapter> var isVip: Bool = false
+}
+```
+
+需要"缺失 key 也走 Adapter 兜底"时，为 Adapter 加 `KeyedDecodingContainer` 重载：
+
+```swift
+extension KeyedDecodingContainer {
+    func decode(_ type: CodingBy<StringBoolAdapter>.Type, forKey key: Key) throws -> CodingBy<StringBoolAdapter> {
+        try decodeIfPresent(type, forKey: key) ?? CodingBy(wrappedValue: false)
+    }
+}
+```
+
+#### 限制（零反射的代价）
+
+- **装饰器不能堆叠**：每个字段最多一个装饰器。需要组合行为（如 ISO8601 + 缺失兜底）写一个自定义 `CodingAdapter` 搞定
+- **key 别名不能装饰器表达**：手写 `init(from:)` + `KeyedDecodingContainer` 的 `decode(_:forKey:)` helper（项目里已封装）
+- **忽略字段用原生 `CodingKeys`**：非 Codable 类型也能用
+
+```swift
+struct User: Codable {
+    @CodingDefault<EmptyString> var name: String
+    var cachedImage: UIImage? = nil   // 非 Codable 字段，不放 CodingKeys
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        // cachedImage 不列 → 自动跳过
+    }
+}
+```
+
+#### 完整能力对照
+
+| 能力 | 实现 |
+|------|------|
+| key 缺失 → 默认值 | `@CodingDefault<Provider>` |
+| key 是 `null` → 默认值 | `@CodingDefault<Provider>` |
+| 类型不匹配 → 默认值 | `@CodingDefault<Provider>` |
+| 枚举未知 case → fallback | `@CodingDefault<自定义 Provider>` |
+| JSON key 有多个版本 | 手写 `init(from:)` + `c.decode(_:forKey:firstMatched:)` |
+| `"123"` → `Int(123)` | `@CodingLenient` |
+| `1` → `Bool(true)` | `@CodingLenient` |
+| ISO8601 字符串 → Date | `@CodingDate` |
+| 毫秒 / 秒时间戳 → Date | `@CodingDate`（自动识别） |
+| `Date?` 字段 key 缺失 | `@CodingDate var d: Date?`（自动 nil） |
+| 完全跳过字段 | 原生 `CodingKeys` 枚举排除 |
+| 任意自定义转换 | `@CodingBy<YourAdapter>` |
+
+#### 文件结构
+
+```
+Sources/XXFJson/Wrapper/
+├── Coding/
+│   ├── CodingDefault.swift         # @CodingDefault<Provider>
+│   ├── CodingDate.swift            # @CodingDate（委托 ISO8601DateAdapter）
+│   ├── CodingLenient.swift         # @CodingLenient（委托 LenientAdapter）
+│   └── CodingBy.swift              # @CodingBy<Adapter>
+├── Provider/
+│   ├── CodingDefaultValueProvider.swift  # 协议
+│   ├── EmptyBasic.swift            # EmptyString / EmptyInt*/UInt*/Float/Double
+│   ├── EmptyBool.swift             # True / False
+│   ├── EmptyCollection.swift       # EmptyArray / EmptyDict / EmptySet
+│   └── EmptyDate.swift             # DistantPast / DistantFuture / Now / Epoch
+├── Adapter/
+│   ├── CodingAdapter.swift         # Adapter 协议
+│   ├── _DateParsing.swift          # 日期解析辅助（internal）
+│   ├── ISO8601DateAdapter.swift    # ISO8601 Date 适配器
+│   ├── ISO8601OptionalDateAdapter.swift  # ISO8601 Date? 适配器
+│   ├── LenientDecodable.swift      # 宽松转换协议 + 基础类型实现
+│   └── LenientAdapter.swift        # 宽松类型适配器
+└── Demo/
+    └── Demo.swift                  # 完整场景示例（#if DEBUG）
+```
+
+更多用例见 `Sources/XXFJson/Wrapper/Demo/Demo.swift`：struct / class / enum / 嵌套模型 / Adapter / alt key 等。
+
 ---
 
 ## 10. XXFSpeed - 高性能工具
