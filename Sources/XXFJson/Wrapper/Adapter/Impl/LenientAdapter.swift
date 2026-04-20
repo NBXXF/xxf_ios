@@ -44,7 +44,7 @@ public struct LenientAdapter<T: Codable & LenientDecodable>: CodingAdapter {
 
         throw DecodingError.typeMismatch(T.self, .init(
             codingPath: decoder.codingPath,
-            debugDescription: "LenientAdapter 无法将 JSON 值转换为 \(T.self)"
+            debugDescription: "LenientAdapter failed to convert JSON value to \(T.self)"
         ))
     }
 

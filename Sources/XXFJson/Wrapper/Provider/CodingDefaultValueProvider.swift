@@ -27,7 +27,16 @@ import Foundation
 /// }
 /// ```
 ///
-/// 常见基础类型的 Provider 已内置（见 Provider/ 下的文件）。
+/// 常见基础类型的 Provider 已内置（见 Provider/Impl/ 下的文件）：
+///
+/// - 基础类型（EmptyBasic.swift）：
+///   `EmptyString`、`EmptyInt`、`EmptyInt8`、`EmptyInt16`、`EmptyInt32`、`EmptyInt64`、
+///   `EmptyUInt`、`EmptyUInt8`、`EmptyUInt16`、`EmptyUInt32`、`EmptyUInt64`、
+///   `EmptyFloat`、`EmptyDouble`
+/// - 布尔类型（EmptyBool.swift）：`False`、`True`
+/// - 集合类型（EmptyCollection.swift）：`EmptyArray<Element>`、`EmptyDict<Key, Value>`、`EmptySet<Element>`
+/// - 日期类型（EmptyDate.swift）：`DistantPast`、`DistantFuture`、`Now`、`Epoch`
+/// - Foundation 类型（EmptyFoundation.swift）：`EmptyURL`、`EmptyUUID`、`EmptyData`、`EmptyDecimal`
 public protocol CodingDefaultValueProvider {
     /// 被适配的目标类型
     associatedtype Value: Codable

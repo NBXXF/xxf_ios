@@ -55,7 +55,7 @@ public struct ISO8601DateAdapter: CodingAdapter {
 
         throw DecodingError.typeMismatch(Date.self, .init(
             codingPath: decoder.codingPath,
-            debugDescription: "ISO8601DateAdapter 无法解析日期（既不是 ISO 字符串也不是时间戳）"
+            debugDescription: "ISO8601DateAdapter failed to parse date (neither an ISO string nor a timestamp)"
         ))
     }
 

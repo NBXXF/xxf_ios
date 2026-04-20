@@ -46,7 +46,7 @@ public struct Base64DataAdapter: CodingAdapter {
             // 尝试 URL-safe base64（把 '-' '_' 替换回 '+' '/'，再补 padding）
             if let d = _decodeBase64URL(s) { return d }
             throw DecodingError.dataCorruptedError(in: c,
-                debugDescription: "Base64DataAdapter 无法解码字符串为 base64：\(s)")
+                debugDescription: "Base64DataAdapter failed to decode string as base64: \(s)")
         }
 
         // 2. 原生 Data（如果 decoder 已配置好策略）
@@ -54,7 +54,7 @@ public struct Base64DataAdapter: CodingAdapter {
 
         throw DecodingError.typeMismatch(Data.self, .init(
             codingPath: decoder.codingPath,
-            debugDescription: "Base64DataAdapter 无法将 JSON 值解码为 Data"
+            debugDescription: "Base64DataAdapter failed to decode JSON value as Data"
         ))
     }
 
