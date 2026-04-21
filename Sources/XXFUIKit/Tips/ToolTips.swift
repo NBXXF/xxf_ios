@@ -61,9 +61,10 @@ open class ToolTips: UIView {
         public var textAlignment: NSTextAlignment = .center
         /// 点击按下态背景色（作用于 actionControl）。
         public var highlightColor: UIColor = PlatformColor(hex: 0x000000, alpha: 0.06)
-        public var shadowColor: UIColor = PlatformColor(hex: 0x000000, alpha: 0.10)
-        public var shadowOffset: CGSize = .init(width: 0, height: 12.pt)
-        public var shadowRadius: CGFloat = 30.pt
+        /// Figma: Drop shadow / Y=-6 / Blur=40 / Spread=0 / Color=Neutral/Black6(黑 6% alpha)
+        public var shadowColor: UIColor = PlatformColor(hex: 0x000000, alpha: 0.06)
+        public var shadowOffset: CGSize = .init(width: 0, height: -6.pt)
+        public var shadowRadius: CGFloat = 40.pt
         public var shadowOpacity: Float = 1
 
         public init() {}
