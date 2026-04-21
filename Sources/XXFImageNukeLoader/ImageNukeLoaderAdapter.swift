@@ -70,7 +70,7 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
             // Nuke 会把首帧 UIImage 再编码成 JPEG 落盘,动图原始数据就丢了,
             // 下次命中读回来就拿不到 SDAnimatedImage 需要的多帧字节。
             $0.dataCachePolicy = .storeOriginalData
-            $0.dataCache = try? DataCache(name: "XXFImageCache") { key in
+            $0.dataCache = try? DataCache(name: "XXFImageCache_v1") { key in
                 // key 默认是 URL.absoluteString
                 // 文件内容变更会影响缩略图,这里按时间来计算
                 if let url = URL(string: key), url.isFileURL {
