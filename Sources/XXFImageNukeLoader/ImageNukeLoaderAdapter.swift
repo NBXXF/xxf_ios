@@ -8,6 +8,8 @@
 import Foundation
 import Nuke
 import ObjectiveC.runtime
+import SDWebImage
+import SDWebImageWebPCoder
 import XXFFoundation
 import XXFImageLoader
 
@@ -35,6 +37,9 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
     }
 
     private func initNuke() {
+        // 全局一次性配置:动图 coder + Nuke 解码器数据透传
+        _ = Self.setupOnce
+
         var rawList: [DataLoaderFetcher] = imageFectchers.map { item in
             NukeProxyDataFetcher(proxy: item)
         }
@@ -185,6 +190,45 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
         } else {
             view.image = image
         }
+    }
+
+    // MARK: - One-time global setup
+
+    /// 进程级一次性初始化。Swift 的 static let 天然 thread-safe + lazy。
+    ///
+    /// - 向 SDWebImage coder 链注册 libwebp 解码器,`SDAnimatedImage(data:)` 才能吃动图 WebP。
+    /// - 向 Nuke 解码器注册表追加一个 passthrough 解码器,对 WebP / HEIC 这类
+    ///   Nuke 默认不保留 `container.data` 的格式,补上原始字节,
+    ///   下游 `AnimatedImageView.nuke_display` 才能基于 data 构造 SDAnimatedImage。
+    private static let setupOnce: Void = {
+        // 1) SDWebImage 动图 WebP coder
+        SDImageCodersManager.shared.addCoder(SDImageWebPCoder.shared)
+
+        // 2) Nuke 解码器:为动图格式保留原始 data(GIF 已由默认解码器保留,这里补 WebP/HEIC)
+        ImageDecoderRegistry.shared.register { context -> (any ImageDecoding)? in
+            guard context.isCompleted, let type = AssetType(context.data) else { return nil }
+            switch type {
+                case .webp, .heic:
+                    return DataPreservingImageDecoder()
+                default:
+                    return nil
+            }
+        }
+    }()
+}
+
+/// 对 Nuke 默认解码器的透明包装,额外把原始字节回填到 `ImageContainer.data`。
+///
+/// 仅对动图格式(WebP / HEIC)使用。首帧 UIImage 仍由系统 ImageIO 产出,
+/// 用于兜底静态展示 / 缩略图;真正的多帧播放由消费端
+/// (`AnimatedImageView.nuke_display`)基于 data 构造 `SDAnimatedImage` 完成。
+private final class DataPreservingImageDecoder: ImageDecoding, @unchecked Sendable {
+    private let base = ImageDecoders.Default()
+
+    func decode(_ data: Data) throws -> ImageContainer {
+        var container = try base.decode(data)
+        container.data = data
+        return container
     }
 }
 #endif

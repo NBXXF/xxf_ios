@@ -180,8 +180,10 @@ let package = Package(
 
         // 图片库
         .package(url: "https://github.com/kean/Nuke.git", from: "12.9.0"),
-        // GIF 动图播放
-        .package(url: "https://github.com/kaishin/Gifu.git", from: "3.4.1"),
+        // 通用动图支持（GIF / APNG / 动图 WebP / 动图 HEIC）
+        .package(url: "https://github.com/SDWebImage/SDWebImage.git", from: "5.19.0"),
+        // 动图 WebP 解码器（libwebp 后端）
+        .package(url: "https://github.com/SDWebImage/SDWebImageWebPCoder.git", from: "0.14.0"),
         // toast
         .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3"),
         // refresh
@@ -464,7 +466,8 @@ let package = Package(
             dependencies: [
                 "XXFImageLoader",
                 .product(name: "Nuke", package: "Nuke", condition: .when(platforms: [.iOS])),
-                .product(name: "Gifu", package: "Gifu", condition: .when(platforms: [.iOS]))
+                .product(name: "SDWebImage", package: "SDWebImage", condition: .when(platforms: [.iOS])),
+                .product(name: "SDWebImageWebPCoder", package: "SDWebImageWebPCoder", condition: .when(platforms: [.iOS]))
             ]
         ),
         .target(

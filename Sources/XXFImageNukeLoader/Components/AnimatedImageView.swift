@@ -1,49 +1,47 @@
+#if os(iOS)
 //
 //  AnimatedImageView.swift
 //  xxf_ios
-//  支持 GIF 的 UIImageView 替代品,对外 API 与 UIImageView 一致
+//  通用动图 ImageView,对外 API 与 UIImageView 一致
+//  支持 GIF / APNG / 动图 WebP / 动图 HEIC
 //  Created by xxf
 //
-import Gifu
 import Nuke
+import SDWebImage
 import UIKit
-  
-/// 支持 GIF 动图的 ImageView
+
+/// 通用动图 ImageView。
 ///
-/// 使用方式与 UIImageView 完全一致,通过 `Imageloader.load().into(_:)`
-/// 或 `loadRemoteImage(_:)` 加载时:
-/// - GIF 自动播放
-/// - 静态图(JPEG/PNG/WebP)按原生 UIImageView 行为显示
+/// 使用方式与 `UIImageView` 完全一致,通过 `Imageloader.load().into(_:)`
+/// 或 `loadRemoteImage(_:)` 加载:
+/// - 动图 (GIF / APNG / 动图 WebP / 动图 HEIC) 自动识别并播放
+/// - 静态图 (JPEG / PNG / 静态 WebP / 静态 HEIC 等) 按原生 UIImageView 行为显示
 ///
-/// 注意:cell 复用场景需在 `prepareForReuse` 调用本类的 `prepareForReuse()`
-/// 或在取消加载时调用 `stopAnimatingGIF()`,避免旧 GIF 继续播放。
-public class AnimatedImageView: GIFImageView {
+/// 注意:cell 复用场景需在 `prepareForReuse` 调用本类的 `prepareForReuse()`。
+public class AnimatedImageView: SDAnimatedImageView {
     // MARK: - Nuke Integration
 
-    /// 覆盖 Nuke 默认实现,拦截 GIF 数据走动画路径,其余走原生 UIImageView
+    /// 覆盖 Nuke 默认 hook,基于响应携带的原始 data 构造 `SDAnimatedImage`,
+    /// 交由 `SDAnimatedImageView` 播放;无 data 或非动图则回退到原生静态路径。
+    ///
+    /// - Important: 需要 `ImageNukeLoaderAdapter` 为 WebP / HEIC 等动图格式
+    ///   在 `ImageContainer.data` 中保留原始字节(Nuke 默认解码器仅对 GIF 保留)。
     override open func nuke_display(image: UIImage?, data: Data?) {
-        if let data, Self.isGIFData(data) {
-            animate(withGIFData: data)
+        if let data, let animated = SDAnimatedImage(data: data) {
+            self.image = animated
+            startAnimating()
         } else {
-            stopAnimatingGIF()
+            stopAnimating()
             super.nuke_display(image: image, data: data)
         }
     }
-                                                                                                                                                                                                                                
+
     // MARK: - Reuse
-  
+
     /// Cell 复用时调用,停止动画 + 清空内容
     open func prepareForReuse() {
-        stopAnimatingGIF()
+        stopAnimating()
         image = nil
     }
-                                                                                                                                                                                                                                
-    // MARK: - Helpers
-                                                                                                                                                                                                                                
-    /// 检测 GIF 文件头("GIF87a" / "GIF89a",前 3 字节 0x47 0x49 0x46)
-    private static func isGIFData(_ data: Data) -> Bool {
-        guard data.count >= 3 else { return false }
-        return data[0] == 0x47 && data[1] == 0x49 && data[2] == 0x46
-    }
 }
-                                     
+#endif
