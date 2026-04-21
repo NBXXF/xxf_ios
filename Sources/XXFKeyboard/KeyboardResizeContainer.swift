@@ -118,6 +118,11 @@ open class KeyboardResizeContainer: UIView {
         let keyboardHeight = max(0, window.bounds.height - frame.origin.y)
         currentKeyboardHeight = keyboardHeight
 
+        // 兜底:首个键盘事件到达时若约束尚未追踪到(runloop 时序),现场补一次
+        if bottomLayoutConstraint == nil {
+            findAndTrackBottomConstraint()
+        }
+
         // 更新底部约束
         updateBottomConstraint(keyboardHeight: keyboardHeight)
     }
@@ -165,8 +170,14 @@ open class KeyboardResizeContainer: UIView {
     /// 监听约束变化，自动追踪底部约束
     override open func didMoveToSuperview() {
         super.didMoveToSuperview()
-        // 当添加到父视图后，查找并追踪底部约束
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        // 脱离父视图时清空追踪,避免持有旧 constraint 引用
+        guard superview != nil else {
+            bottomLayoutConstraint = nil
+            return
+        }
+        // 下一 runloop 扫描:保证调用方 `makeConstraints` 已执行完毕
+        // (didMoveToSuperview 是在 addSubview 同步触发,此时 SnapKit 约束还没写入)
+        DispatchQueue.main.async { [weak self] in
             self?.findAndTrackBottomConstraint()
         }
     }
