@@ -6,7 +6,6 @@
 //  支持 GIF / APNG / 动图 WebP / 动图 HEIC
 //  Created by xxf
 //
-import Nuke
 import SDWebImage
 import UIKit
 
@@ -18,21 +17,21 @@ import UIKit
 /// - 静态图 (JPEG / PNG / 静态 WebP / 静态 HEIC 等) 按原生 UIImageView 行为显示
 ///
 /// 注意:cell 复用场景需在 `prepareForReuse` 调用本类的 `prepareForReuse()`。
-public class AnimatedImageView: SDAnimatedImageView {
-    // MARK: - Nuke Integration
+public class AnimatedImageView: SDAnimatedImageView, AnimatedImageDisplaying {
+    // MARK: - AnimatedImageDisplaying
 
-    /// 覆盖 Nuke 默认 hook,基于响应携带的原始 data 构造 `SDAnimatedImage`,
-    /// 交由 `SDAnimatedImageView` 播放;无 data 或非动图则回退到原生静态路径。
+    /// 适配器下发首帧 + 原始字节:优先用 `SDAnimatedImage(data:)` 解多帧动图,
+    /// 不是动图则回退到静态 `UIImage`。
     ///
     /// - Important: 需要 `ImageNukeLoaderAdapter` 为 WebP / HEIC 等动图格式
     ///   在 `ImageContainer.data` 中保留原始字节(Nuke 默认解码器仅对 GIF 保留)。
-    override open func nuke_display(image: UIImage?, data: Data?) {
+    public func displayImage(_ image: UIImage?, data: Data?) {
         if let data, let animated = SDAnimatedImage(data: data) {
             self.image = animated
             startAnimating()
         } else {
             stopAnimating()
-            super.nuke_display(image: image, data: data)
+            self.image = image
         }
     }
 

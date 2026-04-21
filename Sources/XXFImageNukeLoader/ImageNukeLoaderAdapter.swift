@@ -7,6 +7,7 @@
 //
 import Foundation
 import Nuke
+import NukeExtensions
 import ObjectiveC.runtime
 import SDWebImage
 import SDWebImageWebPCoder
@@ -181,11 +182,14 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
         Self.display(view.image, data: nil, in: view)
     }
 
-    /// 统一走 Nuke_ImageDisplaying.nuke_display 通道,便于 AnimatedImageView 这类
-    /// 子类按 data 识别 GIF 并切换到动画播放,其余场景回退到原生 view.image 赋值。
+    /// 统一下发通道:
+    /// - 先尝试自定义 `AnimatedImageDisplaying`(如 `AnimatedImageView`),按 data 识别动图并播放
+    /// - 否则兜底走 Nuke 的 `Nuke_ImageDisplaying`,最后直接赋 image
     @MainActor
     private static func display(_ image: PlatformImage?, data: Data?, in view: PlatformImageView) {
-        if let displaying = view as? any Nuke_ImageDisplaying {
+        if let animated = view as? AnimatedImageDisplaying {
+            animated.displayImage(image, data: data)
+        } else if let displaying = view as? any Nuke_ImageDisplaying {
             displaying.nuke_display(image: image, data: data)
         } else {
             view.image = image
@@ -199,20 +203,18 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
     /// - 向 SDWebImage coder 链注册 libwebp 解码器,`SDAnimatedImage(data:)` 才能吃动图 WebP。
     /// - 向 Nuke 解码器注册表追加一个 passthrough 解码器,对 WebP / HEIC 这类
     ///   Nuke 默认不保留 `container.data` 的格式,补上原始字节,
-    ///   下游 `AnimatedImageView.nuke_display` 才能基于 data 构造 SDAnimatedImage。
+    ///   下游 `AnimatedImageView.displayImage` 才能基于 data 构造 SDAnimatedImage。
     private static let setupOnce: Void = {
         // 1) SDWebImage 动图 WebP coder
-        SDImageCodersManager.shared.addCoder(SDImageWebPCoder.shared)
+        SDImageCodersManager.sharedManager.addCoder(SDImageWebPCoder.sharedCoder)
 
         // 2) Nuke 解码器:为动图格式保留原始 data(GIF 已由默认解码器保留,这里补 WebP/HEIC)
         ImageDecoderRegistry.shared.register { context -> (any ImageDecoding)? in
             guard context.isCompleted, let type = AssetType(context.data) else { return nil }
-            switch type {
-                case .webp, .heic:
-                    return DataPreservingImageDecoder()
-                default:
-                    return nil
+            if type == .webp || type == .heic {
+                return DataPreservingImageDecoder()
             }
+            return nil
         }
     }()
 }
