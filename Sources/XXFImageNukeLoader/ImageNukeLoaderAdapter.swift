@@ -7,14 +7,10 @@
 //
 import Foundation
 import Nuke
-import NukeExtensions
-import ObjectiveC.runtime
 import SDWebImage
 import SDWebImageWebPCoder
 import XXFFoundation
 import XXFImageLoader
-
-private nonisolated(unsafe) var kImageTaskKey: UInt8 = 0
 
 public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
     public var loaderQueue: OperationQueue
@@ -69,6 +65,11 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
 
             $0.dataLoader = MutiDataLoader(dataLoadingList: rawList)
             $0.isLocalResourcesSupportEnabled = false // 禁用内部直接读取,这样会走自定义的loaderFecther
+            // 显式声明:磁盘缓存只存原始下载字节,不做二次编码。
+            // 对动图至关重要 —— 若走 .storeEncodedImages / .automatic+processor,
+            // Nuke 会把首帧 UIImage 再编码成 JPEG 落盘,动图原始数据就丢了,
+            // 下次命中读回来就拿不到 SDAnimatedImage 需要的多帧字节。
+            $0.dataCachePolicy = .storeOriginalData
             $0.dataCache = try? DataCache(name: "XXFImageCache") { key in
                 // key 默认是 URL.absoluteString
                 // 文件内容变更会影响缩略图,这里按时间来计算
@@ -105,21 +106,13 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
             Self.display(placeholder, data: nil, in: view)
         }
         if url.isFileURL {
-            Imageloader.adapter!.loaderQueue.addOperation {
-                var userInfo: [ImageRequest.UserInfoKey: Any] = [:]
-                userInfo[.imageIdKey] = ImageNukeLoaderAdapter.fileURLCacheKey(url: url)
-
-                let request = ImageRequest(url: url, userInfo: userInfo)
-
-                // 先进行内存缓存命中直接显示
-                //            let firstCache = false
-                //            if firstCache, let cached = ImagePipeline.shared.cache.cachedImage(for: request, caches: .memory) {
-                //                view.image = cached.image
-                //            } else {
-                //
-                //            }
-                // 切回主线程调用 MainActor 的 load
-                Task { @MainActor in
+            // fileURLCacheKey 会 stat 文件,放后台队列避免阻塞主线程
+            loaderQueue.addOperation { [weak self, weak view] in
+                guard let self, view != nil else { return }
+                let key = Self.fileURLCacheKey(url: url)
+                Task { @MainActor [weak view] in
+                    guard let view else { return }
+                    let request = ImageRequest(url: url, userInfo: [.imageIdKey: key])
                     self.load(request: request, into: view, error: error, queue: queue, progressHandler: progressHandler, completion: completion)
                 }
             }
@@ -156,8 +149,10 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
 
             switch result {
                 case let .success(response):
-                    // 通过 nuke_display hook 让 AnimatedImageView 等子类拦截 GIF 数据
-                    Self.display(response.image, data: response.container.data, in: view)
+                    // 加载端在后台解码队列预构造好的动图对象(SDAnimatedImage)。
+                    // 非空时消费端直接赋图,避免主线程重复解码。
+                    let prebuilt = response.container.userInfo[.xxfAnimatedImage] as? UIImage
+                    Self.display(response.image, data: response.container.data, animatedImage: prebuilt, in: view)
                     completion?(.success(()))
                 case let .failure(err):
                     Self.display(error, data: nil, in: view)
@@ -178,19 +173,27 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
         view.nukeImageTask?.cancel()
         view.nukeImageTask = nil
         view.nukeRequestId = nil
-        // 保持当前静态画面,同时让 AnimatedImageView 停掉 GIF 动画
-        Self.display(view.image, data: nil, in: view)
+        // 停动画、保留当前帧:
+        // - UIImageView.stopAnimating() 对非动画态是 no-op
+        // - SDAnimatedImageView.stopAnimating() 会撤掉 CADisplayLink 并暂停帧推进
+        // 不再走 `Self.display(view.image, ...)` —— 把当前 SDAnimatedImage
+        // 再赋一次 `view.image` 会触发 setImage: 重新挂 CADisplayLink,动画会被重启。
+        view.stopAnimating()
     }
 
     /// 统一下发通道:
-    /// - 先尝试自定义 `AnimatedImageDisplaying`(如 `AnimatedImageView`),按 data 识别动图并播放
-    /// - 否则兜底走 Nuke 的 `Nuke_ImageDisplaying`,最后直接赋 image
+    /// - 优先下发给 `AnimatedImageDisplaying`(如 `AnimatedImageView`),
+    ///   让它按 `animatedImage` / `data` 决定播放或静态展示。
+    /// - 否则直接赋 `view.image`(对 UIImageView 即原生行为,等价于 Nuke
+    ///   `nuke_display` 默认实现,因此无需再依赖 NukeExtensions)。
     @MainActor
-    private static func display(_ image: PlatformImage?, data: Data?, in view: PlatformImageView) {
+    private static func display(_ image: PlatformImage?,
+                                data: Data?,
+                                animatedImage: UIImage? = nil,
+                                in view: PlatformImageView)
+    {
         if let animated = view as? AnimatedImageDisplaying {
-            animated.displayImage(image, data: data)
-        } else if let displaying = view as? any Nuke_ImageDisplaying {
-            displaying.nuke_display(image: image, data: data)
+            animated.displayImage(image, data: data, animatedImage: animatedImage)
         } else {
             view.image = image
         }
@@ -208,29 +211,47 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
         // 1) SDWebImage 动图 WebP coder
         SDImageCodersManager.shared.addCoder(SDImageWebPCoder.shared)
 
-        // 2) Nuke 解码器:为动图格式保留原始 data(GIF 已由默认解码器保留,这里补 WebP/HEIC)
+        // 2) 动图解码器:覆盖所有 SDAnimatedImage 能吃的格式(GIF / WebP / HEIC)
+        //    - 在 Nuke 的 imageDecodingQueue(后台)预构造 SDAnimatedImage,消费端主线程零解码
+        //    - 在 container.userInfo 中回填原始字节 + 预构造动图 + skip-decompression 标志
         ImageDecoderRegistry.shared.register { context -> (any ImageDecoding)? in
             guard context.isCompleted, let type = AssetType(context.data) else { return nil }
-            if type == .webp || type == .heic {
-                return DataPreservingImageDecoder()
+            if type == .gif || type == .webp || type == .heic {
+                return AnimatedImageDecoder()
             }
             return nil
         }
     }()
 }
 
-/// 对 Nuke 默认解码器的透明包装,额外把原始字节回填到 `ImageContainer.data`。
+/// 动图解码器:基于 Nuke 默认解码器首帧 + 后台线程预构造 SDAnimatedImage。
 ///
-/// 仅对动图格式(WebP / HEIC)使用。首帧 UIImage 仍由系统 ImageIO 产出,
-/// 用于兜底静态展示 / 缩略图;真正的多帧播放由消费端
-/// (`AnimatedImageView.nuke_display`)基于 data 构造 `SDAnimatedImage` 完成。
-private final class DataPreservingImageDecoder: ImageDecoding, @unchecked Sendable {
+/// - `container.image`:首帧 UIImage(来自 ImageIO / libwebp),兼容纯 UIImageView 消费
+/// - `container.data`:原始字节,供其他自管动图的渲染器使用
+/// - `container.userInfo[.xxfAnimatedImage]`:预构造的 SDAnimatedImage,主线程零解码路径
+/// - `container.userInfo[.xxfSkipDecompression]`:动图由 SDAnimatedImageView 自管帧,
+///   Nuke 的 `decompressed()` 对首帧做位图展开是无效功(浪费约 W×H×4 字节内存 + CPU),
+///   通过 Nuke 的 skip-decompression hook 跳过。
+private final class AnimatedImageDecoder: ImageDecoding, @unchecked Sendable {
     private let base = ImageDecoders.Default()
 
     func decode(_ data: Data) throws -> ImageContainer {
         var container = try base.decode(data)
         container.data = data
+        if let animated = SDAnimatedImage(data: data) {
+            container.userInfo[.xxfAnimatedImage] = animated
+            container.userInfo[.xxfSkipDecompression] = true
+        }
         return container
     }
+}
+
+private extension ImageContainer.UserInfoKey {
+    /// 预构造好的动图 UIImage(如 SDAnimatedImage)。加载端在解码队列构造,消费端直接赋图。
+    static let xxfAnimatedImage: ImageContainer.UserInfoKey = "com.xxf.imagenukeloader.animatedImage"
+    /// Nuke 内部的 skip-decompression 信号,字面量与 Nuke 源码 `ImageContainer.isThumbnailKey`
+    /// 保持一致。若 Nuke 大版本更新了这个 key,动图会回退到"解压缩+丢弃"的低效路径,
+    /// 但不会 crash,behaviorally safe。
+    static let xxfSkipDecompression: ImageContainer.UserInfoKey = "com.github/kean/nuke/skip-decompression"
 }
 #endif

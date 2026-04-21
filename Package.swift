@@ -466,7 +466,6 @@ let package = Package(
             dependencies: [
                 "XXFImageLoader",
                 .product(name: "Nuke", package: "Nuke", condition: .when(platforms: [.iOS])),
-                .product(name: "NukeExtensions", package: "Nuke", condition: .when(platforms: [.iOS])),
                 .product(name: "SDWebImage", package: "SDWebImage", condition: .when(platforms: [.iOS])),
                 .product(name: "SDWebImageWebPCoder", package: "SDWebImageWebPCoder", condition: .when(platforms: [.iOS]))
             ]
