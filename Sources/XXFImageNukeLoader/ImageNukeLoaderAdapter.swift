@@ -96,7 +96,7 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
 
         // 设置占位图,且避免占位图为空 进行闪缩
         if placeholder != nil {
-            view.image = placeholder
+            Self.display(placeholder, data: nil, in: view)
         }
         if url.isFileURL {
             Imageloader.adapter!.loaderQueue.addOperation {
@@ -150,10 +150,11 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
 
             switch result {
                 case let .success(response):
-                    view.image = response.image
+                    // 通过 nuke_display hook 让 AnimatedImageView 等子类拦截 GIF 数据
+                    Self.display(response.image, data: response.container.data, in: view)
                     completion?(.success(()))
                 case let .failure(err):
-                    view.image = error
+                    Self.display(error, data: nil, in: view)
                     completion?(.failure(err))
             }
 
@@ -171,6 +172,19 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
         view.nukeImageTask?.cancel()
         view.nukeImageTask = nil
         view.nukeRequestId = nil
+        // 保持当前静态画面,同时让 AnimatedImageView 停掉 GIF 动画
+        Self.display(view.image, data: nil, in: view)
+    }
+
+    /// 统一走 Nuke_ImageDisplaying.nuke_display 通道,便于 AnimatedImageView 这类
+    /// 子类按 data 识别 GIF 并切换到动画播放,其余场景回退到原生 view.image 赋值。
+    @MainActor
+    private static func display(_ image: PlatformImage?, data: Data?, in view: PlatformImageView) {
+        if let displaying = view as? any Nuke_ImageDisplaying {
+            displaying.nuke_display(image: image, data: data)
+        } else {
+            view.image = image
+        }
     }
 }
 #endif

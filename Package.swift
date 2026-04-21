@@ -180,6 +180,8 @@ let package = Package(
 
         // 图片库
         .package(url: "https://github.com/kean/Nuke.git", from: "12.9.0"),
+        // GIF 动图播放
+        .package(url: "https://github.com/kaishin/Gifu.git", from: "3.4.1"),
         // toast
         .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3"),
         // refresh
@@ -461,7 +463,8 @@ let package = Package(
             name: "XXFImageNukeLoader",
             dependencies: [
                 "XXFImageLoader",
-                .product(name: "Nuke", package: "Nuke", condition: .when(platforms: [.iOS]))
+                .product(name: "Nuke", package: "Nuke", condition: .when(platforms: [.iOS])),
+                .product(name: "Gifu", package: "Gifu", condition: .when(platforms: [.iOS]))
             ]
         ),
         .target(
