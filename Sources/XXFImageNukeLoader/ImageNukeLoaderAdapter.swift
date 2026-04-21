@@ -206,7 +206,7 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
     ///   下游 `AnimatedImageView.displayImage` 才能基于 data 构造 SDAnimatedImage。
     private static let setupOnce: Void = {
         // 1) SDWebImage 动图 WebP coder
-        SDImageCodersManager.sharedManager.addCoder(SDImageWebPCoder.sharedCoder)
+        SDImageCodersManager.shared.addCoder(SDImageWebPCoder.shared)
 
         // 2) Nuke 解码器:为动图格式保留原始 data(GIF 已由默认解码器保留,这里补 WebP/HEIC)
         ImageDecoderRegistry.shared.register { context -> (any ImageDecoding)? in
