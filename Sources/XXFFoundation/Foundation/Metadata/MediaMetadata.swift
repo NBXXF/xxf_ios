@@ -40,6 +40,16 @@ public struct MediaAsset: @unchecked Sendable {
 // MARK: - MediaMetadata 工具类
 
 public enum MediaMetadata {
+    /// 是否是动图
+    public static func isAnimatedImage(url: URL) -> Bool {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
+            return false
+        }
+
+        let count = CGImageSourceGetCount(source)
+        return count > 1
+    }
+
     // MARK: 单个文件接口
 
     /// 建议在子线程使用
@@ -271,15 +281,15 @@ private extension MediaMetadata {
             let type: MediaType
             switch asset.mediaType {
                 case .image:
-                    type = .image
+                type = .image
                 case .video:
-                    type = .video
+                type = .video
                 case .audio:
-                    type = .audio
+                type = .audio
                 case .unknown:
-                    type = .unknown
+                type = .unknown
                 @unknown default:
-                    type = .unknown
+                type = .unknown
             }
 
             let width = asset.pixelWidth > 0 ? asset.pixelWidth : nil
