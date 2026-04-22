@@ -57,9 +57,13 @@ open class XTextView: UITextView {
 
     /// 占位颜色(仅对 `placeholder` 纯文本路径生效)。
     ///
-    /// 默认值 = `Self.defaultPlaceholderColor`,iOS 13+ 跟随系统
+    /// 默认值 = `XTextView.defaultPlaceholderColor`,iOS 13+ 跟随系统
     /// `UIColor.placeholderText`,保证 dark mode 下对比度达到 WCAG 要求。
-    public var placeholderColor: UIColor = Self.defaultPlaceholderColor {
+    ///
+    /// 注意:这里用 `XTextView.` 而非 `Self.` —— `open class` 里 `Self` 是 covariant,
+    /// 存储属性初始化表达式禁止引用(Swift: "Covariant 'Self' type cannot be
+    /// referenced from a stored property initializer")。
+    public var placeholderColor: UIColor = XTextView.defaultPlaceholderColor {
         didSet {
             // 只给纯文本 label 设 color;富文本的颜色由 AttributedString 自带,不覆盖。
             placeholderLabel.textColor = placeholderColor
