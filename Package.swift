@@ -156,7 +156,7 @@ let package = Package(
         .package(url: "https://github.com/RxSwiftCommunity/RxKeyboard.git", from: "2.0.0"),
         .package(url: "https://github.com/SwifterSwift/SwifterSwift.git", from: "7.0.0"),
         .package(url: "https://github.com/Moya/Moya.git", from: "15.0.3"),
-        .package(url: "https://github.com/NBXXF/PulseCompat", from: "4.4.6"),
+        .package(url: "https://github.com/NBXXF/PulseCompat", from: "4.4.7"),
         .package(url: "https://github.com/hmlongco/Factory.git", from: "2.5.3"),
         .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "7.0.0")),
         /// 目前支持arm.不支持x86
