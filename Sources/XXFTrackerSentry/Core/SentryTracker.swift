@@ -9,7 +9,7 @@ import Sentry
 import XXFTracker
 
 /// 使用 sentry 作为上报渠道
-public final class SentryTracker: ChanelTracker {
+open class SentryTracker: ChanelTracker {
     /// 初始化
     /// - Parameters:
     ///   - dsn: dsn 上报全地址
@@ -39,7 +39,7 @@ public final class SentryTracker: ChanelTracker {
     /// - Parameters:
     ///   - data: 转换器返回的字符串信息
     ///   - extra: 附加的键值对信息
-    public func onTracking(data: Any, extra: [AnyHashable: Any], converterChain: TrackerConverterChain) {
+    open func onTracking(data: Any, extra: [AnyHashable: Any], converterChain: TrackerConverterChain) {
         if let error = data as? Error {
             SentrySDK.capture(error: error)
         } else {

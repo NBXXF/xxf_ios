@@ -11,7 +11,7 @@ import Foundation
 import XXFTracker
 
 /// 使用 Bugsnag 作为上报渠道
-public final class BugsnagTracker: ChanelTracker {
+open class BugsnagTracker: ChanelTracker {
     /// 初始化
     /// - Parameters:
     ///   - apiKey: appkey
@@ -75,7 +75,7 @@ public final class BugsnagTracker: ChanelTracker {
     /// - Parameters:
     ///   - data: 原始数据
     ///   - extra: 附加的键值对信息
-    public func onTracking(data: Any, extra: [AnyHashable: Any], converterChain: TrackerConverterChain) {
+    open func onTracking(data: Any, extra: [AnyHashable: Any], converterChain: TrackerConverterChain) {
         // 创建一个可变副本
         var extraCopy = extra
         let data = converterChain.convert(data: data, extra: &extraCopy)
