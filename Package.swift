@@ -101,6 +101,10 @@ let package = Package(
             targets: ["XXFTrackerSentry"]
         ),
         .library(
+            name: "XXFTrackerFirebase",
+            targets: ["XXFTrackerFirebase"]
+        ),
+        .library(
             name: "XXFRouter",
             targets: ["XXFRouter"]
         ),
@@ -484,6 +488,14 @@ let package = Package(
             dependencies: [
                 "XXFTracker",
                 .product(name: "Sentry", package: "sentry-cocoa")
+            ]
+        ),
+        .target(
+            name: "XXFTrackerFirebase",
+            dependencies: [
+                "XXFTracker",
+                .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS])),
+                .product(name: "FirebaseCore", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS]))
             ]
         ),
 
