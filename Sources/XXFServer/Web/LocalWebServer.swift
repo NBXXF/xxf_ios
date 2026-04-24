@@ -7,6 +7,7 @@
 
 import Foundation
 import GCDWebServer
+import XXFFoundation
 
 /// 本地 HTTP 服务,用于把沙盒里的本地目录以 `http://127.0.0.1:PORT/<token>/...` 形式暴露给 WKWebView。
 ///
@@ -149,8 +150,7 @@ public final class LocalWebServer {
     // MARK: - Private (state)
 
     private func newTokenValue() -> String {
-        // UUID 去连字符,32 字符纯十六进制,128-bit 随机度,URL-safe,实际不可能碰撞
-        UUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "")
+        return randomUUIDString32()
     }
 
     private func register(token: String, root: String) {
