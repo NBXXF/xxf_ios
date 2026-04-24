@@ -147,6 +147,10 @@ let package = Package(
             targets: ["XXFEventReporterFirebase"]
         )
     ],
+    // 依赖版本策略：
+    // 1) from: "x.y.z" == .upToNextMajor(from: "x.y.z")，范围 [x.y.z, nextMajor)
+    // 2) .exact("x.y.z") 仅固定该版本
+    // 3) 其他方式：.upToNextMinor(from:), 区间("a"..<"b"/"a"..."b"), branch:, revision:
     dependencies: [
         // 第三方依赖写这里
         /// 新的跨平台日志库 比os.Logger更好用,能更好扩展
@@ -204,6 +208,9 @@ let package = Package(
 
         // 图片视频选择器
         .package(url: "https://github.com/longitachi/ZLPhotoBrowser.git", from: "4.5.8"),
+
+        // ZIP 解压缩
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.20"),
 
         // Firebase
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.10.0"),
@@ -547,7 +554,10 @@ let package = Package(
         // MARK: - 图片压缩（Luban 风格，微信压缩算法）
 
         .target(
-            name: "XXFCompress"
+            name: "XXFCompress",
+            dependencies: [
+                .product(name: "ZIPFoundation", package: "ZIPFoundation")
+            ]
         ),
         .target(
             name: "XXFEventReporter",
