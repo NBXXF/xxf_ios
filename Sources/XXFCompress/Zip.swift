@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ZIPFoundation
 
 // MARK: - ZIP 快捷入口
 
