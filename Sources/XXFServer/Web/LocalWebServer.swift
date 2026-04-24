@@ -194,11 +194,14 @@ public final class LocalWebServer {
         defer { startLock.unlock() }
         if server.isRunning { return true }
         do {
-            try server.start(options: [
+            var options: [String: Any] = [
                 GCDWebServerOption_Port: NSNumber(value: 0),
-                GCDWebServerOption_BindToLocalhost: NSNumber(value: true),
-                GCDWebServerOption_AutomaticallySuspendInBackground: NSNumber(value: true)
-            ])
+                GCDWebServerOption_BindToLocalhost: NSNumber(value: true)
+            ]
+            #if os(iOS) || os(tvOS)
+            options[GCDWebServerOption_AutomaticallySuspendInBackground] = NSNumber(value: true)
+            #endif
+            try server.start(options: options)
             return true
         } catch {
             emitLog(.error, "[LocalWebServer] start failed: \(error)")
