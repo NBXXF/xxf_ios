@@ -175,6 +175,7 @@ let package = Package(
         /// 服务器开发框架
         .package(url: "https://github.com/vapor/vapor.git", from: "4.115.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.16.1"),
+        .package(url: "https://github.com/yene/GCDWebServer.git", from: "3.5.7"),
         // .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.26.1"),///大规模请求其他api,NIO实现
 
         /// hud组件
@@ -436,6 +437,8 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 // 接收socket
                 .product(name: "WebSocketKit", package: "websocket-kit"),
+                // 本地静态资源 HTTP 服务
+                .product(name: "GCDWebServer", package: "GCDWebServer"),
                 // 高并发请求其他http
                 // .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 /// 日志

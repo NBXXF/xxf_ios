@@ -1,5 +1,5 @@
 {
-  "originHash" : "b3b0f352f5cec0ccea424fda874addcc08be3755410806eaca29cba56032f082",
+  "originHash" : "d2379999e4dda9eb2f89bea37608fde72c3404519f4a25e7482dc1a1e753e1e6",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -98,6 +98,15 @@
       "state" : {
         "revision" : "52548902007e7beda99fcdca31f62eccc4befe38",
         "version" : "12.11.0"
+      }
+    },
+    {
+      "identity" : "gcdwebserver",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/yene/GCDWebServer.git",
+      "state" : {
+        "revision" : "c2f837b30038ef716b77225f40cc8d104b6ff645",
+        "version" : "3.5.7"
       }
     },
     {
