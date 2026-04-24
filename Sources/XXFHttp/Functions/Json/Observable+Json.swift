@@ -6,9 +6,9 @@
 //
 
 import Foundation
+import Moya
 import RxSwift
 import XXFJson
-import Moya
 
 public extension ObservableType where Element == Response {
     /// 和官方moya一摸一样,只是替换decoder默认值为LoggingJSONDecoder, 会记录错误日志
@@ -18,6 +18,7 @@ public extension ObservableType where Element == Response {
         using decoder: Foundation.JSONDecoder = LoggingJSONDecoder(),
         failsOnEmptyData: Bool = true
     ) -> Observable<D> {
-        return self.map(type, atKeyPath: keyPath, using: decoder, failsOnEmptyData: failsOnEmptyData)
+        return self.filterSuccessfulStatusCodes()
+            .map(type, atKeyPath: keyPath, using: decoder, failsOnEmptyData: failsOnEmptyData)
     }
 }
