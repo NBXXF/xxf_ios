@@ -549,6 +549,9 @@ RxBus.shared.postSticky(ThemeChangedEvent(theme: .dark))
 
 声明式的键值对存储，通过 **@PreferenceWrapper** 属性包装器实现。
 
+- 默认存储实现：`UserDefaults`（`UserDefaultsPreferenceProvider`）
+- 可选存储实现：`MMKV`（`XXFCacheMMKV` 模块，`MMKVPreferenceProvider`）
+
 ### Demo
 
 ```swift
@@ -571,6 +574,56 @@ print(prefs.darkMode)            // 类型安全
 // Combine 监听
 prefs.$darkMode.sink { isDark in
     updateAppearance(isDark)
+}
+```
+
+### 使用 MMKV 作为 PreferencesStorage
+
+```swift
+import XXFCache
+import XXFCacheMMKV
+
+final class UserPreferences: MMKVPreferenceProvider {
+    @PreferenceBinding<String, UserPreferences>("access_token", default: nil)
+    var accessToken: String?
+}
+```
+
+### 迁移指南（UserDefaults -> MMKV）
+
+1. 安装并引入模块：在依赖中增加 `XXFCacheMMKV`，业务侧 `import XXFCacheMMKV`。
+2. 启动阶段初始化：建议在 App 启动早期统一执行 `MMKV.initialize(rootDir:)`。
+3. Provider 切换：将原先继承 `UserDefaultsPreferenceProvider` 的类型切换为 `MMKVPreferenceProvider`。
+4. 数据迁移策略：首次发版可做一次性迁移（按 key 从 `UserDefaults` 读取并写入 MMKV），迁移完成后打标记避免重复迁移。
+5. 灰度与回滚：保留 `UserDefaults` 回退开关，灰度验证读写一致性后再全量切换。
+
+示例（一次性迁移）：
+
+```swift
+import Foundation
+import MMKV
+
+func migrateUserDefaultsToMMKV(keys: [String], migratedFlagKey: String = "mmkv_migrated_v1") {
+    let ud = UserDefaults.standard
+    guard !ud.bool(forKey: migratedFlagKey) else { return }
+    guard let kv = MMKV.default() else { return }
+
+    for key in keys {
+        guard let value = ud.object(forKey: key) else { continue }
+        switch value {
+        case let v as Bool: kv.set(v, forKey: key)
+        case let v as Int: kv.set(Int64(v), forKey: key)
+        case let v as Double: kv.set(v, forKey: key)
+        case let v as Float: kv.set(v, forKey: key)
+        case let v as String: kv.set(v, forKey: key)
+        case let v as Data: kv.set(v, forKey: key)
+        case let v as URL: kv.set(v.absoluteString, forKey: key)
+        case let v as Date: kv.set(v.timeIntervalSince1970, forKey: key)
+        default: break
+        }
+    }
+
+    ud.set(true, forKey: migratedFlagKey)
 }
 ```
 
@@ -1754,6 +1807,7 @@ let data = image.lubanCompress(type: .timeline)
 | **XXFServer** | 内嵌服务器 | Vapor 驱动 |
 | **XXFDatabaseGrdb** | 数据库实现 | GRDB.swift 驱动（SQLite / 关系型） |
 | **XXFDatabaseObjectBox** | 数据库实现 | ObjectBox 驱动（对象数据库 / NoSQL） |
+| **XXFCacheMMKV** | 偏好存储实现 | MMKV 驱动（实现 PreferencesStorage） |
 | **XXFTrackerBugsnag** | 错误追踪 | Bugsnag 实现 |
 | **XXFTrackerSentry** | 错误追踪 | Sentry 实现 |
 | **XXFEventReporter** | 事件上报 | 抽象接口层 |
@@ -1867,6 +1921,7 @@ api.request(...)
 | ZLPhotoBrowser | 图片视频选择器 | 4.x |
 | RxKeyboard | 键盘事件响应式封装 | 2.x |
 | GDPerformanceView-Swift | FPS/CPU/内存监控悬浮窗 | 2.x |
+| MMKV | 高性能 KV 存储（PreferencesStorage 实现） | 2.x |
 | SnapKit | 自动布局 | 5.x |
 | MJRefresh | 下拉刷新 | 3.x |
 | URLNavigator | 路由匹配 | 2.x |
@@ -1890,6 +1945,7 @@ XXFArch (一站式引入)
 ├── XXFAdapter (DiffableDataSource)
 ├── XXFBus (RxSwift)
 ├── XXFCache
+│   └── XXFCacheMMKV (MMKV)
 ├── XXFLog (swift-log + Pulse)
 ├── XXFJson
 ├── XXFSpeed (XXHash)
