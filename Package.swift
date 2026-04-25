@@ -48,10 +48,18 @@ let package = Package(
             name: "XXFDatabaseGrdb",
             targets: ["XXFDatabaseGrdb"]
         ),
+        .library(
+            name: "XXFDatabaseObjectBox",
+            targets: ["XXFDatabaseObjectBox"]
+        ),
 //        .library(
 //            name: "XXFCache",
 //            targets: ["XXFCache"]
 //        ),
+        .library(
+            name: "XXFCacheMMKV",
+            targets: ["XXFCacheMMKV"]
+        ),
 //        .library(
 //            name: "XXFDi",
 //            targets: ["XXFDi"]
@@ -167,6 +175,7 @@ let package = Package(
         .package(url: "https://github.com/NBXXF/PulseCompat", from: "4.4.7"),
         .package(url: "https://github.com/hmlongco/Factory.git", from: "2.5.3"),
         .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "7.0.0")),
+        .package(url: "https://github.com/objectbox/objectbox-swift-spm", from: "5.2.0"),
         /// 目前支持arm.不支持x86
         /// .package(url: "https://github.com/NBXXF/XXFHighwayHash.swift.git", from: "1.0.0"),
         .package(url: "https://github.com/NBXXF/XXFXXHash.swift.git", from: "1.0.0"),
@@ -199,6 +208,8 @@ let package = Package(
         .package(url: "https://github.com/CoderMJLee/MJRefresh.git", from: "3.7.9"),
         // disk cache
         .package(url: "https://github.com/hyperoslo/Cache.git", from: "7.4.0"),
+        // kv cache
+        .package(url: "https://github.com/Tencent/MMKV.git", from: "2.2.4"),
         // 路由框架底层
         .package(url: "https://github.com/devxoul/URLNavigator.git", from: "2.5.1"),
         // 自动布局框架
@@ -328,10 +339,25 @@ let package = Package(
             ]
         ),
         .target(
+            name: "XXFDatabaseObjectBox",
+            dependencies: [
+                "XXFDatabase",
+                "XXFFoundation",
+                .product(name: "ObjectBox.xcframework", package: "objectbox-swift-spm")
+            ]
+        ),
+        .target(
             name: "XXFCache",
             dependencies: [
                 "XXFDataSource",
                 .product(name: "Cache", package: "Cache")
+            ]
+        ),
+        .target(
+            name: "XXFCacheMMKV",
+            dependencies: [
+                "XXFCache",
+                .product(name: "MMKV", package: "MMKV")
             ]
         ),
         .target(
