@@ -450,13 +450,25 @@ let result = await Router.shared.navigate(to: "app://profile/123")
 
 ## 5. XXFDatabase - 数据库抽象层
 
-采用 **Repository 模式**，提供优雅的数据库抽象层。配合 **XXFDatabaseGrdb** 实现。
+采用 **Repository 模式**，提供优雅的数据库抽象层。支持两种底层实现，按需选择：
 
-### Demo
+| 实现模块 | 底层库 | 形态 | 适用场景 |
+|---------|-------|-----|---------|
+| **XXFDatabaseGrdb** | [GRDB.swift](https://github.com/groue/GRDB.swift) 7.x | SQLite / 关系型 | 复杂查询、连表、视图、SQL 表达式、迁移管理 |
+| **XXFDatabaseObjectBox** | [objectbox-swift-spm](https://github.com/objectbox/objectbox-swift-spm) 5.x | 对象数据库 / NoSQL | 对象图持久化、高吞吐写入、关联对象、关系型 ORM 之外的场景 |
+
+两个实现共用同一套 `BaseDao` / `BaseRepository` 契约 (`XXFDatabase`)，业务代码切换底层时 Repository 层调用几乎零改动。
+
+### GRDB 实现示例
 
 ```swift
 // 定义实体
-struct User: Codable, FetchableRecord, PersistableRecord {
+struct User: BaseEntity {
+    static let databaseTableName = "user"
+
+    enum CodingKeys: String, BaseColumnCodingKey {
+        case id, name, age
+    }
     var id: String
     var name: String
     var age: Int
@@ -467,9 +479,42 @@ let repo = UserRepository.shared
 repo.insertOrUpdate(user)
 let user = repo.selectById("123")
 let adults = repo.selectList { $0.filter(Column("age") >= 18) }
-let page = repo.selectPage(page: 1, pageSize: 20)
+let page = repo.selectPage(page: 1, pageSize: 20) { $0 }
 repo.delete(id: "123")
 ```
+
+### ObjectBox 实现示例
+
+```swift
+// 1. 定义实体（// objectbox: entity 由代码生成插件自动生成绑定）
+// objectbox: entity
+class UserEntity: BaseEntity {
+    var id: Id = 0
+    var name: String = ""
+    var age: Int = 0
+    required init() {}
+}
+
+// 2. 创建 Store（生成器生成的 init，业务侧持有）
+let store = try Store.Builder(dbNamed: "app.db").buildSingle { path in
+    try Store(directoryPath: path)   // 由 ObjectBox 代码生成器生成
+}
+
+// 3. 自定义 DAO / Repository
+final class UserDao: BaseDaoImpl<Id, UserEntity> {}
+final class UserRepository: BaseRepositoryImpl<Id, UserEntity, UserDao> {}
+
+let repo = UserRepository(dao: UserDao(store: store), errorConsumer: nil)
+
+// 4. 同一套 API
+repo.insertOrUpdate(user)
+let u = repo.selectById(1)
+let adults = repo.selectList { $0.where { UserEntity.age > 18 } }
+let page = repo.selectPage(page: 1, pageSize: 20) { $0 }
+repo.delete(id: 1)
+```
+
+> **注意**：ObjectBox 的 `Store` 初始化器由代码生成插件生成（与业务模型强耦合），`Store.Builder` 只负责统一路径解析（沙盒/自定义/内存）和单例缓存，实际 `Store` 实例化通过 Factory 闭包传入。
 
 ---
 
@@ -1707,7 +1752,8 @@ let data = image.lubanCompress(type: .timeline)
 | **XXFCompress** | 图片压缩 | Luban 算法，微信式压缩 |
 | **XXFRouter** | 路由框架 | 拦截器 + 降级策略 |
 | **XXFServer** | 内嵌服务器 | Vapor 驱动 |
-| **XXFDatabaseGrdb** | 数据库实现 | GRDB.swift 驱动 |
+| **XXFDatabaseGrdb** | 数据库实现 | GRDB.swift 驱动（SQLite / 关系型） |
+| **XXFDatabaseObjectBox** | 数据库实现 | ObjectBox 驱动（对象数据库 / NoSQL） |
 | **XXFTrackerBugsnag** | 错误追踪 | Bugsnag 实现 |
 | **XXFTrackerSentry** | 错误追踪 | Sentry 实现 |
 | **XXFEventReporter** | 事件上报 | 抽象接口层 |
@@ -1811,7 +1857,8 @@ api.request(...)
 |------|------|------|
 | RxSwift/RxCocoa | 响应式编程 | 6.x |
 | Moya/RxMoya | 网络层 | 15.x |
-| GRDB.swift | 数据库 | 7.x |
+| GRDB.swift | 数据库（SQLite/关系型） | 7.x |
+| objectbox-swift-spm | 数据库（对象数据库/NoSQL） | 5.x |
 | Factory | 依赖注入 | 2.x |
 | swift-log | 日志标准 | 1.x |
 | Pulse | 日志可视化 | 4.x |
@@ -1835,7 +1882,8 @@ XXFArch (一站式引入)
 ├── XXFRouter (路由框架)
 │   └── URLNavigator
 ├── XXFDatabase
-│   └── XXFDatabaseGrdb (GRDB)
+│   ├── XXFDatabaseGrdb (GRDB, SQLite/关系型)
+│   └── XXFDatabaseObjectBox (ObjectBox, 对象数据库/NoSQL)
 ├── XXFReusable (Cell 复用)
 ├── XXFRefreshable (下拉刷新)
 │   └── MJRefresh
