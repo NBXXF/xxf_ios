@@ -1,5 +1,5 @@
 {
-  "originHash" : "91b28542a1a8fdfb50449f05e50129613f1c76fb62572ce1121c479468ce24ec",
+  "originHash" : "8be7ead18cb991d3a38664b9b6726a502c10b6098c29f5016cc311ccc2cf0796",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -215,15 +215,6 @@
       "state" : {
         "revision" : "535d39c86e592d73f8b8e75f9bf1eda62ca4a4ce",
         "version" : "3.7.9"
-      }
-    },
-    {
-      "identity" : "mmkv",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Tencent/MMKV.git",
-      "state" : {
-        "revision" : "23d652c17e8c2023bb50f1c92e862a2304eaa2a2",
-        "version" : "2.4.0"
       }
     },
     {

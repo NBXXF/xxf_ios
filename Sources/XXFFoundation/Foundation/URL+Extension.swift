@@ -27,6 +27,12 @@ public extension URL {
         return absoluteString == "about:blank"
     }
 
+    /// 是否为本地地址（localhost 或 127.0.0.1）
+    var isLocalhost: Bool {
+        guard let host = self.host?.lowercased() else { return false }
+        return host == "localhost" || host == "127.0.0.1"
+    }
+
     /// 根据字符串自动判断并初始化 URL。
     /// 若字符串带 scheme，则作为 URL 解析；
     /// 否则按本地文件路径处理。

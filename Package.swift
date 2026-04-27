@@ -3,6 +3,34 @@
 
 import PackageDescription
 
+#if swift(>=6.2)
+private let mmkvProducts: [Product] = [
+    .library(
+        name: "XXFCacheMMKV",
+        targets: ["XXFCacheMMKV"]
+    )
+]
+
+private let mmkvDependencies: [Package.Dependency] = [
+    // kv cache (SPM support starts at MMKV 2.4.0; current manifest uses swift-tools-version 6.2)
+    .package(url: "https://github.com/Tencent/MMKV.git", from: "2.4.0")
+]
+
+private let mmkvTargets: [Target] = [
+    .target(
+        name: "XXFCacheMMKV",
+        dependencies: [
+            "XXFCache",
+            .product(name: "MMKV", package: "MMKV")
+        ]
+    )
+]
+#else
+private let mmkvProducts: [Product] = []
+private let mmkvDependencies: [Package.Dependency] = []
+private let mmkvTargets: [Target] = []
+#endif
+
 let package = Package(
     name: "xxf_ios",
     platforms: [
@@ -56,10 +84,6 @@ let package = Package(
 //            name: "XXFCache",
 //            targets: ["XXFCache"]
 //        ),
-        .library(
-            name: "XXFCacheMMKV",
-            targets: ["XXFCacheMMKV"]
-        ),
 //        .library(
 //            name: "XXFDi",
 //            targets: ["XXFDi"]
@@ -154,7 +178,7 @@ let package = Package(
             name: "XXFEventReporterFirebase",
             targets: ["XXFEventReporterFirebase"]
         )
-    ],
+    ] + mmkvProducts,
     // 依赖版本策略：
     // 1) from: "x.y.z" == .upToNextMajor(from: "x.y.z")，范围 [x.y.z, nextMajor)
     // 2) .exact("x.y.z") 仅固定该版本
@@ -208,8 +232,6 @@ let package = Package(
         .package(url: "https://github.com/CoderMJLee/MJRefresh.git", from: "3.7.9"),
         // disk cache
         .package(url: "https://github.com/hyperoslo/Cache.git", from: "7.4.0"),
-        // kv cache
-        .package(url: "https://github.com/Tencent/MMKV.git", from: "2.2.4"),
         // 路由框架底层
         .package(url: "https://github.com/devxoul/URLNavigator.git", from: "2.5.1"),
         // 自动布局框架
@@ -229,7 +251,7 @@ let package = Package(
 
         // 性能监控（FPS、CPU、内存）
         .package(url: "https://github.com/dani-gavrilov/GDPerformanceView-Swift.git", from: "2.1.1")
-    ],
+    ] + mmkvDependencies,
     targets: [
         .target(
             name: "XXFSwiftFormat"
@@ -351,13 +373,6 @@ let package = Package(
             dependencies: [
                 "XXFDataSource",
                 .product(name: "Cache", package: "Cache")
-            ]
-        ),
-        .target(
-            name: "XXFCacheMMKV",
-            dependencies: [
-                "XXFCache",
-                .product(name: "MMKV", package: "MMKV")
             ]
         ),
         .target(
@@ -616,5 +631,5 @@ let package = Package(
             name: "xxf_iosTests",
             dependencies: ["XXFLog", "XXFCache"]
         )
-    ]
+    ] + mmkvTargets
 )
