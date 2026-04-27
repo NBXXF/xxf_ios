@@ -10,7 +10,14 @@
 ## [Unreleased]
 
 ### Added
-- 待下个版本汇总
+- `install.sh` —— 一键安装 / 升级脚本，支持 Claude Code / Codex CLI / Cursor
+  - Claude Code：`git clone` 到 `~/.cache/xxf-ios-skills` + 软链到目标目录，升级只需重跑脚本或 `git pull` 缓存
+  - Codex CLI：在项目 `AGENTS.md` 注入受控引用块（`<!-- BEGIN/END -->` 标记），幂等刷新
+  - Cursor：`.cursor/rules/*.mdc` 拷贝（Cursor 对软链支持不稳定）
+
+### Changed
+- README 安装章节重写：不再推荐 `cp -r`（每次升级都要重来），改用脚本 + 软链模式
+- 新增 Codex CLI 小节（之前缺失）
 
 ---
 

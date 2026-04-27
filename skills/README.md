@@ -106,74 +106,106 @@
 
 ## 二、安装
 
-Skill 的安装**没有跨 Agent 的统一标准**。下面按你在用的 Agent 选一种：
+根据你用的 Agent 选一个小节。**推荐走 2.1 / 2.2 的一键脚本**——它做的是 git clone + 软链，升级只需重跑脚本（不是每次都拷贝一遍）。
 
-### 2.1 Claude Code（官方推荐姿势，零依赖）
+**脚本行为概览：**
 
-**用户级（全局可用）**
+| Agent | 策略 | 升级方式 |
+|:------|:------|:------|
+| Claude Code | git clone 到 `~/.cache/xxf-ios-skills`，软链到 `.claude/skills/` | 重跑脚本 或 `git -C <cache> pull` |
+| Codex CLI | git clone 到缓存，在项目 `AGENTS.md` 注入受控引用块 | 重跑脚本 |
+| Cursor | git clone + 拷贝 `.mdc` 到 `.cursor/rules/`（Cursor 对软链不稳定） | 重跑脚本 |
+
+### 2.1 Claude Code（推荐：一键脚本 + 自动升级）
+
+一条命令完成安装，升级也只是再跑一遍：
 
 ```bash
-git clone https://github.com/NBXXF/xxf_ios.git /tmp/xxf_ios
+# 全局安装（对所有项目可用）
+bash <(curl -fsSL https://raw.githubusercontent.com/NBXXF/xxf_ios/main/skills/install.sh) claude user
+
+# 或只在当前项目安装
+bash <(curl -fsSL https://raw.githubusercontent.com/NBXXF/xxf_ios/main/skills/install.sh) claude project
+```
+
+脚本做的事（透明、可审）：
+1. `git clone` 到 `~/.cache/xxf-ios-skills`（或 `git pull` 更新）
+2. 把每个 `xxf-*` 目录 **软链接** 到 `~/.claude/skills/`（或项目 `.claude/skills/`）
+3. 升级时重跑脚本即可——**软链自动跟随**，不用再拷贝。
+
+重启 Claude Code 会话后生效。
+
+**手动版（不想跑脚本）：**
+
+```bash
+git clone https://github.com/NBXXF/xxf_ios.git ~/.cache/xxf-ios-skills
 mkdir -p ~/.claude/skills
-cp -r /tmp/xxf_ios/skills/xxf-* ~/.claude/skills/
-```
-
-**项目级（只在当前仓库可用）**
-
-```bash
-mkdir -p .claude/skills
-cp -r /tmp/xxf_ios/skills/xxf-* .claude/skills/
-```
-
-> 💡 49 个 skill 全量安装会占用一定的路由预算；如果你的项目只用部分模块，建议按需拷贝：
-> ```bash
-> cp -r /tmp/xxf_ios/skills/{xxf-http,xxf-router,xxf-flow,xxf-cache} ~/.claude/skills/
-> ```
-
-重启 Claude Code 会话即生效。
-
-### 2.2 Cursor
-
-Cursor 使用 `.cursor/rules/*.mdc` 格式，**与 Anthropic Skills 不兼容**，需要转换。推荐方案：
-
-```bash
-mkdir -p .cursor/rules
-for skill in /tmp/xxf_ios/skills/xxf-*/SKILL.md; do
-    name=$(basename "$(dirname "$skill")")
-    cp "$skill" ".cursor/rules/${name}.mdc"
+for d in ~/.cache/xxf-ios-skills/skills/xxf-*/; do
+    ln -sfn "$d" ~/.claude/skills/$(basename "$d")
 done
+# 升级：cd ~/.cache/xxf-ios-skills && git pull
 ```
 
-（Cursor `.mdc` 与 Anthropic SKILL.md 的 frontmatter 字段有差异，`description` 能识别，`allowed-tools` 不识别；足够日常使用。）
+**按需安装：** 49 个 skill 全装会占用路由预算；只需要部分时，把脚本 `for` 循环改成固定几个，或手动 `ln -sfn` 想要的 skill 即可。
 
-### 2.3 CodeBuddy（用 `skills` CLI）
+### 2.2 Codex CLI（OpenAI）
+
+Codex CLI 没有 "skill" 的概念，它通过项目根目录的 `AGENTS.md` 接收指令。安装脚本会在你的 `AGENTS.md` 里注入一段受控块，引导 Codex 在遇到 XXF 相关提问时读取对应 `SKILL.md`：
 
 ```bash
-# 前置
-npm install -g skills
+cd /path/to/your/ios-project
+bash <(curl -fsSL https://raw.githubusercontent.com/NBXXF/xxf_ios/main/skills/install.sh) codex project
+```
 
-# 全装
+注入的内容被 `<!-- BEGIN: xxf-ios-skills ... -->` / `<!-- END ... -->` 标记包裹，**再次运行脚本只刷新该块，不动你其它内容**。
+
+效果：Codex 看到用户问"怎么用 XXFHttp"时，会自己去读 `~/.cache/xxf-ios-skills/skills/xxf-http/SKILL.md`。
+
+**手动版：** 把 `SKILL.md` 内容直接粘到 `AGENTS.md` 也行，但不方便后续升级；推荐用脚本。
+
+### 2.3 Cursor
+
+Cursor 用 `.cursor/rules/*.mdc`（与 Anthropic Skills frontmatter 部分兼容，仅识别 `description`）：
+
+```bash
+cd /path/to/your/ios-project
+bash <(curl -fsSL https://raw.githubusercontent.com/NBXXF/xxf_ios/main/skills/install.sh) cursor project
+```
+
+> Cursor 对软链支持不稳定，本模式用**拷贝**不是软链；升级需要重跑脚本。
+
+### 2.4 CodeBuddy（用 `skills` CLI）
+
+```bash
+npm install -g skills
 npx skills add https://github.com/NBXXF/xxf_ios.git --agent codebuddy -y
 
 # 按需
 npx skills add https://github.com/NBXXF/xxf_ios.git --skill xxf-http --skill xxf-router --agent codebuddy -y
 ```
 
-### 2.4 自建 Agent / Anthropic API 直调
+### 2.5 Git Submodule（团队锁版本）
 
-Skill 就是 markdown。直接把需要的 `SKILL.md` 正文拼进你的 system prompt 即可，或做一个 router 按 `description` 选 skill 后再注入。
-
-### 2.5 Git Submodule（推荐给团队使用）
-
-适合团队锁版本、全员共享、不想每次都 curl：
+业务仓库把本仓作为 submodule，再用项目级软链接：
 
 ```bash
 git submodule add https://github.com/NBXXF/xxf_ios.git third_party/xxf_ios
-ln -s ../../third_party/xxf_ios/skills/xxf-http .claude/skills/xxf-http
-# 或用脚本循环链接所有 xxf-*
+mkdir -p .claude/skills
+for d in third_party/xxf_ios/skills/xxf-*/; do
+    ln -sfn "../../$d" .claude/skills/$(basename "$d")
+done
+
+# 锁版本
+cd third_party/xxf_ios && git checkout v0.2.0
 ```
 
-`git submodule update --remote` 升级到最新，或 `cd third_party/xxf_ios && git checkout v0.1.0` 锁版本。
+好处：整个团队锁同一版本；`git submodule update --remote` 升级。
+
+### 2.6 自建 Agent / Anthropic API 直调
+
+Skill 就是 markdown + YAML frontmatter。按需求选：
+- 全注入：把相关 `SKILL.md` 正文拼进 system prompt
+- 路由模式：先把所有 `description` 喂给模型做选择，再加载具体 skill
 
 ---
 
