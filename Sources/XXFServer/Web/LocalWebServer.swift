@@ -126,6 +126,15 @@ public final class LocalWebServer {
         unregister(token: token.value)
     }
 
+    /// 提前启动内部 GCDWebServer,避免首个 `serve(...)` 调用同步等待启动耗时。
+    /// 建议在 app 启动或进前台时调用一次。幂等,可重复调用。
+    /// - Returns: 启动是否成功;已在运行时直接返回 true。
+    /// 会略微有点耗时<10ms 介意的话可以 放在子线程执行
+    @discardableResult
+    public func warmup() -> Bool {
+        return ensureRunning()
+    }
+
     /// 当前存活的 session 数量。主要用于调试和监控,发现 release 泄漏。
     public var activeSessionCount: Int {
         sessionLock.lock()
