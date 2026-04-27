@@ -110,6 +110,7 @@ open class CompactWebView: WKWebView {
 
     // MARK: - Load
 
+    @discardableResult
     override open func load(_ request: URLRequest) -> WKNavigation? {
         lastRequest = request
         state = .loading
@@ -117,6 +118,7 @@ open class CompactWebView: WKWebView {
         return super.load(request)
     }
 
+    @discardableResult
     override open func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
         lastRequest = nil
         state = .loading
