@@ -69,7 +69,7 @@ public typealias CrossPlatformView = NSView
 /// - 当 targetView 被释放时，检测器会自动停止工作
 /// - 手动停止检测：调用 `stopDetection()`
 /// - 重新开始检测：调用 `startDetection()`
-public class ContinuousTapGestureDetection {
+public class ContinuousTapGestureDetection: @unchecked Sendable {
 
     // MARK: - 私有属性
 
@@ -204,15 +204,19 @@ public class ContinuousTapGestureDetection {
 
     private func setupIOSGesture(_ view: UIView) {
         // 创建手势识别器，使用自定义的 shouldReceiveTouch 来处理事件
-        let gesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
-        gesture.cancelsTouchesInView = false  // 不取消其他触摸事件，保证原有事件分发
-        gesture.delaysTouchesBegan = false    // 不延迟触摸开始
-        gesture.delaysTouchesEnded = false    // 不延迟触摸结束
-        gesture.numberOfTapsRequired = 1      // 每次只识别单击
-        gesture.numberOfTouchesRequired = 1   // 单指触摸
+        // UIKit 手势 API 全部 @MainActor 隔离；本类只在 UI 线程构造，这里用
+        // assumeIsolated 绕开 Swift 6 的隔离检查，运行时首次访问仍必须在主线程。
+        MainActor.assumeIsolated {
+            let gesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
+            gesture.cancelsTouchesInView = false  // 不取消其他触摸事件，保证原有事件分发
+            gesture.delaysTouchesBegan = false    // 不延迟触摸开始
+            gesture.delaysTouchesEnded = false    // 不延迟触摸结束
+            gesture.numberOfTapsRequired = 1      // 每次只识别单击
+            gesture.numberOfTouchesRequired = 1   // 单指触摸
 
-        view.addGestureRecognizer(gesture)
-        self.tapGestureRecognizer = gesture
+            view.addGestureRecognizer(gesture)
+            self.tapGestureRecognizer = gesture
+        }
     }
 
     @objc private func handleTapGesture(_ gesture: UITapGestureRecognizer) {
@@ -228,12 +232,15 @@ public class ContinuousTapGestureDetection {
         clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] event in
             guard let self = self, let targetView = self.targetView else { return event }
 
-            // 检查点击位置是否在目标视图内
-            let locationInWindow = event.locationInWindow
-            let locationInView = targetView.convert(locationInWindow, from: nil)
+            // NSView 的 convert / bounds 是 @MainActor，这里 monitor 闭包在主线程回调。
+            MainActor.assumeIsolated {
+                // 检查点击位置是否在目标视图内
+                let locationInWindow = event.locationInWindow
+                let locationInView = targetView.convert(locationInWindow, from: nil)
 
-            if targetView.bounds.contains(locationInView) {
-                self.handleTap(at: locationInView)
+                if targetView.bounds.contains(locationInView) {
+                    self.handleTap(at: locationInView)
+                }
             }
 
             return event  // 返回事件，不影响原有事件分发

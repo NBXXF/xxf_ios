@@ -114,11 +114,6 @@ open class KeyboardFocusManagerView: UIView {
         setupGestures()
     }
 
-    deinit {
-        // 清理所有订阅
-        scrollViewDisposeBags.removeAll()
-    }
-
     // MARK: - Setup
 
     private func setupGestures() {

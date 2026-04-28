@@ -163,7 +163,7 @@ open class ToolTips: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    deinit {
+    isolated deinit {
         outsideDismissWorkItem?.cancel()
     }
 

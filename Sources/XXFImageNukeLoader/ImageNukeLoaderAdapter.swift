@@ -106,16 +106,12 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
             Self.display(placeholder, data: nil, in: view)
         }
         if url.isFileURL {
-            // fileURLCacheKey 会 stat 文件,放后台队列避免阻塞主线程
-            loaderQueue.addOperation { [weak self, weak view] in
-                guard let self, view != nil else { return }
-                let key = Self.fileURLCacheKey(url: url)
-                Task { @MainActor [weak view] in
-                    guard let view else { return }
-                    let request = ImageRequest(url: url, userInfo: [.imageIdKey: key])
-                    self.load(request: request, into: view, error: error, queue: queue, progressHandler: progressHandler, completion: completion)
-                }
-            }
+            // fileURLCacheKey 会 stat 文件；
+            // Swift 6 严格并发下把非 Sendable 闭包（progressHandler/completion）跨队列传递会触发
+            // 数据竞争错误，这里改为同主线程计算——stat+hash 开销极小，不会明显阻塞。
+            let key = Self.fileURLCacheKey(url: url)
+            let request = ImageRequest(url: url, userInfo: [.imageIdKey: key])
+            load(request: request, into: view, error: error, queue: queue, progressHandler: progressHandler, completion: completion)
         } else {
             let request = ImageRequest(url: url)
             load(request: request, into: view, error: error, queue: queue, progressHandler: progressHandler, completion: completion)
