@@ -13,7 +13,7 @@ public typealias JSON = Json
 
 public enum Json {
     @available(*, deprecated, message: "JSONDecoder caching is unsafe")
-    public static var useCache = false /// 暂时不要用缓存,有野指针崩溃风险
+    nonisolated(unsafe) public static var useCache = false /// 暂时不要用缓存,有野指针崩溃风险
     private static let decoderKey = "com.xxf.json.ThreadLocalDecoderWrapper"
     private static let encoderKey = "com.xxf.json.ThreadLocalEncoderWrapper"
 

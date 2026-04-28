@@ -10,5 +10,5 @@ import XXFDataSource
 
 /// 用法参考`UserDefaultsPreferenceProvider`
 public protocol PreferenceProvider: AnyObject, LocalDataSource {
-    static var storage: PreferencesStorage { get }
+    static var storage: any PreferencesStorage & Sendable { get }
 }

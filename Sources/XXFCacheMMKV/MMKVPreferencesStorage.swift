@@ -2,7 +2,7 @@ import Foundation
 import MMKV
 import XXFCache
 
-open class MMKVPreferencesStorage: PreferencesStorage {
+open class MMKVPreferencesStorage: PreferencesStorage, @unchecked Sendable {
     // MMKV 是“按类型读取”的接口，需额外记录每个 key 的值类型，
     // 才能在 object(forKey:) 中恢复为与写入一致的 Any 类型。
     private enum ValueType: String {

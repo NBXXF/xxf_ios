@@ -15,14 +15,14 @@ import Foundation
 internal enum _DateParsing {
 
     /// 带毫秒的 ISO8601 formatter（编码默认格式）
-    static let encodeFormatter: ISO8601DateFormatter = {
+    nonisolated(unsafe) static let encodeFormatter: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return f
     }()
 
     /// 不带毫秒的 ISO8601 formatter
-    static let plainFormatter: ISO8601DateFormatter = {
+    nonisolated(unsafe) static let plainFormatter: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime]
         return f

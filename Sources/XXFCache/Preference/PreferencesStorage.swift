@@ -8,10 +8,11 @@ import Foundation
 
 // MARK: - 存储接口抽象，默认使用 UserDefaults
 
-public protocol PreferencesStorage: AnyObject {
+public protocol PreferencesStorage: AnyObject, Sendable {
     func object(forKey key: String) -> Any?
     func set(_ value: Any?, forKey key: String)
     func removeObject(forKey key: String)
 }
 
 extension UserDefaults: PreferencesStorage {}
+extension UserDefaults: @unchecked Sendable {}

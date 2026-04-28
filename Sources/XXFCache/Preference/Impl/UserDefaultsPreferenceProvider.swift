@@ -7,9 +7,7 @@
 import Foundation
 
 open class UserDefaultsPreferenceProvider: PreferenceProvider {
-    public static var storage: any PreferencesStorage {
-        return UserDefaults.standard
-    }
+    public static let storage: any PreferencesStorage & Sendable = UserDefaults.standard
 
     public init() {}
 //

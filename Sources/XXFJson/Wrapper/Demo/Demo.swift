@@ -35,7 +35,7 @@ public enum DemoOrderStatus: String, Codable {
 
 /// 自定义枚举默认值
 public enum DefaultOrderStatus: CodingDefaultValueProvider {
-    public static let defaultValue: DemoOrderStatus = .unknown
+    nonisolated(unsafe) public static let defaultValue: DemoOrderStatus = .unknown
 }
 
 // MARK: - 2. 最简 struct

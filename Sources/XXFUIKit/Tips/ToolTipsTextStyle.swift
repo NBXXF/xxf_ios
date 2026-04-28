@@ -19,7 +19,7 @@ import AppKit
 
 /// ToolTips 文本样式规范（macOS 兼容定义）。
 public enum ToolTipsTextStyle {
-    public static let defaultFont: NSFont = .systemFont(ofSize: 12, weight: .regular)
+    nonisolated(unsafe) public static let defaultFont: NSFont = .systemFont(ofSize: 12, weight: .regular)
     public static let defaultTextColor: NSColor = .black
 }
 #endif

@@ -28,7 +28,7 @@ import XXFFoundation
 /// 后台挂起:依赖 `GCDWebServerOption_AutomaticallySuspendInBackground`,进入后台自动 stop、
 /// 回前台自动 restart,不需要额外的 NotificationCenter 监听。
 public final class LocalWebServer {
-    public static let shared = LocalWebServer()
+    nonisolated(unsafe) public static let shared = LocalWebServer()
 
     /// 日志等级。由外部 `printer` 自行决定如何落地(控制台/文件/埋点等)。
     public enum LogLevel: String {

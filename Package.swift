@@ -1,9 +1,9 @@
-// swift-tools-version: 5.10
+// swift-tools-version: 6.2
+// Requires Swift 6.2+ because XXFCacheMMKV depends on MMKV via SPM.
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
-#if swift(>=6.2)
 private let mmkvProducts: [Product] = [
     .library(
         name: "XXFCacheMMKV",
@@ -26,11 +26,6 @@ private let mmkvTargets: [Target] = [
         path: "Sources/XXFCacheMMKV"
     )
 ]
-#else
-private let mmkvProducts: [Product] = []
-private let mmkvDependencies: [Package.Dependency] = []
-private let mmkvTargets: [Target] = []
-#endif
 
 let package = Package(
     name: "xxf_ios",
@@ -224,9 +219,9 @@ let package = Package(
         // 图片库
         .package(url: "https://github.com/kean/Nuke.git", from: "12.9.0"),
         // 通用动图支持（GIF / APNG / 动图 WebP / 动图 HEIC）
-        .package(url: "https://github.com/SDWebImage/SDWebImage.git", from: "5.19.0"),
+        .package(url: "https://github.com/SDWebImage/SDWebImage.git", from: "5.21.7"),
         // 动图 WebP 解码器（libwebp 后端）
-        .package(url: "https://github.com/SDWebImage/SDWebImageWebPCoder.git", from: "0.14.0"),
+        .package(url: "https://github.com/SDWebImage/SDWebImageWebPCoder.git", from: "0.15.0"),
         // toast
         .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3"),
         // refresh

@@ -5,6 +5,27 @@
 //  Created by xxf on 8/22.
 //
 
+import Foundation
+
+private final class _TaskWaitBox<T: Sendable>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: Result<T, Error>?
+    let semaphore = DispatchSemaphore(value: 0)
+
+    func finish(_ result: Result<T, Error>) {
+        lock.lock()
+        value = result
+        lock.unlock()
+        semaphore.signal()
+    }
+
+    func take() -> Result<T, Error>? {
+        lock.lock()
+        defer { lock.unlock() }
+        return value
+    }
+}
+
 public extension Task where Failure == Error {
     /// 执行同步 block 并返回 Task 的结果
     /// - Parameter block: 同步执行的闭包
@@ -22,24 +43,22 @@ public extension Task where Failure == Error {
         // 判断是否在主线程,不能在主线程,会卡死
         requireChildThread()
 
-        var result: Result<Success, Error>?
-        let semaphore = DispatchSemaphore(value: 0)
+        let box = _TaskWaitBox<Success>()
 
-        // 新开一个 Task，不用 detached
-        Task<Void, Error> {
+        // 新开一个 detached Task，避免 @Sendable 闭包捕获可变局部状态。
+        Task<Void, Never>.detached(priority: nil) { [task = self, box] in
             do {
-                let value = try await self.value
-                result = .success(value)
+                let value = try await task.value
+                box.finish(.success(value))
             } catch {
-                result = .failure(error)
+                box.finish(.failure(error))
             }
-            semaphore.signal()
-            // 不需要再 return，因为闭包返回类型为 Void
+            return ()
         }
 
-        semaphore.wait()
+        box.semaphore.wait()
 
-        switch result {
+        switch box.take() {
             case let .success(value):
                 return value
             case let .failure(error):
