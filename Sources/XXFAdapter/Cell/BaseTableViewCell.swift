@@ -10,7 +10,7 @@ import UIKit
 
 /// UITableViewCell 的基类，统一实现 ConfigurableCell
 
-open class BaseTableViewCell<Model>: UITableViewCell, ConfigurableCell {
+open class BaseTableViewCell<Model>: UITableViewCell, @preconcurrency ConfigurableCell {
     public typealias Model = Model
 
     // MARK: - 数据绑定

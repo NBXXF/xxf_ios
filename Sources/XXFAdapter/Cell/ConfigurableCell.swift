@@ -29,7 +29,6 @@
 /// let user = users[indexPath.row]
 /// cell.configure(with: user, payloads: ["highlight": true])
 /// ```
-@MainActor
 public protocol ConfigurableCell {
     /// 关联类型 - 数据模型类型
     associatedtype Model

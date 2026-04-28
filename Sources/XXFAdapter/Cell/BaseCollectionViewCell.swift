@@ -8,7 +8,7 @@
 import UIKit
 
 // BaseCell 继承 UICollectionViewCell，同时实现 ConfigurableCell/LifecycleCell 协议
-open class BaseCollectionViewCell<Model>: UICollectionViewCell, ConfigurableCell, LifecycleCell {
+open class BaseCollectionViewCell<Model>: UICollectionViewCell, @preconcurrency ConfigurableCell, @preconcurrency LifecycleCell {
     // 协议要求的类型别名
     public typealias Model = Model
 
