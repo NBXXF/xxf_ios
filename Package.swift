@@ -221,7 +221,7 @@ let package = Package(
         // 通用动图支持（GIF / APNG / 动图 WebP / 动图 HEIC）
         .package(url: "https://github.com/SDWebImage/SDWebImage.git", from: "5.21.7"),
         // 动图 WebP 解码器（libwebp 后端）
-        .package(url: "https://github.com/NBXXF/SDWebImageWebPCoder.git", from: "0.16.0"),
+        .package(url: "https://github.com/SDWebImage/SDWebImageWebPCoder.git", from: "0.15.0"),
         // toast
         .package(url: "https://github.com/BastiaanJansen/toast-swift", from: "2.1.3"),
         // refresh

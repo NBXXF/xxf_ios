@@ -27,6 +27,7 @@ import UIKit
 
 // MARK: - UICollectionViewCell 无法自行感知的事件桥接协议
 
+@MainActor
 public protocol LifecycleCell: AnyObject {
     /// cell 是否正在显示
     /// 需要业务自己回调或者使用LifecycleCollectionViewDelegate
@@ -65,8 +66,6 @@ public protocol LifecycleCell: AnyObject {
 }
 
 // MARK: - 默认实现
-
-private var isDisplayingKey: UInt8 = 0
 
 public extension LifecycleCell {
     func cellShouldSelect(at indexPath: IndexPath) -> Bool { true }
