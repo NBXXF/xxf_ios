@@ -82,8 +82,8 @@ public enum HapticFeedback {
     // MARK: - 内部生成器（按需缓存）
 
     private nonisolated(unsafe) static var impactGenerators: [UIImpactFeedbackGenerator.FeedbackStyle.RawValue: UIImpactFeedbackGenerator] = [:]
-    private nonisolated(unsafe) static let selectionGenerator = UISelectionFeedbackGenerator()
-    private nonisolated(unsafe) static let notificationGenerator = UINotificationFeedbackGenerator()
+    private nonisolated(unsafe) static let selectionGenerator = MainActor.assumeIsolated { UISelectionFeedbackGenerator() }
+    private nonisolated(unsafe) static let notificationGenerator = MainActor.assumeIsolated { UINotificationFeedbackGenerator() }
 
     private static func impactGenerator(for style: ImpactStyle) -> UIImpactFeedbackGenerator {
         let key = style.uiStyle.rawValue

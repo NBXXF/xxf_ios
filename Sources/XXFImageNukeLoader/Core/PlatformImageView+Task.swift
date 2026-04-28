@@ -14,8 +14,8 @@ import XXFImageLoader
 // MARK: - PlatformImageView 扩展，用于保存 ImageTask
 
 extension PlatformImageView {
-    private static var kImageTaskKey: UInt8 = 0
-    private static var kImageTaskIdKey: UInt8 = 1
+    private nonisolated(unsafe) static var kImageTaskKey: UInt8 = 0
+    private nonisolated(unsafe) static var kImageTaskIdKey: UInt8 = 1
 
     /// - Important: 存取方可能跨线程(主线程的 `load` / `cancel` 与 Nuke 完成回调
     ///   所在的用户 queue)。必须用 `.OBJC_ASSOCIATION_RETAIN`(原子版),
