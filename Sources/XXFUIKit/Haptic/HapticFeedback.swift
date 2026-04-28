@@ -36,7 +36,7 @@ public enum HapticFeedback {
     // MARK: - 全局开关
 
     /// 全局开关，默认 true。关闭后所有反馈方法直接 return。
-    public static var isEnabled: Bool = true
+    public nonisolated(unsafe) static var isEnabled: Bool = true
 
     // MARK: - 类型定义
 
@@ -81,9 +81,9 @@ public enum HapticFeedback {
 
     // MARK: - 内部生成器（按需缓存）
 
-    private static var impactGenerators: [UIImpactFeedbackGenerator.FeedbackStyle.RawValue: UIImpactFeedbackGenerator] = [:]
-    private static let selectionGenerator = UISelectionFeedbackGenerator()
-    private static let notificationGenerator = UINotificationFeedbackGenerator()
+    private nonisolated(unsafe) static var impactGenerators: [UIImpactFeedbackGenerator.FeedbackStyle.RawValue: UIImpactFeedbackGenerator] = [:]
+    private nonisolated(unsafe) static let selectionGenerator = UISelectionFeedbackGenerator()
+    private nonisolated(unsafe) static let notificationGenerator = UINotificationFeedbackGenerator()
 
     private static func impactGenerator(for style: ImpactStyle) -> UIImpactFeedbackGenerator {
         let key = style.uiStyle.rawValue
