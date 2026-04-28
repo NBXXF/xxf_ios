@@ -232,12 +232,13 @@ public class ContinuousTapGestureDetection: @unchecked Sendable {
         clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] event in
             guard let self = self, let targetView = self.targetView else { return event }
 
+            // 先从 NSEvent 里取出 Sendable 的 NSPoint，避免把非 Sendable 的 event
+            // 送进下面的 @Sendable assumeIsolated 闭包触发数据竞争警告。
+            let locationInWindow = event.locationInWindow
+
             // NSView 的 convert / bounds 是 @MainActor，这里 monitor 闭包在主线程回调。
             MainActor.assumeIsolated {
-                // 检查点击位置是否在目标视图内
-                let locationInWindow = event.locationInWindow
                 let locationInView = targetView.convert(locationInWindow, from: nil)
-
                 if targetView.bounds.contains(locationInView) {
                     self.handleTap(at: locationInView)
                 }
