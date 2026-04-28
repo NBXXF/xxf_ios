@@ -1,7 +1,36 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+
+#if swift(>=6.2)
+private let mmkvProducts: [Product] = [
+    .library(
+        name: "XXFCacheMMKV",
+        targets: ["XXFCacheMMKV"]
+    )
+]
+
+private let mmkvDependencies: [Package.Dependency] = [
+    // kv cache (SPM support starts at MMKV 2.4.0; current manifest uses swift-tools-version 6.2)
+    .package(url: "https://github.com/Tencent/MMKV.git", from: "2.4.0")
+]
+
+private let mmkvTargets: [Target] = [
+    .target(
+        name: "XXFCacheMMKV",
+        dependencies: [
+            "XXFCache",
+            .product(name: "MMKV", package: "MMKV")
+        ],
+        path: "Sources/XXFCacheMMKV"
+    )
+]
+#else
+private let mmkvProducts: [Product] = []
+private let mmkvDependencies: [Package.Dependency] = []
+private let mmkvTargets: [Target] = []
+#endif
 
 let package = Package(
     name: "xxf_ios",
@@ -150,11 +179,7 @@ let package = Package(
             name: "XXFEventReporterFirebase",
             targets: ["XXFEventReporterFirebase"]
         ),
-        .library(
-            name: "XXFCacheMMKV",
-            targets: ["XXFCacheMMKV"]
-        )
-    ],
+    ] + mmkvProducts,
     // 依赖版本策略：
     // 1) from: "x.y.z" == .upToNextMajor(from: "x.y.z")，范围 [x.y.z, nextMajor)
     // 2) .exact("x.y.z") 仅固定该版本
@@ -226,11 +251,8 @@ let package = Package(
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.10.0"),
 
         // 性能监控（FPS、CPU、内存）
-        .package(url: "https://github.com/dani-gavrilov/GDPerformanceView-Swift.git", from: "2.1.1"),
-
-        // kv cache (SPM 支持从 MMKV 2.4.0 开始，需要 swift-tools-version 6.2)
-        .package(url: "https://github.com/Tencent/MMKV.git", from: "2.4.0")
-    ],
+        .package(url: "https://github.com/dani-gavrilov/GDPerformanceView-Swift.git", from: "2.1.1")
+    ] + mmkvDependencies,
     targets: [
         .target(
             name: "XXFSwiftFormat"
@@ -610,13 +632,5 @@ let package = Package(
             name: "xxf_iosTests",
             dependencies: ["XXFLog", "XXFCache"]
         ),
-        .target(
-            name: "XXFCacheMMKV",
-            dependencies: [
-                "XXFCache",
-                .product(name: "MMKV", package: "MMKV")
-            ]
-        )
-    ],
-    swiftLanguageModes: [.v5]
+    ] + mmkvTargets
 )
