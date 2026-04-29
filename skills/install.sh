@@ -29,6 +29,14 @@ CACHE_DIR="${XXF_SKILLS_CACHE:-$HOME/.cache/xxf-ios-skills}"
 AGENT="${1:-}"
 SCOPE="${2:-user}"
 
+# 写入 AGENTS.md 的路径使用 $HOME 前缀,保证多机器间内容一致,避免每个开发者看到不同的 /Users/xxx/...
+# 自定义 XXF_SKILLS_CACHE 的场景(不在 $HOME 下)则退回绝对路径
+if [[ "$CACHE_DIR" == "$HOME"/* ]]; then
+  CACHE_DIR_DISPLAY='$HOME'"${CACHE_DIR#$HOME}"
+else
+  CACHE_DIR_DISPLAY="$CACHE_DIR"
+fi
+
 err() { echo "error: $*" >&2; exit 1; }
 info() { echo "→ $*"; }
 
@@ -113,12 +121,12 @@ PY
     echo "When the user asks about XXF iOS modules (XXFHttp, XXFRouter, XXFFlow, XXFDatabase, XXFBus, XXFCache, etc.),"
     echo "first read the matching skill file and follow its workflow:"
     echo ""
-    echo "    $CACHE_DIR/skills/<skill-name>/SKILL.md"
+    echo "    $CACHE_DIR_DISPLAY/skills/<skill-name>/SKILL.md"
     echo ""
     echo "Available skills:"
     echo ""
     echo "$skills_list"
-    echo "Update cache: \`git -C $CACHE_DIR pull\` (or re-run install.sh)."
+    echo "Update cache: \`git -C $CACHE_DIR_DISPLAY pull\` (or re-run install.sh)."
     echo "$marker_end"
   } > "$agents_md.new"
   mv "$agents_md.new" "$agents_md"
