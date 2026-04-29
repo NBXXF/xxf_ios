@@ -4,7 +4,7 @@ import XXFCache
 
 open class MMKVPreferenceProvider: PreferenceProvider {
     public static let storage: any PreferencesStorage & Sendable = {
-        // MMKV 要求第一次使用前必须先在主线程调用 initializeMMKV，
+        // MMKV 要求第一次使用前必须先调用 initializeMMKV，
         // 否则 MMKV.default() / 任何其他 API 都会 NSAssert 崩溃。
         MMKV.initialize(rootDir: nil)
         if let storage = MMKVPreferencesStorage() {
