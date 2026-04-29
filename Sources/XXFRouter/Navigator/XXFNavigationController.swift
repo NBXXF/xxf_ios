@@ -81,12 +81,43 @@ open class XXFNavigationController: UINavigationController {
 
     /// 外部转场代理：本类只接管 dismiss 动画，其余（present / presentationController
     /// / interaction for presentation）全部转发给此代理；设置为 nil 走系统默认
-    public weak var wrappedTransitioningDelegate: UIViewControllerTransitioningDelegate?
+    ///
+    /// 关于 `modalTransitionStyle` 的坑：
+    /// UIKit 规则是「`transitioningDelegate` 非 nil 时忽略 `modalTransitionStyle`」。
+    /// 所以本类**不会**在 init 里无条件把自己设成 delegate，而是按需接管：
+    ///   - 当业务设置了 `wrappedTransitioningDelegate`（说明业务要走自定义转场）：立即接管；
+    ///   - 当边缘手势触发（需要自定义 dismiss 动画）：临时接管，交互结束后若 wrapped 为 nil 自动释放；
+    ///   - 其它情况：`transitioningDelegate` 保持 nil，业务设置的 `modalTransitionStyle` 正常生效。
+    public weak var wrappedTransitioningDelegate: UIViewControllerTransitioningDelegate? {
+        didSet { updateTransitioningDelegate() }
+    }
 
     // MARK: Internals
 
-    private lazy var edgeDismissInteractor = PresentedEdgeDismissInteractor()
+    private lazy var edgeDismissInteractor: PresentedEdgeDismissInteractor = {
+        let interactor = PresentedEdgeDismissInteractor()
+        // 动画回弹曲线对齐，让 cancel 时的回程和我们主动画的 easeOut 在同一条曲线上
+        interactor.completionCurve = .easeOut
+        interactor.onEnd = { [weak self] in
+            // 交互结束后视情况释放 transitioningDelegate，避免污染 modalTransitionStyle
+            self?.updateTransitioningDelegate()
+        }
+        return interactor
+    }()
     private var presentedEdgeGesture: UIScreenEdgePanGestureRecognizer?
+
+    /// 仅在「业务设了 wrapped」或「边缘手势交互中」两种场景下把 `transitioningDelegate` 设为自己；
+    /// 否则置回 nil，保留 `modalTransitionStyle` 的系统默认行为
+    private func updateTransitioningDelegate() {
+        let shouldActAsDelegate = wrappedTransitioningDelegate != nil || edgeDismissInteractor.isInteracting
+        if shouldActAsDelegate {
+            if transitioningDelegate !== self {
+                transitioningDelegate = self
+            }
+        } else if transitioningDelegate === self {
+            transitioningDelegate = nil
+        }
+    }
 
     // MARK: Lifecycle
 
@@ -111,9 +142,10 @@ open class XXFNavigationController: UINavigationController {
     }
 
     private func commonInit() {
-        // 让本类既做转场代理（以便接管 dismiss 动画），也做 nav 自身的委托
-        // 同时把 interactivePop 的代理拿过来，避免隐藏系统 bar 后手势失灵
-        transitioningDelegate = self
+        // 这里故意**不**设置 `transitioningDelegate = self`：
+        // UIKit 规则是一旦 `transitioningDelegate` 非 nil 就会忽略 `modalTransitionStyle`，
+        // 若无条件接管会让业务设置的 `.crossDissolve / .flipHorizontal` 等样式静默失效。
+        // 改为按需接管，详见 `updateTransitioningDelegate()` 和 `wrappedTransitioningDelegate`。
     }
 
     override open func viewDidLoad() {
@@ -128,6 +160,17 @@ open class XXFNavigationController: UINavigationController {
         }
 
         installPresentedEdgeDismissGestureIfNeeded()
+    }
+
+    // MARK: Stack Mutation
+
+    /// Fix #4: `setViewControllers(_:animated:)` 可能**不触发** `UINavigationControllerDelegate.didShow`
+    /// （iOS 各版本行为不一致：动画为 true 时大概率走，为 false 时可能跳过），
+    /// 导致栈深度变化后 `interactivePopGestureRecognizer.isEnabled` 和真实状态暂时脱节。
+    /// 这里手动补一次刷新，保证 push/pop 手势状态始终准确。
+    override open func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
+        super.setViewControllers(viewControllers, animated: animated)
+        interactivePopGestureRecognizer?.isEnabled = self.viewControllers.count > 1
     }
 
     // MARK: Gesture Install
@@ -153,8 +196,25 @@ open class XXFNavigationController: UINavigationController {
 
         switch gesture.state {
         case .began:
-            // 标记交互开始，转场查询 interaction controller 时我们才返回自己
+            // Fix #2: 防止在进行中的转场上再起一次 dismiss —— 会让 UIKit 拿到错乱的转场 ctx 闪退或卡住。
+            // 覆盖三种 in-flight 状态：
+            //   - `transitionCoordinator != nil`: push / pop / 正在做的 modal 转场
+            //   - `isBeingPresented`:            自身还在 present 动画里
+            //   - `isBeingDismissed`:            已经在被 dismiss（比如业务代码先调了 dismiss）
+            //   - `presentedViewController != nil`: 上层还挂着别的 modal，先 dismiss 自己会把嵌套层一起带走,
+            //     业务意图不清晰，直接不响应更稳
+            if transitionCoordinator != nil
+                || isBeingPresented
+                || isBeingDismissed
+                || presentedViewController != nil {
+                // 立即取消本轮手势，避免 .changed 把进度塞到一个未建立的交互中
+                gesture.isEnabled = false
+                gesture.isEnabled = true
+                return
+            }
+            // 先把 transitioningDelegate 接管过来，这样 dismiss 调用后 UIKit 才能从我们这里拿到自定义动画 + interactor
             edgeDismissInteractor.isInteracting = true
+            updateTransitioningDelegate()
             // 触发 dismiss，系统会回调 transitioningDelegate 拿到我们的动画 + 交互控制器
             dismiss(animated: true)
 
@@ -277,18 +337,24 @@ extension XXFNavigationController: UIViewControllerTransitioningDelegate {
 
 // MARK: - PresentedEdgeDismissInteractor
 
-/// 包装 UIPercentDrivenInteractiveTransition，额外记录「是否正在交互」以便转场代理按需返回
+/// 包装 `UIPercentDrivenInteractiveTransition`：
+///   - 额外记录 `isInteracting` 以便转场代理按需返回自己；
+///   - 在 `finish/cancel` 完成后通过 `onEnd` 通知外部，用于 Fix #3 中的
+///     「动态释放 transitioningDelegate 让 modalTransitionStyle 恢复可用」。
 private final class PresentedEdgeDismissInteractor: UIPercentDrivenInteractiveTransition {
     var isInteracting = false
+    var onEnd: (() -> Void)?
 
     override func finish() {
         super.finish()
         isInteracting = false
+        onEnd?()
     }
 
     override func cancel() {
         super.cancel()
         isInteracting = false
+        onEnd?()
     }
 }
 
@@ -319,9 +385,11 @@ private final class PresentedEdgeDismissAnimator: NSObject, UIViewControllerAnim
         // dismiss 动画后，系统就不管了；若不自己补回 toView，底下露出的就是黑屏。
         // `.overFullScreen` / sheet 类样式下 toView 已经在 container 里，insertSubview
         // 会平移不会复制，依然安全。
-        if let toView = ctx.view(forKey: .to) ?? ctx.viewController(forKey: .to)?.view {
-            if toView.superview !== container {
-                toView.frame = ctx.finalFrame(for: ctx.viewController(forKey: .to)!)
+        if let toVC = ctx.viewController(forKey: .to) {
+            // 优先用 ctx 的 view（极少数自定义转场会给一个和 VC.view 不同的快照 view）
+            let toView = ctx.view(forKey: .to) ?? toVC.view
+            if let toView, toView.superview !== container {
+                toView.frame = ctx.finalFrame(for: toVC)
                 container.insertSubview(toView, belowSubview: fromView)
             }
         }
