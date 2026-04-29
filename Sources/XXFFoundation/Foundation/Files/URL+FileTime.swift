@@ -77,7 +77,7 @@ public extension URL {
     /// - 移动到回收站：ctime 更新（本质是重命名）
     /// - 复制：birthtime 新建，mtime 是否保留取决于复制工具（如 `cp -p`）；⭐ Spotlight/Finder 会把 kMDItemFSCreationDate 设置为新建时间
     func stFileTimes() -> FileTimes {
-        /// requireChildThread()  先不要限制线程,有些业务就需要主线程了 自己保重
+        requireChildThread()
 
         // 调用 stat
         var info = stat()
