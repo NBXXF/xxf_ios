@@ -107,30 +107,31 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
         }
         if url.isFileURL {
             // fileURLCacheKey 会 stat 文件,放后台队列避免阻塞主线程
-            // progressHandler/completion 非 Sendable,但只会在 MainActor 回调一次,用 nonisolated(unsafe) 跨线程传递
+            // 非 Sendable 闭包跨线程传递,最终只在 MainActor 回调一次,用 nonisolated(unsafe) 显式标注
             nonisolated(unsafe) let progressHandler = progressHandler
             nonisolated(unsafe) let completion = completion
-            loaderQueue.addOperation { [weak self, weak view] in
-                guard let self, view != nil else { return }
+            nonisolated(unsafe) let errorImage = error
+            loaderQueue.addOperation { [weak view] in
+                guard view != nil else { return }
                 let key = Self.fileURLCacheKey(url: url)
-                Task { @MainActor [weak self, weak view] in
-                    guard let self, let view else { return }
+                Task { @MainActor [weak view] in
+                    guard let view else { return }
                     let request = ImageRequest(url: url, userInfo: [.imageIdKey: key])
-                    self.load(request: request, into: view, error: error, queue: queue, progressHandler: progressHandler, completion: completion)
+                    Self.load(request: request, into: view, error: errorImage, queue: queue, progressHandler: progressHandler, completion: completion)
                 }
             }
         } else {
             let request = ImageRequest(url: url)
-            load(request: request, into: view, error: error, queue: queue, progressHandler: progressHandler, completion: completion)
+            Self.load(request: request, into: view, error: error, queue: queue, progressHandler: progressHandler, completion: completion)
         }
     }
 
-    @MainActor private func load(request: ImageRequest,
-                                 into view: PlatformImageView,
-                                 error: PlatformImage?,
-                                 queue: DispatchQueue?,
-                                 progressHandler: ((Int64, Int64) -> Void)?,
-                                 completion: ((Result<Void, Swift.Error>) -> Void)?)
+    @MainActor private static func load(request: ImageRequest,
+                                        into view: PlatformImageView,
+                                        error: PlatformImage?,
+                                        queue: DispatchQueue?,
+                                        progressHandler: ((Int64, Int64) -> Void)?,
+                                        completion: ((Result<Void, Swift.Error>) -> Void)?)
     {
         /// 在进行数据请求
         /// 唯一请求id
