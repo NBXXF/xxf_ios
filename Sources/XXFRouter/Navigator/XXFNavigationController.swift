@@ -52,7 +52,7 @@
 //  Created by xxf.
 //
 
-#if canImport(UIKit) && !os(watchOS)
+#if canImport(UIKit)
 import UIKit
 
 // MARK: - XXFNavigationController
