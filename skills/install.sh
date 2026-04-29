@@ -79,13 +79,14 @@ install_codex() {
   local marker_end="<!-- END: xxf-ios-skills -->"
 
   # remove previous managed block if present
+  # `\n*` 放在 begin 前，吃掉 block 之前紧邻的空行，避免每次重跑都累积一个空行
   if [[ -f "$agents_md" ]] && grep -qF "$marker_begin" "$agents_md"; then
     info "refreshing existing xxf-ios-skills block in AGENTS.md"
     python3 - "$agents_md" "$marker_begin" "$marker_end" <<'PY'
 import sys, pathlib, re
 path, begin, end = sys.argv[1:]
 text = pathlib.Path(path).read_text()
-pattern = re.compile(re.escape(begin) + r'.*?' + re.escape(end) + r'\n?', re.DOTALL)
+pattern = re.compile(r'\n*' + re.escape(begin) + r'.*?' + re.escape(end) + r'\n?', re.DOTALL)
 pathlib.Path(path).write_text(pattern.sub('', text))
 PY
   fi
@@ -96,9 +97,16 @@ PY
     skills_list+="- $(basename "$skill_dir")"$'\n'
   done
 
+  # 追加新块：先用 `$(cat)` 天然剥掉文件尾部所有空白行（bash 命令替换会吃掉尾部换行），
+  # 再固定 \n\n 作为和新块的分隔，保证每次重跑 block 前恰好只有一个空行
   {
-    [[ -f "$agents_md" ]] && cat "$agents_md"
-    echo ""
+    if [[ -f "$agents_md" ]]; then
+      local existing
+      existing=$(cat "$agents_md")
+      if [[ -n "$existing" ]]; then
+        printf '%s\n\n' "$existing"
+      fi
+    fi
     echo "$marker_begin"
     echo "## XXF iOS Skills"
     echo ""
