@@ -39,6 +39,30 @@ public protocol RouteNavigator: AnyObject, Sendable {
     func currentNavigationController() -> RouteNavigationController?
 }
 
+#if canImport(UIKit)
+public extension RouteNavigator {
+    /// 包装一个 rootViewController 成 NavigationController（用于 present / setRoot 等需要 nav 栈的场景）
+    ///
+    /// 默认实现返回 `XXFNavigationController`，它在系统 `UINavigationController` 之上额外支持：
+    ///   - 作为 presented 根时从屏幕左边缘右滑 dismiss 整个模态（填补 iOS 原生缺失的手势）
+    ///   - 接管 `interactivePopGestureRecognizer.delegate`，保证隐藏系统 NavBar 后栈内页面仍能右滑返回
+    ///
+    /// 若传入的 `rootViewController` 本身已经是 `UINavigationController`（或其子类），默认实现会直接返回它自己，
+    /// 避免出现 nav 嵌套 nav 的异常栈结构；业务 override 本方法时也请遵循同样的约定。
+    ///
+    /// 业务若需改用其他 NavigationController 子类（例如自绘顶栏的 AppNavigationController），
+    /// 实现自己的 `RouteNavigator` 时 override 本方法即可；也可以让自定义类继承 `XXFNavigationController`
+    /// 后继续从默认实现受益。
+    func makeNavigationController(rootViewController: RouteViewController) -> RouteNavigationController {
+        // 已是 nav 直接返回，防止嵌套
+        if let nav = rootViewController as? UINavigationController {
+            return nav
+        }
+        return XXFNavigationController(rootViewController: rootViewController)
+    }
+}
+#endif
+
 // MARK: - 默认导航器实现
 
 #if canImport(UIKit)
@@ -48,8 +72,32 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
     /// 共享实例
     public static let shared = DefaultRouteNavigator()
 
+    /// 创建 NavigationController 的工厂闭包（可选，不进构造函数，按需后置替换）
+    ///
+    /// - 为 `nil`（默认）时：走协议扩展的 `makeNavigationController(rootViewController:)` 默认实现
+    ///   （已是 nav 的 VC 直接返回，否则 `XXFNavigationController(rootViewController:)`）
+    /// - 设置了闭包时：路由内部的 present / setRoot 改用本闭包产出 nav
+    ///
+    /// 业务可在 App 启动时替换，接入自己的 NavigationController 子类：
+    /// ```swift
+    /// DefaultRouteNavigator.shared.createNavigationViewControllerFactory = { root in
+    ///     if let nav = root as? UINavigationController { return nav }
+    ///     return AppNavigationController(rootViewController: root)
+    /// }
+    /// ```
+    /// 自定义闭包也请保留「已是 nav 直接返回」约定，否则会出现 nav 嵌套 nav。
+    public var createNavigationViewControllerFactory: ((RouteViewController) -> RouteNavigationController)?
+
     /// 初始化
     public init() {}
+
+    /// 按优先级解析用于包装的 NavigationController：工厂 > 协议默认
+    private func resolveNavigationController(for viewController: RouteViewController) -> RouteNavigationController {
+        if let factory = createNavigationViewControllerFactory {
+            return factory(viewController)
+        }
+        return makeNavigationController(rootViewController: viewController)
+    }
 
     /// 执行导航
     public func navigate(
@@ -193,9 +241,10 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
         }
 
         // 决定要 present 的视图控制器（是否包装 NavigationController）
+        // 若 viewController 本身已经是 nav，跳过包装，避免 nav 嵌套 nav
         let vcToPresent: UIViewController
-        if options.wrapInNavigationController {
-            let nav = UINavigationController(rootViewController: viewController)
+        if options.wrapInNavigationController, !(viewController is UINavigationController) {
+            let nav = resolveNavigationController(for: viewController)
             nav.modalPresentationStyle = options.modalPresentationStyle
             nav.modalTransitionStyle = options.modalTransitionStyle
             vcToPresent = nav
@@ -253,9 +302,10 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
         }
 
         // 根据选项决定是否包装 NavigationController
+        // 若 viewController 本身已经是 nav，跳过包装，避免 nav 嵌套 nav
         let newRootVC: UIViewController
-        if options.wrapInNavigationController {
-            newRootVC = UINavigationController(rootViewController: viewController)
+        if options.wrapInNavigationController, !(viewController is UINavigationController) {
+            newRootVC = resolveNavigationController(for: viewController)
         } else {
             newRootVC = viewController
         }
