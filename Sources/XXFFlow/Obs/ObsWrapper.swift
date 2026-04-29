@@ -22,14 +22,12 @@ import RxSwift
 /// - Returns: 可读可写的 `Obs<T>`
 public func makeObs<T>(
     initial: T,
-    onChange: @escaping ((T) -> Void)? = nil,
-    disposeBag: DisposeBag? = nil
+    onChange: @escaping ((T) -> Void),
+    disposeBag: DisposeBag
 ) -> Obs<T> {
     let relay = Obs<T>(value: initial)
-    if let onChange, let disposeBag {
-        _ = relay.skip(1)
-            .subscribe(onNext: onChange)
-            .disposed(by: disposeBag)
-    }
+    _ = relay.skip(1)
+        .subscribe(onNext: onChange)
+        .disposed(by: disposeBag)
     return relay
 }
