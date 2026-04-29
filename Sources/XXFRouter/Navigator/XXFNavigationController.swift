@@ -313,6 +313,19 @@ private final class PresentedEdgeDismissAnimator: NSObject, UIViewControllerAnim
             return
         }
         let container = ctx.containerView
+
+        // 关键：`.fullScreen` / `.automatic` present 时，iOS 会把 presenting VC 的 view 从
+        // window 层级摘掉节省渲染；dismiss 默认由系统自己负责把它塞回去。我们自定义了
+        // dismiss 动画后，系统就不管了；若不自己补回 toView，底下露出的就是黑屏。
+        // `.overFullScreen` / sheet 类样式下 toView 已经在 container 里，insertSubview
+        // 会平移不会复制，依然安全。
+        if let toView = ctx.view(forKey: .to) ?? ctx.viewController(forKey: .to)?.view {
+            if toView.superview !== container {
+                toView.frame = ctx.finalFrame(for: ctx.viewController(forKey: .to)!)
+                container.insertSubview(toView, belowSubview: fromView)
+            }
+        }
+
         let targetX = container.bounds.width
 
         UIView.animate(
