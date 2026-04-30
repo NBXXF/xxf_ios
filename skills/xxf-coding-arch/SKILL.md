@@ -86,6 +86,78 @@ Feature A 需要 Feature B 的能力时，**通过 B 暴露的 `Service` 协议 
 
 **一句话判定**：只要方法里出现"业务"两个字能说得通（"判断订单是否可取消"、"合并用户信息与权限"），它就属于 Service。出现 Manager / Tool / Utils / Helper 作为业务归宿的名字时，**先停下，把它挪到 Service**。
 
+### 3.7 界面内容不可写死,一律由 Service / ViewModel 动态提供
+
+**核心原则:UI 层(Presentation)不得硬编码业务数据。任何"展示给用户的业务内容"(菜单项、条目、分段、入口、文案、图标等)都必须由 Service 构建 → ViewModel 暴露数据源 → UI 循环渲染。"界面上有 N 条"这个 N,永远来自 `data.count`,绝不写死。**
+
+**严禁的反模式**(出现即违规):
+
+- VC / View 里写死条目数组 / 菜单项 / 分区标题 / 入口按钮
+- 产品说"暂时就两个",于是直接写两个 `UIButton` IBOutlet,后续加第三个要改 xib/代码
+- 业务文案、图标、跳转目标在 UI 层硬编码,未从 Service 或配置来
+- `if index == 0 { ... } else if index == 1 { ... }` 式按位置写死分支
+- `numberOfRowsInSection` 返回字面量 `return 2`
+
+**正确做法**:
+
+- Service 返回 `[Item]` 数组(可能来自后端配置、灰度、地区定制、枚举生成),ViewModel 转为数据源,View 循环渲染
+- 菜单、Tab、Section、入口等"可增减的集合"一律数据驱动
+- 空态 / 单条 / 多条等边界由数据天然表达,不写 if-else 分支
+- 业务相关的文案 / 图标 / 跳转 action 随数据一起下发或由 Service 组装
+
+```swift
+// ❌ 硬编码 2 个菜单项
+final class ProfileViewController: UIViewController {
+    private let orderButton = UIButton(...)    // "我的订单"
+    private let couponButton = UIButton(...)   // "优惠券"
+    // 加第三项 → 改 xib、加 outlet、调布局
+}
+
+// ❌ TableView 按位置写死分支
+func tableView(_ tv: UITableView, numberOfRowsInSection s: Int) -> Int { 2 }
+func tableView(_ tv: UITableView, cellForRowAt ip: IndexPath) -> UITableViewCell {
+    if ip.row == 0 { /* 订单 */ } else { /* 优惠券 */ }
+}
+
+// ✅ 数据驱动:Service 定义 → ViewModel 暴露 → UI 绑定
+struct ProfileMenuItem {
+    let id: String
+    let title: String
+    let icon: UIImage
+    let action: ProfileAction
+}
+
+protocol ProfileService {
+    /// 返回个人中心菜单项;顺序即展示顺序,可由后端配置或灰度动态下发。
+    func fetchMenuItems() async -> [ProfileMenuItem]
+}
+
+final class ProfileViewModel {
+    /// 菜单数据源;UI 只需绑定 count 与每项内容,无需感知"有几项"。
+    private(set) var menuItems: [ProfileMenuItem] = []
+
+    func load() async { menuItems = await service.fetchMenuItems() }
+}
+
+// View 层只做 items.count / items[i] 的循环渲染 —— 未来增减、重排、远程下发都不改 UI
+```
+
+**判断边界**:
+
+| 场景 | 正确归宿 |
+|---|---|
+| 菜单项 / Tab / 分段 的数量与内容 | Service 动态返回,ViewModel 转数据源 |
+| 业务文案、图标、跳转 action | 随数据结构一起从 Service 获取 |
+| 固定的 app 级文字(导航栏标题、通用按钮文案) | `Localizable.strings`(仍算"配置"而非硬编码) |
+| 布局骨架(搜索栏 + 列表这类容器结构) | 可以写死 View 层级,但其中 cell / section 仍走数据驱动 |
+| 业务 KV 常量(订单状态、支付方式枚举值) | `Domain/` 里的 enum,不是 UI 层魔法值 |
+
+**自检触发器**:写代码时只要你在 VC/View 里出现以下任意一个,**立刻停下挪到 Service**:
+- 字面量数字作为条目 / section 数量 (`return 2`, `maxItems: 3`)
+- 按索引的 `switch` / `if-else` 分支处理不同条目
+- 固定个数的 IBOutlet 按钮并排对应"入口"、"菜单"、"Tab"
+- 写死文案数组 `["订单", "优惠券", "地址"]` 之类
+
 ---
 
 ## 4. 新增 Feature 检查清单
@@ -97,3 +169,4 @@ Feature A 需要 Feature B 的能力时，**通过 B 暴露的 `Service` 协议 
 - [ ] Di 在 Feature 的 Di 目录集中注册，未在 VC/VM 里手动 new？
 - [ ] **业务逻辑全部落在 Service，未出现 `Manager / Tool / Utils / Helper / Logic / Processor / Center` 等自造业务分层？**
 - [ ] **Repository 只做数据读写，未混入业务判断？`Arch/` 下无业务代码？**
+- [ ] **UI 层无写死业务数据?菜单/条目/分段的数量与内容都由 Service 动态提供、ViewModel 转数据源、View 循环渲染?未出现 `return 2` 式字面量条数、按索引的 if/switch、固定个数 IBOutlet 对应"入口"等反模式?**
