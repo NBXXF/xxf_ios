@@ -88,3 +88,105 @@ func chat(prompt: String) -> Flow<ChatDelta>
 - 单个响应 > 10MB：改分页或流式
 - 单次并发请求数 > 10：前端做限流
 - 列表页无分页：强制加 `page_size` 参数
+
+## 8. Moya + RestApiService 定义接口(项目模板)
+
+基于 Moya 的项目用 `enum + RestApiService` 封装接口,case 关联值传参。**请求首选 `request(_:type:)` 重载**,直接得到 `Observable<T>`,省掉样板 `.mapHttpResponse`。
+
+### 骨架
+
+```swift
+import XXFArch
+
+enum UserApiService {
+    case getProfile(userId: String)
+    case updateProfile(username: String, avatar: String?)
+    case getUserList(page: Int, limit: Int, cacheType: CacheType)
+}
+
+extension UserApiService: RestApiService {
+    static var interceptors: [any Interceptor] { [AppHttpInterceptor()] }
+    static var callAdapter: (any RxCallAdapter)? { AuthRetryCallAdapter.shared }
+    static var cacheInterceptor: any CacheInterceptor { AppCacheInterceptor() }
+
+    var baseURL: URL { URLConfig.getApiURL() }
+
+    var path: String {
+        switch self {
+            case let .getProfile(userId): return "/users/\(userId)"
+            case .updateProfile: return "/users/profile"
+            case .getUserList: return "/users"
+        }
+    }
+
+    var method: Moya.Method {
+        switch self {
+            case .getProfile, .getUserList: return .get
+            case .updateProfile: return .post
+        }
+    }
+
+    var cachePolicy: CacheType {
+        switch self {
+            case let .getUserList(_, _, cache): return cache
+            default: return .onlyRemote
+        }
+    }
+
+    var task: Moya.Task {
+        switch self {
+            case .getProfile:
+                return .Builder().build()
+            case let .updateProfile(username, avatar):
+                var params: [String: Any] = ["username": username]
+                if let avatar { params["avatar"] = avatar }
+                return .Builder().jsonBody(params).build()
+            case let .getUserList(page, limit, _):
+                return .Builder().query(["page": page, "limit": limit]).build()
+        }
+    }
+}
+```
+
+### Repository 调用(首选 `request(_:type:)`)
+
+```swift
+func getProfile(userId: String) -> Observable<UserDTO> {
+    UserApiService.apiService
+        .request(.getProfile(userId: userId), type: BaseResponseDTO<UserDTO>.self)
+        .mapDataField()
+}
+
+func getUserList(page: Int, limit: Int, cacheType: CacheType) -> Observable<[UserDTO]> {
+    UserApiService.apiService
+        .request(.getUserList(page: page, limit: limit, cacheType: cacheType),
+                 type: BaseResponseDTO<BasePaginationDTO<UserDTO>>.self)
+        .mapDataField()
+        .map(\.list)
+}
+```
+
+### SSE 流式
+
+```swift
+enum AiApiService {
+    case generateStream(prompt: String)
+}
+
+extension AiApiService: RestApiService { /* ... */ }
+
+func chat(prompt: String) -> Observable<String> {
+    AiApiService.apiService
+        .requestSSE(.generateStream(prompt: prompt))
+        .mapSSEEventData()
+        .compactMap { $0["content"] as? String }
+}
+```
+
+### 约束
+
+- 全程 **`Observable`**,不用 `Single`。需要一次性消费在调用端处理(`take(1)` / `subscribe(onNext:)`)
+- ❌ 禁止 `.mapHttpResponse(...)` + 手动解包,除非真的需要原始 `Response`
+- ❌ 禁止 `.asSingle()` 收口
+- 命名:`{Feature}ApiService`,case 动词 + 名词
+- 分页 `page` / `limit`;缓存 `cacheType: CacheType`

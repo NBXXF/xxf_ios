@@ -52,6 +52,7 @@ Grep "public struct|public class|public protocol" in Sources/XXFHttp/
   - ✅ 优先：`provider.rx.xxf.request(api, type: Foo.self)` → `Observable<Foo>`
   - ❌ 避免：`provider.rx.xxf.request(api).mapHttpResponse(Foo.self)`（除非需要原始 `Response`）
   - 原因：解析错误堆栈直接指向具体 API；在 `concat` / `flatMap` 等组合流中错误信息不丢失；省掉样板 `.mapHttpResponse`。
+- **全程 `Observable`**,不用 `Single`。需要一次性消费在调用端 `take(1)` / `subscribe(onNext:)` 处理。
 
 ### 4. 测试点
 
