@@ -44,10 +44,14 @@ Grep "public struct|public class|public protocol" in Sources/XXFHttp/
 
 ### 3. 检查约定
 
-- 接口封装层命名：`XxxApi` / `XxxService`（与项目现有风格保持一致，先 Grep 项目）
-- 错误类型：复用 XXFHttp 提供的，**不要自造错误枚举**
-- 线程：IO 请求用 `subscribeOnIO()`，回调回主线程用 `observeOnMain()`（需 `XXFFlow`）
-- 鉴权：统一走拦截器，**不要在每个接口里塞 token**
+- 接口封装层命名：`XxxApi` / `XxxService`(与项目现有风格保持一致,先 Grep 项目)
+- 错误类型：复用 XXFHttp 提供的,**不要自造错误枚举**
+- 线程：IO 请求用 `subscribeOnIO()`,回调回主线程用 `observeOnMain()`(需 `XXFFlow`)
+- 鉴权：统一走拦截器,**不要在每个接口里塞 token**
+- **Rx 请求首选带 `type:` 的 `request` 重载**（见 `Sources/XXFHttp/RxProxy/ReactiveProxy+Rx.swift`）：
+  - ✅ 优先：`provider.rx.xxf.request(api, type: Foo.self)` → `Observable<Foo>`
+  - ❌ 避免：`provider.rx.xxf.request(api).mapHttpResponse(Foo.self)`（除非需要原始 `Response`）
+  - 原因：解析错误堆栈直接指向具体 API；在 `concat` / `flatMap` 等组合流中错误信息不丢失；省掉样板 `.mapHttpResponse`。
 
 ### 4. 测试点
 

@@ -9,12 +9,19 @@ import Moya
 import RxSwift
 
 public extension ReactiveProxy where Base: ReactiveCompatible {
-    /// 发起请求并返回 `Observable<Response>`。
+    /// 发起请求并返回 `Observable<Response>`（原始响应，未解析）。
     ///
     /// 当 `base` 为 `HttpMoyaProvider` 时，请求会经过其内部缓存与拦截适配逻辑，
     /// 以支持缓存策略下的多次发射场景。
     ///
-    ///  特别注意,业务更建议用 request<T: Decodable>(_ token: Base.Target, type: T.Type, callbackQueue: DispatchQueue? = nil) 这个api,这样报错跟踪更加友好 并且适合处理rx解析报错; 尤其是concat等等
+    /// - Important: ⚠️ **业务代码请优先使用带 `type:` 参数的重载**
+    ///   `request(_:type:callbackQueue:)`。理由：
+    ///   1. 解析错误会在 `mapHttpResponse` 阶段抛出，错误堆栈直接指向具体 API，跟踪更友好；
+    ///   2. 在 `concat` / `merge` / `flatMap` 等组合流里，类型化版本可避免后续手动 map 带来的
+    ///      错误信息丢失；
+    ///   3. 返回类型即业务模型，调用方无需再重复写 `.mapHttpResponse(T.self)`。
+    ///
+    ///   仅当确实需要拿到原始 `Response`（例如自定义解码、读取 headers / 原始 data）时，才使用本方法。
     /// - Parameters:
     ///   - token: 请求目标。
     ///   - callbackQueue: 回调队列。
@@ -33,6 +40,9 @@ public extension ReactiveProxy where Base: ReactiveCompatible {
 
     /// 发起请求并将响应映射为指定模型。
     ///
+    /// - Important: ✅ **业务请求首选此 API**。相比无 `type` 的重载：
+    ///   - 解析错误定位更精准，便于在 `concat` / `flatMap` 等组合流中排查；
+    ///   - 直接返回业务模型流，减少链式 `.mapHttpResponse(T.self)` 样板代码。
     /// - Parameters:
     ///   - token: 请求目标。
     ///   - type: 目标模型类型。
