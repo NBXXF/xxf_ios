@@ -113,3 +113,23 @@ public class ImageRequestBuilder {
         return url.appendingQueryParameters(params)
     }
 }
+
+// MARK: - Preload
+
+public extension ImageRequestBuilder {
+    /// 预加载:只下载/解码/入缓存,不绑定任何可见 view,类似 Glide.preload。
+    /// 复用链式设置的 `onProgress`/`onComplete`/`thumbnail`/`extraParameters` 等。
+    @MainActor
+    func preload() {
+        // 临时 dummy view 走 into 通道;靠 completion 闭包强引用 holder,
+        // 保持其存活到加载结束 —— 否则文件 URL 分支的异步 stat 里 `[weak view]`
+        // 会提前 nil 导致下载被跳过
+        let holder = PlatformImageView()
+        let prevCompletion = completion
+        completion = { [holder] result in
+            _ = holder
+            prevCompletion?(result)
+        }
+        into(holder)
+    }
+}
