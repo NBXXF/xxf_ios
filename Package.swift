@@ -174,6 +174,13 @@ let package = Package(
             name: "XXFEventReporterFirebase",
             targets: ["XXFEventReporterFirebase"]
         ),
+
+        // MARK: - 二维码生成（dagronf/QRCode 实现）
+
+        .library(
+            name: "XXFQRCode",
+            targets: ["XXFQRCode"]
+        ),
     ] + mmkvProducts,
     // 依赖版本策略：
     // 1) from: "x.y.z" == .upToNextMajor(from: "x.y.z")，范围 [x.y.z, nextMajor)
@@ -246,7 +253,10 @@ let package = Package(
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "12.10.0"),
 
         // 性能监控（FPS、CPU、内存）
-        .package(url: "https://github.com/dani-gavrilov/GDPerformanceView-Swift.git", from: "2.1.1")
+        .package(url: "https://github.com/dani-gavrilov/GDPerformanceView-Swift.git", from: "2.1.1"),
+
+        // 二维码生成（支持自定义眼形 / 像素形 / 填充样式 / Logo）
+        .package(url: "https://github.com/dagronf/QRCode.git", from: "20.0.0")
     ] + mmkvDependencies,
     targets: [
         .target(
@@ -621,6 +631,15 @@ let package = Package(
                 .product(name: "RxCocoa", package: "RxSwift"),
                 .product(name: "RxKeyboard", package: "RxKeyboard", condition: .when(platforms: [.iOS])),
                 .product(name: "SnapKit", package: "SnapKit", condition: .when(platforms: [.iOS]))
+            ]
+        ),
+
+        // MARK: - 二维码生成（基于 dagronf/QRCode，Builder 模式）
+
+        .target(
+            name: "XXFQRCode",
+            dependencies: [
+                .product(name: "QRCode", package: "QRCode")
             ]
         ),
         .testTarget(

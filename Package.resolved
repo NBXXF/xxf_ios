@@ -1,5 +1,5 @@
 {
-  "originHash" : "979f965d8b9503fb62985cb47fbbc5e989f5b880c9e70b648e26fac4b414a323",
+  "originHash" : "33b63d243e10795466a2f7371b4c5d25bfc46d0152586241f268d7c256102090",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -290,6 +290,15 @@
       }
     },
     {
+      "identity" : "qrcode",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dagronf/QRCode.git",
+      "state" : {
+        "revision" : "e7bcd89a987cf43bc64e414f3e26cb8eded8ae1e",
+        "version" : "20.5.0"
+      }
+    },
+    {
       "identity" : "reactiveswift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ReactiveCocoa/ReactiveSwift.git",
@@ -533,6 +542,15 @@
       }
     },
     {
+      "identity" : "swift-qrcode-generator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dagronf/swift-qrcode-generator",
+      "state" : {
+        "revision" : "2b1980b825f08a81ccc762b0c4d17fcde9d5e953",
+        "version" : "2.0.2"
+      }
+    },
+    {
       "identity" : "swift-service-context",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-service-context.git",
@@ -566,6 +584,15 @@
       "state" : {
         "revision" : "5a6de915bb80234e1e31b3e3e5f7a7995fc1f4db",
         "version" : "7.0.0"
+      }
+    },
+    {
+      "identity" : "swiftimagereadwrite",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dagronf/SwiftImageReadWrite",
+      "state" : {
+        "revision" : "42ace2412279f18bc264bc306e96b51c36e12a33",
+        "version" : "1.9.2"
       }
     },
     {
