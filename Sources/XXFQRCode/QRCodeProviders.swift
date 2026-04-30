@@ -65,10 +65,10 @@ public enum XXFQRCodeErrorCorrection {
 /// let img = QRCodeProviders.of("https://example.com")
 ///     .errorCorrection(.high)
 ///     .outputSize(CGSize(width: pixelSize, height: pixelSize))
-///     .eyeShape(QRCode.EyeShape.RoundedOuter())
-///     .pixelShape(QRCode.PixelShape.RoundedPath(cornerRadiusFraction: 0.7, hasInnerCorners: true))
-///     .onPixelsStyle(QRCode.FillStyle.Solid(UIColor.black.cgColor))
-///     .backgroundStyle(QRCode.FillStyle.Solid(UIColor.white.cgColor))
+///     .eyeShape(.roundedOuter())
+///     .pixelShape(.roundedPath(cornerRadiusFraction: 0.7, hasInnerCorners: true))
+///     .onPixelsStyle(.solid(UIColor.black))
+///     .backgroundStyle(.solid(UIColor.white))
 ///     .build()
 /// ```
 public enum QRCodeProviders {
@@ -104,22 +104,22 @@ public enum QRCodeProviders {
         /// 容错率，默认 `.medium`（对应 M）。
         public private(set) var errorCorrection: XXFQRCodeErrorCorrection = .medium
 
-        // MARK: - 样式扩展（dagronf/QRCode 专有，可选）
+        // MARK: - 样式扩展（可选）
 
-        /// 眼形（三个定位角）。
-        public private(set) var eyeShape: QRCodeEyeShapeGenerator?
-        /// 瞳孔形状。
-        public private(set) var pupilShape: QRCodePupilShapeGenerator?
-        /// 数据点形状（`onPixels`）。
-        public private(set) var pixelShape: QRCodePixelShapeGenerator?
+        /// 眼形（三个定位角）。见 `QRCodeProviders.EyeShape` 的工厂。
+        public private(set) var eyeShape: EyeShape?
+        /// 瞳孔形状。见 `QRCodeProviders.PupilShape` 的工厂。
+        public private(set) var pupilShape: PupilShape?
+        /// 数据点形状（`onPixels`）。见 `QRCodeProviders.PixelShape` 的工厂。
+        public private(set) var pixelShape: PixelShape?
         /// 数据点填充（优先级高于 `contentColor` / `contentFillImage`）。
-        public private(set) var onPixelsStyle: QRCodeFillStyleGenerator?
+        public private(set) var onPixelsStyle: FillStyle?
         /// 背景填充（优先级高于 `backgroundColor`）。
-        public private(set) var backgroundStyle: QRCodeFillStyleGenerator?
+        public private(set) var backgroundStyle: FillStyle?
         /// 眼形填充。
-        public private(set) var eyeStyle: QRCodeFillStyleGenerator?
+        public private(set) var eyeStyle: FillStyle?
         /// 瞳孔填充。
-        public private(set) var pupilStyle: QRCodeFillStyleGenerator?
+        public private(set) var pupilStyle: FillStyle?
 
         init(content: String) {
             self.content = content
@@ -148,13 +148,13 @@ public enum QRCodeProviders {
 
         // MARK: - 样式 setter（链式）
 
-        @discardableResult public func eyeShape(_ v: QRCodeEyeShapeGenerator?) -> Builder { eyeShape = v; return self }
-        @discardableResult public func pupilShape(_ v: QRCodePupilShapeGenerator?) -> Builder { pupilShape = v; return self }
-        @discardableResult public func pixelShape(_ v: QRCodePixelShapeGenerator?) -> Builder { pixelShape = v; return self }
-        @discardableResult public func onPixelsStyle(_ v: QRCodeFillStyleGenerator?) -> Builder { onPixelsStyle = v; return self }
-        @discardableResult public func backgroundStyle(_ v: QRCodeFillStyleGenerator?) -> Builder { backgroundStyle = v; return self }
-        @discardableResult public func eyeStyle(_ v: QRCodeFillStyleGenerator?) -> Builder { eyeStyle = v; return self }
-        @discardableResult public func pupilStyle(_ v: QRCodeFillStyleGenerator?) -> Builder { pupilStyle = v; return self }
+        @discardableResult public func eyeShape(_ v: EyeShape?) -> Builder { eyeShape = v; return self }
+        @discardableResult public func pupilShape(_ v: PupilShape?) -> Builder { pupilShape = v; return self }
+        @discardableResult public func pixelShape(_ v: PixelShape?) -> Builder { pixelShape = v; return self }
+        @discardableResult public func onPixelsStyle(_ v: FillStyle?) -> Builder { onPixelsStyle = v; return self }
+        @discardableResult public func backgroundStyle(_ v: FillStyle?) -> Builder { backgroundStyle = v; return self }
+        @discardableResult public func eyeStyle(_ v: FillStyle?) -> Builder { eyeStyle = v; return self }
+        @discardableResult public func pupilStyle(_ v: FillStyle?) -> Builder { pupilStyle = v; return self }
 
         // MARK: - 构建
 
@@ -172,13 +172,13 @@ public enum QRCodeProviders {
                 doc.design.additionalQuietZonePixels = UInt(max(0, contentPadding))
 
                 // 形状
-                if let eye = eyeShape { doc.design.shape.eye = eye }
-                if let pupil = pupilShape { doc.design.shape.pupil = pupil }
-                if let pixel = pixelShape { doc.design.shape.onPixels = pixel }
+                if let eye = eyeShape { doc.design.shape.eye = eye.inner }
+                if let pupil = pupilShape { doc.design.shape.pupil = pupil.inner }
+                if let pixel = pixelShape { doc.design.shape.onPixels = pixel.inner }
 
                 // 数据点填充：onPixelsStyle > contentFillImage > contentColor
                 if let style = onPixelsStyle {
-                    doc.design.style.onPixels = style
+                    doc.design.style.onPixels = style.inner
                 } else if let img = contentFillImage, let cg = img.xxf_cgImage {
                     doc.design.style.onPixels = QRCode.FillStyle.Image(cg)
                 } else {
@@ -187,13 +187,13 @@ public enum QRCodeProviders {
 
                 // 背景填充：backgroundStyle > backgroundColor
                 if let style = backgroundStyle {
-                    doc.design.style.background = style
+                    doc.design.style.background = style.inner
                 } else {
                     doc.design.style.background = QRCode.FillStyle.Solid(backgroundColor.cgColor)
                 }
 
-                if let eyeStyle { doc.design.style.eye = eyeStyle }
-                if let pupilStyle { doc.design.style.pupil = pupilStyle }
+                if let eyeStyle { doc.design.style.eye = eyeStyle.inner }
+                if let pupilStyle { doc.design.style.pupil = pupilStyle.inner }
 
                 // Logo：居中矩形，尺寸为 logoPercent×logoPercent（归一化 0..1 坐标）
                 if let logo, let cg = logo.xxf_cgImage, logoPercent > 0 {
