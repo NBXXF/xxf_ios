@@ -242,11 +242,18 @@ protocol OrderListViewDelegate: AnyObject {
 **强制要求:所有类型、方法、方法参数、成员字段都必须用 `///` 加文档注释。** 本项目内部类型也不例外。
 
 - **类型(class / struct / enum / protocol / actor)** — 必须 `///` 描述**大致意图**,让读者一眼看出"这个类存在是为了做什么 / 解决什么问题"
-- **方法(func / init / subscript)** — 必须 `///` 描述其行为,必要时补充 WHY(为什么存在、为什么这样实现)
-- **方法参数** — 使用 `- Parameter xxx:` 或 `- Parameters:` 列出每个参数的含义、单位、约束(如是否允许 nil、取值范围、副作用)
-- **返回值** — 使用 `- Returns:` 说明含义与特殊情况(例如 nil / 空数组的语义)
-- **抛出** — 使用 `- Throws:` 列出可能抛出的错误类型
-- **成员字段(let / var / computed property / 关联对象)** — 必须 `///` 说明字段的**作用**;对外可见字段要明确语义边界(如"未加载前为 nil")
+- **方法(func / init / subscript)** — 必须 `///` 覆盖以下维度(按需,不相关的省略,相关的**一条不能少**):
+  - **具体功能** — 这个方法做什么;一句话能说清就不要拆多句
+  - **使用限制 / 前置条件** — 调用前必须满足的状态(如"必须先调用 `start()`"、"仅在登录态可用"、"单次实例化后不可重入")
+  - **线程 / 隔离限制** — `@MainActor` / 特定 queue / "任意线程"需显式注明;涉及 async 的要说明 suspension point 与 actor hop
+  - **边界 / 特殊输入** — 空数组、nil、负数、超大值、重复调用、并发调用的行为(幂等?抛错?忽略?)
+  - **副作用** — 修改哪些外部状态、发哪些通知、是否触发网络/IO/文件写入
+  - **性能开销** — 若非 O(1) 或可能阻塞,需标注(如"首次调用会 stat 文件 ~1ms")
+  - **WHY** — 为什么存在、为什么这样实现(非显然时补充)
+- **方法参数** — 使用 `- Parameter xxx:` 或 `- Parameters:` 列出每个参数:含义、单位、**取值范围 / 允许 nil / 边界**、是否被闭包捕获(`@escaping`)、回调所在线程
+- **返回值** — 使用 `- Returns:` 说明含义与**特殊情况**(nil / 空数组 / 负数 的语义差别,成功与失败的返回形态)
+- **抛出** — 使用 `- Throws:` 列出可能抛出的错误类型,**以及什么条件下会抛出**(不只是类型名)
+- **成员字段(let / var / computed property / 关联对象)** — 必须 `///` 说明字段的**作用**;对外可见字段要明确语义边界(如"未加载前为 nil"、"修改需在主线程")
 
 **理由**:
 - 降低 onboarding 成本,新人不需要反复爬调用链才能理解用途
@@ -258,14 +265,21 @@ protocol OrderListViewDelegate: AnyObject {
 /// 订单列表分页加载器。
 ///
 /// 内部维护 `pageIndex` 与 `hasMore`,对外只暴露「下一页」语义,避免调用方感知分页细节。
+/// **线程限制**:所有 public 方法仅允许在主线程调用;内部会切换到后台执行网络请求,
+/// completion 固定回到主线程。
 final class OrderListPager {
 
     // MARK: - Properties
 
-    /// 当前已加载的订单,按业务字段排序后的结果;下拉刷新会整体替换。
+    /// 当前已加载的订单,按业务字段排序后的结果。
+    ///
+    /// 下拉刷新(`loadNextPage(forceRefresh: true)`)会整体替换;
+    /// 追加加载只会 append 尾部。只允许在主线程读写。
     private(set) var orders: [Order] = []
 
     /// 是否还有下一页。为 false 时上拉不再触发请求。
+    ///
+    /// 由最近一次服务端返回驱动;下拉刷新会被重置为 true。
     private(set) var hasMore = true
 
     /// 单页条数。与后端约定为 20,超过可能触发限流。
@@ -273,17 +287,35 @@ final class OrderListPager {
 
     // MARK: - Public
 
-    /// 加载下一页订单。幂等 —— 正在加载时重复调用会被忽略。
+    /// 加载下一页订单。
+    ///
+    /// **功能**:按当前 `pageIndex` 向后端拉取一页数据,追加到 `orders` 尾部。
+    ///
+    /// **使用限制**:
+    /// - 必须先调用 `start(userID:)` 建立上下文,否则直接回调 `.failure(.notStarted)`
+    /// - 调用方应处于登录态,未登录时直接 `.failure(.notLoggedIn)`
+    ///
+    /// **线程**:必须在主线程调用;`completion` 也在主线程回调。
+    ///
+    /// **边界**:
+    /// - 幂等:正在加载时重复调用会被忽略,`completion` 不会被多次触发
+    /// - `hasMore == false` 时直接返回 `.success([])`,不发请求
+    /// - `forceRefresh == true` 会取消在途请求,重置 `pageIndex = 0`,`orders` 会整体替换
+    ///
+    /// **副作用**:成功时 `orders` / `hasMore` / `pageIndex` 会被更新;
+    /// 失败不修改状态。不发送任何通知。
+    ///
+    /// **性能**:网络耗时主导;无本地耗时操作。
     ///
     /// - Parameters:
-    ///   - forceRefresh: true 时忽略本地缓存、重置 `pageIndex` 到 0
-    ///   - completion: 主线程回调;成功返回本次新增的订单数组
-    /// - Returns: 正在进行的请求 task,调用方可持有用于取消
+    ///   - forceRefresh: true 时忽略本地缓存、重置 `pageIndex` 到 0;默认 false
+    ///   - completion: 主线程回调;`@escaping`,成功返回本次新增的订单数组(下拉刷新场景返回首页全部)
+    /// - Returns: 正在进行的请求 task,调用方可持有用于外部取消;重复调用被忽略时返回 nil
     @discardableResult
     func loadNextPage(
         forceRefresh: Bool = false,
         completion: @escaping (Result<[Order], Error>) -> Void
-    ) -> Task<Void, Never> { ... }
+    ) -> Task<Void, Never>? { ... }
 }
 ```
 
