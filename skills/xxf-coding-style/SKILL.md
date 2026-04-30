@@ -27,16 +27,16 @@ description: xxf_ios 项目的 iOS/Swift 编码规范（强制约束）——文
 // ❌ OrderModels.swift —— 一个文件塞 OrderModel + CartModel + PaymentModel（禁止）
 ```
 
-### 1.2 主类的 Extension 应按职责拆分到独立文件
+### 1.2 主类的 Extension 必须按职责拆分到独立文件
 
-**主类的扩展（extension）应按功能 / 协议边界抽离为独立文件，保持主类文件精简、职责清晰。** 全部塞进一个文件会让主类文件快速膨胀、阅读与导航成本反而更高。
+**强制要求:主类的扩展(extension)必须按功能 / 协议边界抽离为独立文件。** 禁止把多个 extension 堆在主类文件内 —— 主文件快速膨胀、阅读与导航成本剧增,review diff 也会失焦。
 
-**理由**：
-- 主文件只保留核心属性、init、生命周期，阅读主干逻辑时无需在上千行里滚动
-- 功能变更时，相关文件的 diff 聚焦、review 成本低
-- 协议实现独立成文件后，职责边界更清晰，不易出现"一个方法被多处 extension 重复覆盖"
+**理由**:
+- 主文件只保留核心属性、init、生命周期,阅读主干逻辑时无需在上千行里滚动
+- 功能变更时,相关文件的 diff 聚焦、review 成本低
+- 协议实现独立成文件后,职责边界更清晰,不易出现"一个方法被多处 extension 重复覆盖"
 
-**命名约定**：`主类型名+职责.swift`，职责名用 UpperCamelCase：
+**命名约定**:`主类型名+职责.swift`,职责名用 UpperCamelCase:
 
 ```
 UserProfileViewController.swift              // 属性、init、生命周期
@@ -44,6 +44,8 @@ UserProfileViewController+UI.swift           // UI 搭建与布局
 UserProfileViewController+TableView.swift    // UITableView DataSource / Delegate
 UserProfileViewController+Network.swift      // 数据请求
 UserProfileViewController+Actions.swift      // @objc / IBAction 事件响应
+UserProfileViewController+Event.swift        // 通知 / 业务事件处理
+UserProfileViewController+Prefetch.swift     // 列表预取 / 预加载
 ```
 
 ```swift
@@ -72,8 +74,8 @@ extension UserProfileViewController: UITableViewDataSource, UITableViewDelegate 
 ```
 
 ```swift
-// ❌ 不推荐：所有 extension 堆在主文件里
-// UserProfileViewController.swift（1200+ 行）
+// ❌ 禁止:所有 extension 堆在主文件里
+// UserProfileViewController.swift(1200+ 行)
 class UserProfileViewController: UIViewController { ... }
 extension UserProfileViewController { /* UI */ }
 extension UserProfileViewController: UITableViewDataSource { ... }
@@ -82,9 +84,10 @@ extension UserProfileViewController { /* Network */ }
 extension UserProfileViewController { /* Actions */ }
 ```
 
-**何时仍可留在主文件**：
-- 主文件本身就很短（< 200 行），且 extension 只有一两块小内容
-- extension 里仅是 1~2 个紧贴核心逻辑的私有辅助方法
+**唯一豁免情形**(需同时满足):
+- 主文件 < 200 行 **且** 只有 1 个极小 extension(< 20 行)
+- extension 仅是 1~2 个紧贴核心逻辑的私有辅助方法
+- 该 extension 依赖主类的 `private` 成员,拆出会被迫放宽为 `fileprivate`(此时优先保持封装性可留本文件,但需 MARK 分区)
 
 ### 1.3 拆分粒度建议
 
@@ -234,47 +237,97 @@ protocol OrderListViewDelegate: AnyObject {
 
 ## 3. 注释与文档
 
-### 3.1 默认不写无效注释
+### 3.1 类型 / 方法 / 参数 / 字段必须加文档注释(强制)
 
-**默认不写注释**。只在以下情况必须加注释：
+**强制要求:所有类型、方法、方法参数、成员字段都必须用 `///` 加文档注释。** 本项目内部类型也不例外。
 
-1. **Why 非显然**：隐藏的约束、特殊业务规则、绕过某 bug 的 workaround
-2. **Public API**：对外暴露的类/方法/属性必须加 `///` 文档注释
-3. **复杂算法 / 正则**：逻辑难以直接看懂的
-4. **TODO / FIXME / HACK** 标记
+- **类型(class / struct / enum / protocol / actor)** — 必须 `///` 描述**大致意图**,让读者一眼看出"这个类存在是为了做什么 / 解决什么问题"
+- **方法(func / init / subscript)** — 必须 `///` 描述其行为,必要时补充 WHY(为什么存在、为什么这样实现)
+- **方法参数** — 使用 `- Parameter xxx:` 或 `- Parameters:` 列出每个参数的含义、单位、约束(如是否允许 nil、取值范围、副作用)
+- **返回值** — 使用 `- Returns:` 说明含义与特殊情况(例如 nil / 空数组的语义)
+- **抛出** — 使用 `- Throws:` 列出可能抛出的错误类型
+- **成员字段(let / var / computed property / 关联对象)** — 必须 `///` 说明字段的**作用**;对外可见字段要明确语义边界(如"未加载前为 nil")
+
+**理由**:
+- 降低 onboarding 成本,新人不需要反复爬调用链才能理解用途
+- 强制作者思考"这个东西为什么存在",避免堆出低信息密度的 API
+- 与 Xcode Quick Help / Option+Click 工作流自然对齐,让智能提示有用
 
 ```swift
-// ❌ 禁止：解释 WHAT（代码自己已经说了）
+// ✅ 类型:描述意图 + 使用场景
+/// 订单列表分页加载器。
+///
+/// 内部维护 `pageIndex` 与 `hasMore`,对外只暴露「下一页」语义,避免调用方感知分页细节。
+final class OrderListPager {
+
+    // MARK: - Properties
+
+    /// 当前已加载的订单,按业务字段排序后的结果;下拉刷新会整体替换。
+    private(set) var orders: [Order] = []
+
+    /// 是否还有下一页。为 false 时上拉不再触发请求。
+    private(set) var hasMore = true
+
+    /// 单页条数。与后端约定为 20,超过可能触发限流。
+    private let pageSize: Int = 20
+
+    // MARK: - Public
+
+    /// 加载下一页订单。幂等 —— 正在加载时重复调用会被忽略。
+    ///
+    /// - Parameters:
+    ///   - forceRefresh: true 时忽略本地缓存、重置 `pageIndex` 到 0
+    ///   - completion: 主线程回调;成功返回本次新增的订单数组
+    /// - Returns: 正在进行的请求 task,调用方可持有用于取消
+    @discardableResult
+    func loadNextPage(
+        forceRefresh: Bool = false,
+        completion: @escaping (Result<[Order], Error>) -> Void
+    ) -> Task<Void, Never> { ... }
+}
+```
+
+```swift
+// ❌ 禁止:类型/方法/字段无注释
+final class OrderListPager {
+    private(set) var orders: [Order] = []
+    private(set) var hasMore = true
+    private let pageSize: Int = 20
+
+    func loadNextPage(
+        forceRefresh: Bool = false,
+        completion: @escaping (Result<[Order], Error>) -> Void
+    ) -> Task<Void, Never> { ... }
+}
+```
+
+**豁免情形**(仍需保持克制,不要滥用):
+- `override` 方法重写父类语义、父类已有文档 —— 可省略,但若行为改变必须补说明
+- 协议方法的默认实现,协议本身已完整描述 —— 可省略
+- 明显的样板字段(如 `override var description: String`)且语义与父类一致
+
+### 3.2 内联注释只解释 WHY,不解释 WHAT
+
+文档注释(`///`)以外的行内注释(`//`)默认不写。只在以下情况添加:
+
+1. **WHY 非显然**:隐藏的约束、特殊业务规则、绕过某 bug 的 workaround
+2. **复杂算法 / 正则**:逻辑难以直接看懂的
+3. **TODO / FIXME / HACK** 标记
+
+```swift
+// ❌ 禁止:行内注释解释 WHAT(代码自己已经说了)
 // 设置名字为 name
 self.name = name
 
 // 循环数组
 for item in items { ... }
 
-// ✅ 推荐：解释 WHY（非显然原因）
-// 服务端返回 amount 单位是分，这里除以 100 转为元展示
+// ✅ 推荐:解释 WHY(非显然原因)
+// 服务端返回 amount 单位是分,这里除以 100 转为元展示
 displayAmount = amount / 100.0
 
 // 延迟一帧是为了规避 iOS 16 上 UICollectionView 初次 layout 的布局抖动
 DispatchQueue.main.async { [weak self] in ... }
-```
-
-### 3.2 Public API 文档注释使用 `///`
-
-对外可见的类型、方法、属性必须加 `///` 三斜杠注释。参数与返回值使用 `- Parameter` / `- Returns`：
-
-```swift
-/// 根据用户 ID 获取用户资料。
-///
-/// - Parameters:
-///   - userID: 用户唯一标识
-///   - forceRefresh: 是否强制忽略本地缓存
-/// - Returns: 用户资料；找不到时返回 nil
-/// - Throws: `NetworkError` 当网络请求失败
-public func fetchUserProfile(
-    userID: String,
-    forceRefresh: Bool = false
-) async throws -> UserProfile? { ... }
 ```
 
 ### 3.3 MARK / TODO / FIXME 规范
@@ -828,7 +881,7 @@ ViewController 应是**粘合层**，不应承担业务逻辑、数据转换、�
 
 **文件组织**
 - [ ] 每个核心类型独占一个文件？无 `Helpers.swift` 类的杂糅文件？
-- [ ] 主类的 extension 按职责 / 协议拆成独立文件（`+UI.swift` / `+TableView.swift` ...）？
+- [ ] 主类的 extension **必须**按职责 / 协议拆到独立文件(`+UI.swift` / `+TableView.swift` / `+Event.swift` / `+Prefetch.swift` ...)?堆在主文件里一律失败
 - [ ] 文件名与主类型同名？未使用缩写？
 - [ ] 长文件使用了 `// MARK: -` 分区？
 
@@ -848,6 +901,12 @@ ViewController 应是**粘合层**，不应承担业务逻辑、数据转换、�
 - [ ] 新增能力走扩展而非修改稳定代码（OCP）？
 - [ ] 大协议已拆小（ISP）？依赖通过协议注入（DIP）？
 - [ ] 无 `a.b.c.d.x` 式火车调用（LoD）？
+
+**注释与文档**
+- [ ] 每个类型(class/struct/enum/protocol/actor)都有 `///` 描述大致意图?
+- [ ] 每个方法都有 `///` 描述行为;参数列在 `- Parameter`/`- Parameters:`,返回值 `- Returns:`,抛出 `- Throws:` 都齐?
+- [ ] 每个成员字段(let/var/computed)都有 `///` 说明作用?
+- [ ] 行内 `//` 注释只解释 WHY,不出现解释 WHAT 的冗余?
 
 **警告与质量**
 - [ ] 编译无新增警告？改动文件内已有警告顺手清理？
