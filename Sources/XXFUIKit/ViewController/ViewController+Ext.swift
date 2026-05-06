@@ -9,7 +9,12 @@
 import UIKit
 
 public extension UIViewController {
-    /// 关闭当前指定页面
+    /// 关闭当前指定页面,兼容pop+dismiss
+    func dismissOrPop(animated: Bool = true, completion: (() -> Void)? = nil) {
+        popOrDismiss(animated: animated, completion: completion)
+    }
+
+    /// 关闭当前指定页面,兼容pop+dismiss
     func popOrDismiss(animated: Bool = true, completion: (() -> Void)? = nil) {
         let finish = CompletionBox(completion)
 
