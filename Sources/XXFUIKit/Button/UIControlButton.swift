@@ -204,6 +204,12 @@ open class UIControlButton: UIControl {
     /// 动画持续时间，默认为 0.1 秒
     public var animationDuration: TimeInterval = 0.1
 
+    /// 触控热区向外扩展的 insets，默认 .zero
+    /// - Note: 只影响命中测试，不改变视觉布局与 `contentInsets`
+    ///   - 正值 = 向外扩展（热区比视觉大）
+    ///   - 典型用途：小图标按钮（视觉 <44pt）扩到 HIG 推荐的最小触控尺寸
+    public var hitTestEdgeInsets: UIEdgeInsets = .zero
+
     // MARK: - 私有属性
 
     /// 各状态对应的标题存储
@@ -803,6 +809,19 @@ open class UIControlButton: UIControl {
     override open func layoutSubviews() {
         super.layoutSubviews()
         // 圆角已在 cornerRadius didSet 中处理，无需重复设置
+    }
+
+    override open func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        guard hitTestEdgeInsets != .zero else {
+            return super.point(inside: point, with: event)
+        }
+        let hitRect = bounds.inset(by: UIEdgeInsets(
+            top: -hitTestEdgeInsets.top,
+            left: -hitTestEdgeInsets.left,
+            bottom: -hitTestEdgeInsets.bottom,
+            right: -hitTestEdgeInsets.right
+        ))
+        return hitRect.contains(point)
     }
 
     override open var intrinsicContentSize: CGSize {
