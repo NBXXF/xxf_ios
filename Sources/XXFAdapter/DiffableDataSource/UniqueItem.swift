@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class UniqueItem<Value: Hashable>: Hashable {
+public final class UniqueItem<Value: Hashable>: Hashable, @unchecked Sendable {
     public let id: UUID
     public var value: Value
 
