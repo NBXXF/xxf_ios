@@ -7,14 +7,13 @@
 
 import Foundation
 
-public final class UniqueItem<Value: Hashable>: NSObject, Hashable {
+public final class UniqueItem<Value: Hashable>: Hashable {
     public let id: UUID
     public var value: Value
 
     public init(value: Value) {
         self.id = UUID()
         self.value = value
-        super.init()
     }
 
     public static func wrap(_ items: [Value]) -> [UniqueItem] {
