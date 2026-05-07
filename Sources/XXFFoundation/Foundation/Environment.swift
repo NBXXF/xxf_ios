@@ -10,9 +10,9 @@ import Foundation
 public enum Environment {
     public static let isDebug: Bool = {
         #if DEBUG
-            return true
+        return true
         #else
-            return false
+        return false
         #endif
     }()
 
@@ -64,4 +64,20 @@ public enum Environment {
 
         return false
     }()
+}
+
+/// 仅在 Debug 构建包执行
+@inlinable
+public func runDebugBuild(_ block: () -> Void) {
+    #if DEBUG
+    block()
+    #endif
+}
+
+/// 仅在 Release 构建包执行
+@inlinable
+public func runReleaseBuild(_ block: () -> Void) {
+    #if !DEBUG
+    block()
+    #endif
 }
