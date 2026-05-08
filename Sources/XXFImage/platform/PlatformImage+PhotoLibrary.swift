@@ -8,8 +8,8 @@
 #if os(macOS)
     import AppKit
 #else
-    import UIKit
     import Photos
+    import UIKit
 #endif
 
 // MARK: - Export
@@ -144,20 +144,20 @@ public extension PlatformImage {
                     return
                 }
 
-                var localIdentifier: String?
+                let identifierHolder = LocalIdentifierHolder()
                 PHPhotoLibrary.shared().performChanges {
                     let request = PHAssetCreationRequest.forAsset()
                     let options = PHAssetResourceCreationOptions()
                     options.shouldMoveFile = false
                     request.addResource(with: .photo, data: imageData, options: options)
-                    localIdentifier = request.placeholderForCreatedAsset?.localIdentifier
+                    identifierHolder.value = request.placeholderForCreatedAsset?.localIdentifier
                 } completionHandler: { isSuccess, error in
                     Self.dispatch(to: callbackQueue) {
                         if let error {
                             completion(.failure(.saveFailed(underlying: error)))
                             return
                         }
-                        if isSuccess, let localIdentifier {
+                        if isSuccess, let localIdentifier = identifierHolder.value {
                             completion(.success(localIdentifier))
                         } else {
                             completion(.failure(.saveFailed(underlying: nil)))
@@ -184,8 +184,12 @@ public extension PlatformImage {
         }
 
         private static func dispatch(to queue: DispatchQueue, _ block: @escaping () -> Void) {
-            if queue === .main, Thread.isMainThread {
-                block()
+            if queue == .main {
+                if Thread.isMainThread {
+                    block()
+                } else {
+                    DispatchQueue.main.async(execute: block)
+                }
             } else {
                 queue.async(execute: block)
             }
@@ -200,3 +204,18 @@ public extension PlatformImage {
         }
     #endif
 }
+
+#if os(iOS)
+
+    /// 跨 `PHPhotoLibrary.performChanges` 两段闭包传递新创建资产 `localIdentifier` 的中转容器。
+    ///
+    /// Photos 框架保证 `completionHandler` 在 `changeBlock` 执行完成之后才会被调用,
+    /// 因此跨闭包读写 `value` 不存在真实的数据竞争;使用 `@unchecked Sendable` 绕过
+    /// Swift 6 对捕获变量的 Sendable 检查。
+    private final class LocalIdentifierHolder: @unchecked Sendable {
+        /// 新创建资产的 `localIdentifier`;`performChanges` 的 changeBlock 成功时写入,
+        /// completionHandler 在成功路径读取。未成功或未写入时保持为 nil。
+        var value: String?
+    }
+
+#endif
