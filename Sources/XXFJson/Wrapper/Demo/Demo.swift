@@ -380,7 +380,7 @@ public enum DemoJSONCodableSamples {
 
     public static func testSimple() {
         let json = #"{"name":"Alice","age":20}"#.data(using: .utf8)!
-        let u = try? JSONDecoder().decode(DemoSimpleUser.self, from: json)
+        let u = try? Foundation.JSONDecoder().decode(DemoSimpleUser.self, from: json)
         print("✓ Simple:", u!)
     }
 
@@ -396,7 +396,7 @@ public enum DemoJSONCodableSamples {
             "score": "88"
         }
         """#.data(using: .utf8)!
-        let u = try? JSONDecoder().decode(DemoUser.self, from: json)
+        let u = try? Foundation.JSONDecoder().decode(DemoUser.self, from: json)
         print("✓ User:", u!)
     }
 
@@ -404,7 +404,7 @@ public enum DemoJSONCodableSamples {
         let json = #"""
         {"status":"future_case_xxx","updated_at":"2021-01-01T00:00:00Z","score":0}
         """#.data(using: .utf8)!
-        let u = try? JSONDecoder().decode(DemoUser.self, from: json)
+        let u = try? Foundation.JSONDecoder().decode(DemoUser.self, from: json)
         print("✓ Unknown enum → .unknown:", u?.status as Any)
     }
 
@@ -419,26 +419,26 @@ public enum DemoJSONCodableSamples {
             ]
         }
         """#.data(using: .utf8)!
-        let order = try? JSONDecoder().decode(DemoOrder.self, from: json)
+        let order = try? Foundation.JSONDecoder().decode(DemoOrder.self, from: json)
         print("✓ Order:", order!)
     }
 
     public static func testAdapter() {
         // pay_time 故意缺失 → 走自定义 Adapter 的 "distantPast" 兜底
         let json = #"{"paid":"1","amount":"99.99"}"#.data(using: .utf8)!
-        let r = try? JSONDecoder().decode(DemoPaymentRecord.self, from: json)
+        let r = try? Foundation.JSONDecoder().decode(DemoPaymentRecord.self, from: json)
         print("✓ Payment:", r!)
     }
 
     public static func testClass() {
         let json = #"{"id":"c_1","name":"Carol","age":"28"}"#.data(using: .utf8)!
-        let u = try? JSONDecoder().decode(DemoUserClass.self, from: json)
+        let u = try? Foundation.JSONDecoder().decode(DemoUserClass.self, from: json)
         print("✓ Class:", u!)
     }
 
     public static func testAltKey() {
         let json = #"{"ID":"u_1","user_name":"Dave"}"#.data(using: .utf8)!
-        let u = try? JSONDecoder().decode(DemoAltKeyUser.self, from: json)
+        let u = try? Foundation.JSONDecoder().decode(DemoAltKeyUser.self, from: json)
         print("✓ AltKey:", u!)
     }
 
@@ -452,7 +452,7 @@ public enum DemoJSONCodableSamples {
             "user_tags": ["a", "b"]
         }
         """#.data(using: .utf8)!
-        let u = try? JSONDecoder().decode(DemoCombinedUser.self, from: json)
+        let u = try? Foundation.JSONDecoder().decode(DemoCombinedUser.self, from: json)
         print("✓ Combined:", u!)
     }
 
@@ -470,7 +470,7 @@ public enum DemoJSONCodableSamples {
             "score": "42"
         }
         """#.data(using: .utf8)!
-        let f = try? JSONDecoder().decode(DemoFoundation.self, from: json)
+        let f = try? Foundation.JSONDecoder().decode(DemoFoundation.self, from: json)
         print("✓ Foundation:", f!)
     }
 }

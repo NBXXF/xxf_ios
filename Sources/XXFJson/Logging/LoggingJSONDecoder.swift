@@ -7,7 +7,7 @@
 import Foundation
 import XXFFoundation
 
-open class LoggingJSONDecoder: JSONDecoder, @unchecked Sendable {
+open class LoggingJSONDecoder: Foundation.JSONDecoder, @unchecked Sendable {
     /// 缓存的 Logger
     private static let loggingCachedLogger: Logger = {
         let logger = Logger(label: "com.xxf.json.log")

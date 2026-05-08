@@ -20,7 +20,6 @@ public extension SharedSequenceConvertibleType where SharingStrategy == DriverSh
         onCompleted: (() -> Void)? = nil,
         onDisposed: (() -> Void)? = nil
     ) -> Disposable {
-        self.do()
         // Driver 不支持 onError，所以不暴露 onError 回调
         let disposable = drive(onNext: onNext, onCompleted: onCompleted ?? {})
         if let onDisposed = onDisposed {

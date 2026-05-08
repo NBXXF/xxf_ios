@@ -19,14 +19,14 @@ public enum Json {
 
     // MARK: - 全局默认配置，允许外部修改（带锁）
 
-    private nonisolated(unsafe) static var _defaultDecoder: JSONDecoder = LoggingJSONDecoder()
+    private nonisolated(unsafe) static var _defaultDecoder: Foundation.JSONDecoder = LoggingJSONDecoder()
     private nonisolated(unsafe) static var _defaultEncoder: JSONEncoder = .init()
     private static let lock = NSLock()
 
     // 配置版本号，用于检测缓存是否过期
     private nonisolated(unsafe) static var configVersion: Int = 0
 
-    public static var defaultDecoder: JSONDecoder {
+    public static var defaultDecoder: Foundation.JSONDecoder {
         get {
             synchronized(lock) {
                 _defaultDecoder
@@ -52,7 +52,7 @@ public enum Json {
 
     // MARK: - 复制全局配置（用于初始化线程局部实例）
 
-    private static func makeDecoder() -> JSONDecoder {
+    private static func makeDecoder() -> Foundation.JSONDecoder {
         synchronized(lock) {
             let copy = LoggingJSONDecoder()
             copy.dateDecodingStrategy = _defaultDecoder.dateDecodingStrategy
@@ -77,7 +77,7 @@ public enum Json {
 
     private struct ThreadLocalDecoderWrapper {
         let version: Int
-        let decoder: JSONDecoder
+        let decoder: Foundation.JSONDecoder
     }
 
     private struct ThreadLocalEncoderWrapper {
@@ -87,7 +87,7 @@ public enum Json {
 
     // MARK: - 线程局部 JSONDecoder
 
-    private static var threadLocalDecoder: JSONDecoder {
+    private static var threadLocalDecoder: Foundation.JSONDecoder {
         if !useCache {
             return makeDecoder()
         } else {
@@ -128,7 +128,7 @@ public enum Json {
 
     public static func fromJson<T: Decodable>(
         _ json: String,
-        decoderBuilder: (JSONDecoder) -> JSONDecoder = { $0 }
+        decoderBuilder: (Foundation.JSONDecoder) -> Foundation.JSONDecoder = { $0 }
     ) throws -> T {
         let data = Data(json.utf8)
         let decoder = decoderBuilder(threadLocalDecoder)
@@ -137,7 +137,7 @@ public enum Json {
 
     public static func fromJson<T: Decodable>(
         _ data: Data,
-        decoderBuilder: (JSONDecoder) -> JSONDecoder = { $0 }
+        decoderBuilder: (Foundation.JSONDecoder) -> Foundation.JSONDecoder = { $0 }
     ) throws -> T {
         let decoder = decoderBuilder(threadLocalDecoder)
         return try decoder.decode(T.self, from: data)
@@ -145,7 +145,7 @@ public enum Json {
 
     public static func fromJson<T: Decodable>(
         _ jsonObject: Any,
-        decoderBuilder: (JSONDecoder) -> JSONDecoder = { $0 }
+        decoderBuilder: (Foundation.JSONDecoder) -> Foundation.JSONDecoder = { $0 }
     ) throws -> T {
         guard JSONSerialization.isValidJSONObject(jsonObject) else {
             throw JsonError.invalidJSONObject(originalObjectDescription: String(describing: jsonObject))
@@ -190,7 +190,7 @@ public enum Json {
     public static func copy<IN: Encodable, OUT: Decodable>(
         _ obj: IN,
         encoderBuilder: (JSONEncoder) -> JSONEncoder = { $0 },
-        decoderBuilder: (JSONDecoder) -> JSONDecoder = { $0 }
+        decoderBuilder: (Foundation.JSONDecoder) -> Foundation.JSONDecoder = { $0 }
     ) throws -> OUT {
         let encoder = encoderBuilder(threadLocalEncoder)
         let decoder = decoderBuilder(threadLocalDecoder)
