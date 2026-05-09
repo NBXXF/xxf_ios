@@ -135,12 +135,14 @@ public final class RouteRegistry: @unchecked Sendable {
     ///   - pattern: 路由模式
     ///   - flags: 路由标志位
     ///   - priority: 优先级
-    ///   - factory: 创建视图控制器的闭包
+    ///   - factory: 创建视图控制器的闭包。
+    ///     业务可在此进行参数校验并抛出 RouteError，
+    ///     例如 missingRequiredParameter / invalidParameterType / custom
     public func register(
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController
     ) {
         let closureFactory = ClosureRouteFactory(
             pattern: pattern,
@@ -420,12 +422,14 @@ public final class RouteRegistryBuilder: @unchecked Sendable {
     }
 
     /// 注册闭包工厂
+    /// - Note: 业务可在 factory 中进行参数校验并抛出 RouteError，
+    ///   例如 missingRequiredParameter / invalidParameterType / custom
     @discardableResult
     public func add(
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController
     ) -> Self {
         registry.register(
             pattern: pattern,

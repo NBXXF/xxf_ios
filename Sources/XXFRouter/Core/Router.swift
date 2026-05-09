@@ -189,12 +189,14 @@ public final class Router: @unchecked Sendable {
     ///   - pattern: 路由模式
     ///   - flags: 路由标志位
     ///   - priority: 优先级
-    ///   - factory: 创建视图控制器的闭包
+    ///   - factory: 创建视图控制器的闭包。
+    ///     业务可在此进行参数校验并抛出 RouteError，
+    ///     例如 missingRequiredParameter / invalidParameterType / custom
     public func register(
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController
     ) {
         registry.register(
             pattern: pattern,
@@ -467,7 +469,7 @@ public final class Router: @unchecked Sendable {
     ) {
         // 检查重定向次数
         guard redirectCount < configuration.maxRedirectCount else {
-            let error = RouteError.custom(code: -1, message: "Too many redirects")
+            let error = RouteError.custom(url: url, code: -1, message: "Too many redirects")
             callback?.onRouteFailure(context: RouteContext(url: url), error: error)
             callback?.onRouteComplete(context: RouteContext(url: url), result: .failure(error: error))
             return
@@ -701,19 +703,13 @@ public final class Router: @unchecked Sendable {
         // 创建视图控制器
         let viewController: RouteViewController
         do {
-            guard let createdViewController = try factory.createViewController(with: context) else {
-                let error = RouteError.viewControllerCreationFailed(url: context.url)
-                callback?.onRouteFailure(context: context, error: error)
-                callback?.onRouteComplete(context: context, result: .failure(error: error))
-                return
-            }
-            viewController = createdViewController
+            viewController = try factory.createViewController(with: context)
         } catch let routeError as RouteError {
             callback?.onRouteFailure(context: context, error: routeError)
             callback?.onRouteComplete(context: context, result: .failure(error: routeError))
             return
         } catch {
-            let routeError = RouteError.routeFactoryThrown(url: context.url, message: String(describing: error))
+            let routeError = RouteError.routeFactoryThrown(url: context.url, underlyingError: error)
             callback?.onRouteFailure(context: context, error: routeError)
             callback?.onRouteComplete(context: context, result: .failure(error: routeError))
             return

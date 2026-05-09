@@ -95,12 +95,14 @@ public final class RouteGroup: @unchecked Sendable {
     ///   - pattern: 路由模式（会自动添加前缀）
     ///   - flags: 额外标志位
     ///   - priority: 优先级
-    ///   - factory: 创建视图控制器的闭包
+    ///   - factory: 创建视图控制器的闭包。
+    ///     业务可在此进行参数校验并抛出 RouteError，
+    ///     例如 missingRequiredParameter / invalidParameterType / custom
     public func register(
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController
     ) {
         let fullPattern = prefix.isEmpty ? pattern : "\(prefix)/\(pattern)"
         let combinedFlags = sharedFlags.union(flags)

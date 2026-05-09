@@ -12,6 +12,11 @@ import UIKit
 import AppKit
 #endif
 
+private struct RouteFactoryNilViewControllerError: Error, Sendable, CustomStringConvertible {
+    let message: String
+    var description: String { message }
+}
+
 // MARK: - 可路由协议
 
 /// 可路由协议，实现此协议的视图控制器可以通过路由系统进行导航
@@ -81,7 +86,9 @@ public protocol RouteFactory: Sendable {
     /// 创建视图控制器（必须在主线程调用）
     /// - Parameter context: 路由上下文
     /// - Returns: 视图控制器实例
-    @MainActor func createViewController(with context: RouteContext) throws -> RouteViewController?
+    /// - Throws: 业务可在此进行参数校验并抛出 RouteError，
+    ///   例如 missingRequiredParameter / invalidParameterType / custom
+    @MainActor func createViewController(with context: RouteContext) throws -> RouteViewController
 }
 
 // MARK: - 闭包路由工厂
@@ -92,19 +99,21 @@ public final class ClosureRouteFactory: RouteFactory, @unchecked Sendable {
     public let flags: RouteFlags
     public let priority: Int
 
-    private let factory: @MainActor @Sendable (RouteContext) throws -> RouteViewController?
+    private let factory: @MainActor @Sendable (RouteContext) throws -> RouteViewController
 
     /// 创建闭包路由工厂
     /// - Parameters:
     ///   - pattern: 路由模式
     ///   - flags: 路由标志位
     ///   - priority: 优先级
-    ///   - factory: 创建视图控制器的闭包
+    ///   - factory: 创建视图控制器的闭包。
+    ///     业务可在此进行参数校验并抛出 RouteError，
+    ///     例如 missingRequiredParameter / invalidParameterType / custom
     public init(
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController
     ) {
         self.pattern = pattern
         self.flags = flags
@@ -113,7 +122,7 @@ public final class ClosureRouteFactory: RouteFactory, @unchecked Sendable {
     }
 
     @MainActor
-    public func createViewController(with context: RouteContext) throws -> RouteViewController? {
+    public func createViewController(with context: RouteContext) throws -> RouteViewController {
         return try factory(context)
     }
 }
@@ -139,8 +148,16 @@ public final class TypeRouteFactory<T: Routable>: RouteFactory, @unchecked Senda
     }
 
     @MainActor
-    public func createViewController(with context: RouteContext) throws -> RouteViewController? {
-        return type.init(context: context)
+    public func createViewController(with context: RouteContext) throws -> RouteViewController {
+        guard let viewController = type.init(context: context) else {
+            throw RouteError.routeFactoryThrown(
+                url: context.url,
+                underlyingError: RouteFactoryNilViewControllerError(
+                    message: "Routable initializer returned nil for \(String(describing: type))"
+                )
+            )
+        }
+        return viewController
     }
 }
 
@@ -225,8 +242,16 @@ public final class AnyRoutableFactory: RouteFactory, @unchecked Sendable {
     }
 
     @MainActor
-    public func createViewController(with context: RouteContext) throws -> RouteViewController? {
-        return createBlock(context)
+    public func createViewController(with context: RouteContext) throws -> RouteViewController {
+        guard let viewController = createBlock(context) else {
+            throw RouteError.routeFactoryThrown(
+                url: context.url,
+                underlyingError: RouteFactoryNilViewControllerError(
+                    message: "Routable initializer returned nil for erased type"
+                )
+            )
+        }
+        return viewController
     }
 }
 
@@ -251,20 +276,23 @@ public struct RouteFactoryConfig: Sendable {
     public let flags: RouteFlags
     /// 优先级
     public let priority: Int
-    /// 工厂闭包
-    public let factory: @MainActor @Sendable (RouteContext) throws -> RouteViewController?
+    /// 工厂闭包。业务可在此进行参数校验并抛出 RouteError，
+    /// 例如 missingRequiredParameter / invalidParameterType / custom
+    public let factory: @MainActor @Sendable (RouteContext) throws -> RouteViewController
 
     /// 创建路由工厂配置
     /// - Parameters:
     ///   - pattern: 路由模式
     ///   - flags: 路由标志位，默认为 .none
     ///   - priority: 优先级，默认为 0
-    ///   - factory: 创建视图控制器的闭包
+    ///   - factory: 创建视图控制器的闭包。
+    ///     业务可在此进行参数校验并抛出 RouteError，
+    ///     例如 missingRequiredParameter / invalidParameterType / custom
     public init(
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController
     ) {
         self.pattern = pattern
         self.flags = flags
