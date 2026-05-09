@@ -370,34 +370,34 @@ public struct RouteOptions: @unchecked Sendable {
 
 /// 路由错误类型
 public enum RouteError: Error, Sendable, CustomStringConvertible {
-    /// 路由未找到
+    /// 路由未找到（框架使用：是；场景：路由表未命中且降级未处理）
     case notFound(url: String)
 
-    /// 被拦截器拦截
+    /// 被拦截器拦截（框架使用：否；场景：建议业务在需要结构化拦截错误时主动抛出）
     case intercepted(reason: String)
 
-    /// 创建视图控制器失败
+    /// 创建视图控制器失败（框架使用：是；场景：factory 返回 nil）
     case viewControllerCreationFailed(url: String)
 
-    /// 路由工厂抛出错误
+    /// 路由工厂抛出错误（框架使用：是；场景：factory 抛出非 RouteError 的异常）
     case routeFactoryThrown(url: String, message: String)
 
-    /// 导航失败
+    /// 导航失败（框架使用：是；场景：handler 返回 false 或导航器执行失败）
     case navigationFailed(reason: String)
 
-    /// 服务未找到
+    /// 服务未找到（框架使用：否；场景：业务侧 service 获取失败时主动抛出）
     case serviceNotFound(protocol: String)
 
-    /// 无效的URL格式
+    /// 无效的URL格式（框架使用：是；场景：外链降级处理器无法构建 URL）
     case invalidURL(url: String)
 
-    /// 缺少必需参数
+    /// 缺少必需参数（框架使用：否；场景：业务侧参数校验失败时主动抛出）
     case missingRequiredParameter(name: String)
 
-    /// 参数类型错误
+    /// 参数类型错误（框架使用：否；场景：业务侧参数类型校验失败时主动抛出）
     case invalidParameterType(name: String, expected: String, actual: String)
 
-    /// 自定义错误
+    /// 自定义错误（框架使用：是；场景：超出最大重定向次数）
     case custom(code: Int, message: String)
 
     public var description: String {
