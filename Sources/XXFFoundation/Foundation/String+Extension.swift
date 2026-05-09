@@ -11,6 +11,11 @@ public extension String {
         return ""
     }
 
+    /// 判断字符串是否为空或仅包含空白字符
+    var isBlank: Bool {
+        return isEmpty || allSatisfy(\.isWhitespace)
+    }
+
     /// 去掉末尾 `/`（除根目录），轻量级替代 URL.standardizedFileURL.path
     var standardizedPathFast: String {
         if count > 1, hasSuffix(System.fileSeparator) {
@@ -21,8 +26,23 @@ public extension String {
 }
 
 public extension Optional where Wrapped == String {
+    /// 当 Optional<String> 为 nil 时返回空字符串
+    var orEmpty: String {
+        return self ?? .empty
+    }
+
+    /// 判断字符串是否为 nil 或空字符串
+    var isEmpty: Bool {
+        return self?.isEmpty ?? true
+    }
+
+    /// 判断字符串是否为 nil、空字符串，或仅包含空白字符
+    var isBlank: Bool {
+        return self?.isBlank ?? true
+    }
+
     /// 判断字符串是否为 nil 或空字符串
     var isNilOrEmpty: Bool {
-        return self?.isEmpty ?? true
+        return isEmpty
     }
 }
