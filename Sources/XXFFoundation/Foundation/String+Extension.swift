@@ -45,4 +45,13 @@ public extension Optional where Wrapped == String {
     var isNilOrEmpty: Bool {
         return isEmpty
     }
+
+    /// 将空白空字符串 转换成nil,否则就是原文
+    var trimBlankToNil: String? {
+        if isEmpty || isBlank {
+            return nil
+        }
+        if isBlank {}
+        return self?.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }
