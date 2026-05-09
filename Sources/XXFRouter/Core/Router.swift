@@ -194,7 +194,7 @@ public final class Router: @unchecked Sendable {
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
     ) {
         registry.register(
             pattern: pattern,
@@ -452,7 +452,7 @@ public final class Router: @unchecked Sendable {
             flags: entry.flags
         )
 
-        return factory.createViewController(with: context)
+        return try? factory.createViewController(with: context)
     }
 
     // MARK: - 内部导航实现
@@ -699,10 +699,23 @@ public final class Router: @unchecked Sendable {
         }
 
         // 创建视图控制器
-        guard let viewController = factory.createViewController(with: context) else {
-            let error = RouteError.viewControllerCreationFailed(url: context.url)
-            callback?.onRouteFailure(context: context, error: error)
-            callback?.onRouteComplete(context: context, result: .failure(error: error))
+        let viewController: RouteViewController
+        do {
+            guard let createdViewController = try factory.createViewController(with: context) else {
+                let error = RouteError.viewControllerCreationFailed(url: context.url)
+                callback?.onRouteFailure(context: context, error: error)
+                callback?.onRouteComplete(context: context, result: .failure(error: error))
+                return
+            }
+            viewController = createdViewController
+        } catch let routeError as RouteError {
+            callback?.onRouteFailure(context: context, error: routeError)
+            callback?.onRouteComplete(context: context, result: .failure(error: routeError))
+            return
+        } catch {
+            let routeError = RouteError.routeFactoryThrown(url: context.url, message: String(describing: error))
+            callback?.onRouteFailure(context: context, error: routeError)
+            callback?.onRouteComplete(context: context, result: .failure(error: routeError))
             return
         }
 

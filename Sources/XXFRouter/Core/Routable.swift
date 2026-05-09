@@ -81,7 +81,7 @@ public protocol RouteFactory: Sendable {
     /// 创建视图控制器（必须在主线程调用）
     /// - Parameter context: 路由上下文
     /// - Returns: 视图控制器实例
-    @MainActor func createViewController(with context: RouteContext) -> RouteViewController?
+    @MainActor func createViewController(with context: RouteContext) throws -> RouteViewController?
 }
 
 // MARK: - 闭包路由工厂
@@ -92,7 +92,7 @@ public final class ClosureRouteFactory: RouteFactory, @unchecked Sendable {
     public let flags: RouteFlags
     public let priority: Int
 
-    private let factory: @MainActor @Sendable (RouteContext) -> RouteViewController?
+    private let factory: @MainActor @Sendable (RouteContext) throws -> RouteViewController?
 
     /// 创建闭包路由工厂
     /// - Parameters:
@@ -104,7 +104,7 @@ public final class ClosureRouteFactory: RouteFactory, @unchecked Sendable {
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
     ) {
         self.pattern = pattern
         self.flags = flags
@@ -113,8 +113,8 @@ public final class ClosureRouteFactory: RouteFactory, @unchecked Sendable {
     }
 
     @MainActor
-    public func createViewController(with context: RouteContext) -> RouteViewController? {
-        return factory(context)
+    public func createViewController(with context: RouteContext) throws -> RouteViewController? {
+        return try factory(context)
     }
 }
 
@@ -139,7 +139,7 @@ public final class TypeRouteFactory<T: Routable>: RouteFactory, @unchecked Senda
     }
 
     @MainActor
-    public func createViewController(with context: RouteContext) -> RouteViewController? {
+    public func createViewController(with context: RouteContext) throws -> RouteViewController? {
         return type.init(context: context)
     }
 }
@@ -225,7 +225,7 @@ public final class AnyRoutableFactory: RouteFactory, @unchecked Sendable {
     }
 
     @MainActor
-    public func createViewController(with context: RouteContext) -> RouteViewController? {
+    public func createViewController(with context: RouteContext) throws -> RouteViewController? {
         return createBlock(context)
     }
 }
@@ -252,7 +252,7 @@ public struct RouteFactoryConfig: Sendable {
     /// 优先级
     public let priority: Int
     /// 工厂闭包
-    public let factory: @MainActor @Sendable (RouteContext) -> RouteViewController?
+    public let factory: @MainActor @Sendable (RouteContext) throws -> RouteViewController?
 
     /// 创建路由工厂配置
     /// - Parameters:
@@ -264,7 +264,7 @@ public struct RouteFactoryConfig: Sendable {
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
     ) {
         self.pattern = pattern
         self.flags = flags

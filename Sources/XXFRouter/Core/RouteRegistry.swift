@@ -140,7 +140,7 @@ public final class RouteRegistry: @unchecked Sendable {
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
     ) {
         let closureFactory = ClosureRouteFactory(
             pattern: pattern,
@@ -425,7 +425,7 @@ public final class RouteRegistryBuilder: @unchecked Sendable {
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
     ) -> Self {
         registry.register(
             pattern: pattern,

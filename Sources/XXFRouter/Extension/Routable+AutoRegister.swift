@@ -100,7 +100,7 @@ public final class RouteGroup: @unchecked Sendable {
         pattern: String,
         flags: RouteFlags = .none,
         priority: Int = 0,
-        factory: @escaping @MainActor @Sendable (RouteContext) -> RouteViewController?
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController?
     ) {
         let fullPattern = prefix.isEmpty ? pattern : "\(prefix)/\(pattern)"
         let combinedFlags = sharedFlags.union(flags)

@@ -379,6 +379,9 @@ public enum RouteError: Error, Sendable, CustomStringConvertible {
     /// 创建视图控制器失败
     case viewControllerCreationFailed(url: String)
 
+    /// 路由工厂抛出错误
+    case routeFactoryThrown(url: String, message: String)
+
     /// 导航失败
     case navigationFailed(reason: String)
 
@@ -405,6 +408,8 @@ public enum RouteError: Error, Sendable, CustomStringConvertible {
             return "Route intercepted: \(reason)"
         case .viewControllerCreationFailed(let url):
             return "Failed to create view controller for: \(url)"
+        case .routeFactoryThrown(let url, let message):
+            return "Route factory threw error for '\(url)': \(message)"
         case .navigationFailed(let reason):
             return "Navigation failed: \(reason)"
         case .serviceNotFound(let proto):
