@@ -51,7 +51,6 @@ public extension Optional where Wrapped == String {
         if isEmpty || isBlank {
             return nil
         }
-        if isBlank {}
         return self?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
