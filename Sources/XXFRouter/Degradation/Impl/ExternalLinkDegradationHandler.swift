@@ -6,7 +6,9 @@
 //
 
 import Foundation
-#if canImport(AppKit)
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
 import AppKit
 #endif
 
