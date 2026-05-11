@@ -63,7 +63,11 @@ public final class CenteringCollectionViewLayout: UICollectionViewLayout {
         super.init()
     }
 
-    override func prepare() {
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+
+    public override func prepare() {
         super.prepare()
         guard let collectionView else { return }
 
@@ -155,7 +159,7 @@ public final class CenteringCollectionViewLayout: UICollectionViewLayout {
         }
     }
 
-    override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+    public override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         cachedAttributes
             .values
             .filter { $0.frame.intersects(rect) }
@@ -167,20 +171,20 @@ public final class CenteringCollectionViewLayout: UICollectionViewLayout {
             }
     }
 
-    override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+    public override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         cachedAttributes[indexPath]
     }
 
-    override var collectionViewContentSize: CGSize {
+    public override var collectionViewContentSize: CGSize {
         contentSize
     }
 
-    override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
+    public override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
         guard let collectionView else { return true }
         return collectionView.bounds.size != newBounds.size
     }
 
-    override func invalidateLayout() {
+    public override func invalidateLayout() {
         cachedAttributes.removeAll(keepingCapacity: true)
         super.invalidateLayout()
     }
