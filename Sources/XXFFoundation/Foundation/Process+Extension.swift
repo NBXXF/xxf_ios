@@ -115,7 +115,7 @@
             addr.sin_len = __uint8_t(MemoryLayout<sockaddr_in>.size)
             addr.sin_family = sa_family_t(AF_INET)
             addr.sin_port = in_port_t(UInt16(port).bigEndian)
-            addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
+            addr.sin_addr = in_addr(s_addr: inet_addr(LoopbackAddress.ipv4))
             addr.sin_zero = (0, 0, 0, 0, 0, 0, 0, 0)
 
             let sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
@@ -210,7 +210,7 @@
                 }
 
                 let protocolType = String(nameParts[0]) // TCP
-                let addressPort = String(nameParts[1]) // *:8082 或 127.0.0.1:8082
+                let addressPort = String(nameParts[1]) // *:8082 或 loopback:8082
 
                 // 解析 addressPort 拆分地址和端口
                 // 这里支持 IPv4、IPv6（带中括号）格式，简单处理：
@@ -287,7 +287,7 @@
             var sin = sockaddr_in()
             sin.sin_family = sa_family_t(AF_INET) // 使用 IPv4
             sin.sin_port = in_port_t(UInt16(port).bigEndian) // 设置端口（注意使用大端序）
-            sin.sin_addr.s_addr = inet_addr("127.0.0.1") // 设置本地地址（127.0.0.1）
+            sin.sin_addr.s_addr = inet_addr(LoopbackAddress.ipv4) // 设置本地 loopback 地址
 
             // 创建 socket，参数含义：
             // AF_INET：IPv4

@@ -9,7 +9,7 @@ import Foundation
 import GCDWebServer
 import XXFFoundation
 
-/// 本地 HTTP 服务,用于把沙盒里的本地目录以 `http://127.0.0.1:PORT/<token>/...` 形式暴露给 WKWebView。
+/// 本地 HTTP 服务,用于把沙盒里的本地目录以 `http://<loopback>:PORT/<token>/...` 形式暴露给 WKWebView。
 ///
 /// 用途:
 /// - `WKWebView.loadFileURL(...)` 下 `fetch` / ESM / Web Worker / IndexedDB 等受 same-origin 限制;
@@ -17,7 +17,7 @@ import XXFFoundation
 ///
 /// 设计要点(多路复用):
 /// - **单实例、单端口**:全局一个 `GCDWebServer`,无论多少个 WebView 并存都共享
-/// - **path 前缀隔离**:每个调用者分配一个 token,URL 形如 `http://127.0.0.1:54321/<token>/entry.html`,
+/// - **path 前缀隔离**:每个调用者分配一个 token,URL 形如 `http://<loopback>:54321/<token>/entry.html`,
 ///   server 收到请求时按 token 查表路由到对应目录,互不串扰
 /// - **显式释放**:调用方在 cell 复用 / deinit 时必须 `release(token:)`
 ///
@@ -51,7 +51,7 @@ public final class LocalWebServer {
     /// 一次 `serve` 调用的返回结果。
     /// 独立成 struct 而不是元组,方便后续扩展(例如加 expiryDate、directoryPath 等字段)不破坏调用方。
     public struct Session: Equatable {
-        /// WebView 加载用的入口 URL(形如 `http://127.0.0.1:PORT/<token>/<entry>`)
+        /// WebView 加载用的入口 URL(形如 `http://<loopback>:PORT/<token>/<entry>`)
         public let url: URL
         /// 释放 session 用的句柄,用完必须 `LocalWebServer.shared.release(token:)`
         public let token: Token
@@ -104,7 +104,7 @@ public final class LocalWebServer {
             : entryRelativePath
         let encoded = entry.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? entry
 
-        guard let url = URL(string: "http://127.0.0.1:\(port)/\(raw)/\(encoded)") else {
+        guard let url = URL(string: "http://\(LoopbackAddress.ipv4):\(port)/\(raw)/\(encoded)") else {
             unregister(token: raw)
             return nil
         }

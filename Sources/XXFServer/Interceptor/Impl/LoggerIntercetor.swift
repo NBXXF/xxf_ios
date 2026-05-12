@@ -1,5 +1,6 @@
 import Foundation
 import Pulse
+import XXFFoundation
 
 extension Request.Body {
     var asData: Data? {
@@ -98,7 +99,7 @@ open class LoggerIntercetor: Interceptor, @unchecked Sendable {
 
     public func makeHTTPURLResponse(from response: Response, originalRequest: Request) -> HTTPURLResponse? {
         // 从请求中取 URL，防止 header 没有 x-original-url
-        let url = URL(string: originalRequest.url.string) ?? URL(string: "http://localhost")!
+        let url = URL(string: originalRequest.url.string) ?? URL(string: "http://\(LoopbackAddress.domain)")!
 
         let headerDict = Dictionary(uniqueKeysWithValues: response.headers.map { ($0.name, $0.value) })
 

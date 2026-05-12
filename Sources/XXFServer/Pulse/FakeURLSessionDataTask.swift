@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import XXFFoundation
 
 /// 模拟 URLSessionDataTask，供 Pulse 记录使用
 final class FakeURLSessionDataTask: URLSessionDataTask, @unchecked Sendable {
@@ -53,7 +54,7 @@ final class FakeURLSessionDataTask: URLSessionDataTask, @unchecked Sendable {
 
     private func getFullURL(from request: URLRequest) -> String {
         let scheme = request.value(forHTTPHeaderField: "X-Forwarded-Proto") ?? "http"
-        let host = request.value(forHTTPHeaderField: "Host") ?? "localhost"
+        let host = request.value(forHTTPHeaderField: "Host") ?? LoopbackAddress.domain
         return "\(scheme)://\(host)\(request.url?.absoluteString ?? "")"
     }
 }
