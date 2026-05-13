@@ -11,7 +11,7 @@
 //    可覆盖用户给出的"圆角眼 + 圆角数据点 + 自定义前景/背景"场景。
 //  - build() 返回 UIImage（iOS）/ NSImage（macOS）；scale 默认取屏幕 scale，得到 Retina 高清图。
 //
-//  Created by xxf on 2026/04/30.
+//  Created by xxf on 04/30.
 //
 
 #if canImport(UIKit)

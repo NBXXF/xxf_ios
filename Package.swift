@@ -503,6 +503,7 @@ let package = Package(
             name: "XXFUIKit",
             dependencies: [
                 "XXFFoundation",
+                "XXFJson",
                 .product(name: "SnapKit", package: "SnapKit", condition: .when(platforms: [.iOS])),
                 .product(name: "DSBridge", package: "DSBridge-Swift")
             ]
