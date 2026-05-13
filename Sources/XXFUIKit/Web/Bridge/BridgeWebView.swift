@@ -56,20 +56,12 @@ public class BridgeWebView: DSBridge.WebView {
     private func setupWebEventInterface() {
         addInterface(WebEventInterface(handler: { [weak self] event, callback in
             guard let self else {
-                callback(.init(
-                    code: -1,
-                    message: "BridgeWebView has been released",
-                    data: .init(NSNull())
-                ))
+                callback(WebEventResponse.webviewReleased())
                 return
             }
 
             guard let onWebEvent = self.onWebEvent else {
-                callback(.init(
-                    code: -1,
-                    message: "onWebEvent is not set",
-                    data: .init(NSNull())
-                ))
+                callback(WebEventResponse.webviewOnWebEventNotSet())
                 return
             }
 

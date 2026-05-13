@@ -225,7 +225,17 @@ public final class BridgeDemoViewController: UIViewController {
             guard let self else { return }
 
             let messageText = Self.stringValue(from: request.data.value)
-            self.webStatusLabel.text = "H5 收到的 native 消息：\(request.event) | \(messageText)"
+            let requestJSONString: String = {
+                do {
+                    let data = try JSONEncoder().encode(request)
+                    let object = try JSONSerialization.jsonObject(with: data)
+                    let prettyData = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys])
+                    return String(data: prettyData, encoding: .utf8) ?? String(data: data, encoding: .utf8) ?? "\(request)"
+                } catch {
+                    return "\(request)"
+                }
+            }()
+            self.webStatusLabel.text = "H5 收到的 native 消息：\n\(requestJSONString)"
 
             callback(.init(
                 code: 0,
