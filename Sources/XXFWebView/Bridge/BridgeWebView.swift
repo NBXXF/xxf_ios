@@ -37,13 +37,15 @@ open class BridgeWebView: DSBridge.WebView {
         }
     }
 
-    public typealias WebEventHandler = (
+    public typealias WebEventHandling = (
         WebEventRequest<AnyCodable>,
         @escaping (WebEventResponse<AnyCodable>) -> Void
     ) -> Void
 
     /// 用于接收自定义的事件 h5->native
-    open var onWebEvent: WebEventHandler?
+    open var onWebEvent: WebEventHandling?
+    /// 优先级高于onWebEvent 回调,兼容以前的设计分发
+    open var eventHandlerRegistry: WebEventHandlerRegistry?
 
     override public init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
@@ -67,7 +69,11 @@ open class BridgeWebView: DSBridge.WebView {
                 return
             }
 
-            onWebEvent(event, callback)
+            if let eventHandlerRegistry = self.eventHandlerRegistry {
+                eventHandlerRegistry.dispatch(event: event, completion: callback)
+            } else {
+                onWebEvent(event, callback)
+            }
         }), by: nil)
     }
 }
