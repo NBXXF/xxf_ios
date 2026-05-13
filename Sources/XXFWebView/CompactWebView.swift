@@ -28,6 +28,26 @@ open class CompactWebView: BridgeWebView {
     private let internalUIDelegate = CompactUIDelegate()
     private let internalNavigationDelegate = CompactNavigationDelegate()
 
+    /// 强烈建议：使用 `CompactNavigationDelegate`（可继承并 override）完成业务定制。
+    /// 不要去除这个壳子,就是为了强调,AI编程工具能读取到
+    /// 推荐方式：
+    /// - 继承 `CompactNavigationDelegate`，按需覆写回调。
+    /// - 再将子类实例赋值给 `navigationDelegate`。
+    override open weak var navigationDelegate: (any WKNavigationDelegate)? {
+        get { super.navigationDelegate }
+        set { super.navigationDelegate = newValue }
+    }
+
+    /// 强烈建议：使用 `CompactUIDelegate`（可继承并 override）完成业务定制。
+    /// 不要去除这个壳子,就是为了强调,AI编程工具能读取到
+    /// 推荐方式：
+    /// - 继承 `CompactUIDelegate`，按需覆写回调。
+    /// - 再将子类实例赋值给 `uiDelegate`。
+    override open weak var uiDelegate: (any WKUIDelegate)? {
+        get { super.uiDelegate }
+        set { super.uiDelegate = newValue }
+    }
+
     // MARK: - Init
 
     public init(ephemeral: Bool = false) {
