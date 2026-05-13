@@ -44,24 +44,22 @@ final class WebEventInterface: ExposedInterface {
         }
         handler(event) { response in
             do {
-                completion(try makeBridgeJSONObject(from: response), true)
+                completion(try BridgePayloadCodec.makeJSONObject(from: response), true)
             } catch {
-                completion([
-                    "code": -1,
-                    "message": error.localizedDescription,
-                    "data": NSNull()
-                ], true)
+                let failResponse = WebEventResponse<AnyCodable>.fail(
+                    data: AnyCodable(NSNull()),
+                    message: error.localizedDescription,
+                    code: -1
+                )
+                completion(try? BridgePayloadCodec.makeJSONObject(from: failResponse), true)
             }
         }
     }
 
     private static func makeRequest(from parameter: Any?) -> WebEventRequest<AnyCodable>? {
         do {
-            let data = try makeBridgeJSONData(from: parameter)
-            return try Foundation.JSONDecoder().decode(
-                WebEventRequest<AnyCodable>.self,
-                from: data
-            )
+            let data = try BridgePayloadCodec.makeJSONData(from: parameter)
+            return try JSON.fromJson(data)
         } catch {
             return nil
         }

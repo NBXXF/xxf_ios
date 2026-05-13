@@ -7,8 +7,8 @@
 
 import DSBridge
 import Foundation
-import XXFJson
 import WebKit
+import XXFJson
 
 public class BridgeWebView: DSBridge.WebView {
     private static let webBridgeNativeEventMethodName = "nativeEvent"
@@ -19,10 +19,10 @@ public class BridgeWebView: DSBridge.WebView {
         completion: @escaping (Result<WebEventResponse<ResponseData>, any Swift.Error>) -> Void
     ) {
         do {
-            let payload = try makeBridgeJSONObject(from: event)
+            let payload = try BridgePayloadCodec.makeJSONObject(from: event)
             call(Self.webBridgeNativeEventMethodName, with: [payload]) { result in
                 do {
-                    let response: WebEventResponse<ResponseData> = try decodeBridgeJSON(
+                    let response: WebEventResponse<ResponseData> = try BridgePayloadCodec.decodeJSON(
                         result,
                         as: responseType
                     )
@@ -41,6 +41,7 @@ public class BridgeWebView: DSBridge.WebView {
         @escaping (WebEventResponse<AnyCodable>) -> Void
     ) -> Void
 
+    /// 用于接收自定义的事件 h5->native
     public var onWebEvent: WebEventHandler?
 
     override public init(frame: CGRect, configuration: WKWebViewConfiguration) {

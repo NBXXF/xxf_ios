@@ -181,6 +181,10 @@ let package = Package(
             name: "XXFQRCode",
             targets: ["XXFQRCode"]
         ),
+        .library(
+            name: "XXFWebView",
+            targets: ["XXFWebView"]
+        ),
     ] + mmkvProducts,
     // 依赖版本策略：
     // 1) from: "x.y.z" == .upToNextMajor(from: "x.y.z")，范围 [x.y.z, nextMajor)
@@ -503,8 +507,14 @@ let package = Package(
             name: "XXFUIKit",
             dependencies: [
                 "XXFFoundation",
+                "XXFWebView",
+                .product(name: "SnapKit", package: "SnapKit", condition: .when(platforms: [.iOS]))
+            ]
+        ),
+        .target(
+            name: "XXFWebView",
+            dependencies: [
                 "XXFJson",
-                .product(name: "SnapKit", package: "SnapKit", condition: .when(platforms: [.iOS])),
                 .product(name: "DSBridge", package: "DSBridge-Swift")
             ]
         ),
