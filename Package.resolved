@@ -1,5 +1,5 @@
 {
-  "originHash" : "33b63d243e10795466a2f7371b4c5d25bfc46d0152586241f268d7c256102090",
+  "originHash" : "ce3d88b17ff822cc0cfe17bd5a49cc6f4cde331d9b8593be4b0d4841487e8c60",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -80,6 +80,15 @@
       "state" : {
         "revision" : "742f624a998cba2a9e653d9b1e91ad3f3a5dff6b",
         "version" : "4.15.2"
+      }
+    },
+    {
+      "identity" : "dsbridge-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/EdgarDegas/DSBridge-Swift.git",
+      "state" : {
+        "revision" : "82c45d30e0b4ad43c2c8dc424fa71aab74d5a12d",
+        "version" : "0.1.2"
       }
     },
     {
@@ -566,6 +575,15 @@
       "state" : {
         "revision" : "9829955b385e5bb88128b73f1b8389e9b9c3191a",
         "version" : "2.11.0"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "revision" : "64889f0c732f210a935a0ad7cda38f77f876262d",
+        "version" : "509.1.1"
       }
     },
     {

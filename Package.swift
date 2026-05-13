@@ -256,7 +256,10 @@ let package = Package(
         .package(url: "https://github.com/dani-gavrilov/GDPerformanceView-Swift.git", from: "2.1.1"),
 
         // 二维码生成（支持自定义眼形 / 像素形 / 填充样式 / Logo）
-        .package(url: "https://github.com/dagronf/QRCode.git", from: "20.0.0")
+        .package(url: "https://github.com/dagronf/QRCode.git", from: "20.0.0"),
+        
+        // js bridge
+        .package(url: "https://github.com/EdgarDegas/DSBridge-Swift.git", from: "0.1.2")
     ] + mmkvDependencies,
     targets: [
         .target(
@@ -500,7 +503,8 @@ let package = Package(
             name: "XXFUIKit",
             dependencies: [
                 "XXFFoundation",
-                .product(name: "SnapKit", package: "SnapKit", condition: .when(platforms: [.iOS]))
+                .product(name: "SnapKit", package: "SnapKit", condition: .when(platforms: [.iOS])),
+                .product(name: "DSBridge", package: "DSBridge-Swift")
             ]
         ),
         .target(
