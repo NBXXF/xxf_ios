@@ -408,6 +408,7 @@ public final class BridgeDemoViewController: UIViewController {
             <div id="nativeReply" class="log">等待发送...</div>
           </div>
 
+          <!-- DSBridge: CDN 与 bridgeBootstrapScript() 二选一，不要同时启用，避免桥接实现重复/覆盖。 -->
           <script src="https://cdn.jsdelivr.net/npm/dsbridge@3.1.4/dist/dsbridge.js"></script>
           <script>
         \(Self.bridgeBootstrapScript())
@@ -469,6 +470,7 @@ public final class BridgeDemoViewController: UIViewController {
         """
     }
 
+    // 内联版 DSBridge bootstrap。与外部 dsbridge.js 属于同类实现，二选一使用，避免重复注入。
     private static func bridgeBootstrapScript() -> String {
         """
         var bridge = {
