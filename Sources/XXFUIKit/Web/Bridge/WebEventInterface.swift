@@ -7,17 +7,17 @@ import DSBridge
 import Foundation
 import XXFJson
 
-private final class WebEventInterface: ExposedInterface {
+final class WebEventInterface: ExposedInterface {
     private static let methodName = "handleWebEvent"
 
-    fileprivate typealias Handler = (
+    typealias Handler = (
         WebEventRequest<AnyCodable>,
         @escaping (WebEventResponse<AnyCodable>) -> Void
     ) -> Void
 
     private let handler: Handler
 
-    fileprivate init(handler: @escaping Handler) {
+    init(handler: @escaping Handler) {
         self.handler = handler
     }
 
