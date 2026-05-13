@@ -13,6 +13,7 @@ import XXFJson
 public class BridgeWebView: DSBridge.WebView {
     private static let webBridgeNativeEventMethodName = "nativeEvent"
 
+    /// 发送自定义的事件 native->h5
     public func postEvent<Data: Encodable, ResponseData: Codable>(
         _ event: WebEventRequest<Data>,
         expecting responseType: WebEventResponse<ResponseData>.Type,
