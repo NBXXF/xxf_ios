@@ -515,7 +515,8 @@ let package = Package(
             name: "XXFWebView",
             dependencies: [
                 "XXFJson",
-                .product(name: "DSBridge", package: "DSBridge-Swift")
+                .product(name: "DSBridge", package: "DSBridge-Swift"),
+                .product(name: "SwifterSwift", package: "SwifterSwift")
             ]
         ),
         .target(
