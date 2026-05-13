@@ -43,7 +43,7 @@ open class CompactWebView: BridgeWebView {
     /// 推荐方式：
     /// - 继承 `CompactUIDelegate`，按需覆写回调。
     /// - 再将子类实例赋值给 `uiDelegate`。
-    override open weak var uiDelegate: (any WKUIDelegate)? {
+    override open var uiDelegate: (any WKUIDelegate)? {
         get { super.uiDelegate }
         set { super.uiDelegate = newValue }
     }

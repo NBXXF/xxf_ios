@@ -5,6 +5,7 @@
 //  Created by xxf on 5/13.
 //
 #if canImport(UIKit)
+import SwifterSwift
 import AVFoundation
 import UIKit
 import WebKit
