@@ -25,6 +25,10 @@ public struct WebEventResponse<T: Codable>: Codable {
     public static func fail(data: T? = nil, message: String? = "fail", code: Int = -1024) -> WebEventResponse<T> {
         WebEventResponse(code: code, message: message, data: data)
     }
+
+    public func isSuccess() -> Bool {
+        code == 200
+    }
 }
 
 public extension WebEventResponse where T == AnyCodable {
@@ -41,6 +45,14 @@ public extension WebEventResponse where T == AnyCodable {
             code: -2,
             message: "onWebEvent is not set",
             data: nil
+        )
+    }
+
+    static func webviewJsonParseError(error: Error) -> WebEventResponse<AnyCodable> {
+        WebEventResponse<AnyCodable>.fail(
+            data: nil,
+            message: error.localizedDescription,
+            code: -3
         )
     }
 

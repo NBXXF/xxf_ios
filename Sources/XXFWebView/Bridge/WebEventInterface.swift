@@ -44,13 +44,9 @@ final class WebEventInterface: ExposedInterface {
         }
         handler(event) { response in
             do {
-                completion(try BridgePayloadCodec.makeJSONObject(from: response), true)
+                try completion(BridgePayloadCodec.makeJSONObject(from: response), true)
             } catch {
-                let failResponse = WebEventResponse<AnyCodable>.fail(
-                    data: nil,
-                    message: error.localizedDescription,
-                    code: -1
-                )
+                let failResponse = WebEventResponse.webviewJsonParseError(error: error)
                 completion(try? BridgePayloadCodec.makeJSONObject(from: failResponse), true)
             }
         }
