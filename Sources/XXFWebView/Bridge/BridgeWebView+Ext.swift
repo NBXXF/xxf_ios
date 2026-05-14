@@ -14,7 +14,7 @@ public extension BridgeWebView {
         typeof window.dsBridge.call === 'function'
         """
 
-        webView.evaluateJavaScript(js) { result, error in
+        self.evaluateJavaScript(js) { result, error in
             guard error == nil else {
                 completion(false)
                 return
