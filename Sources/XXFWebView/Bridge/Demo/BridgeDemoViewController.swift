@@ -278,8 +278,9 @@ public final class BridgeDemoViewController: UIViewController {
 
                 switch result {
                 case .success(let response):
+                    let responseData = response.data
                     self.nativeResultLabel.text =
-                        "Native 发送到 H5 的回包：code=\(response.code), message=\(response.message ?? "-"), data=\(response.data.echo) @ \(response.data.receivedAt)"
+                        "Native 发送到 H5 的回包：code=\(response.code), message=\(response.message ?? "-"), data=\(responseData?.echo ?? "-") @ \(responseData?.receivedAt ?? "-")"
                 case .failure(let error):
                     self.nativeResultLabel.text = "Native 发送到 H5 的回包：error=\(error.localizedDescription)"
                 }

@@ -47,7 +47,7 @@ final class WebEventInterface: ExposedInterface {
                 completion(try BridgePayloadCodec.makeJSONObject(from: response), true)
             } catch {
                 let failResponse = WebEventResponse<AnyCodable>.fail(
-                    data: AnyCodable(NSNull()),
+                    data: nil,
                     message: error.localizedDescription,
                     code: -1
                 )
