@@ -2,7 +2,7 @@
 //  WebEventHandlerRegistry.swift
 //  xxf_ios
 //
-//  Created by xxf on 2026/5/13.
+//  Created by xxf on 5/13.
 //
 
 import Foundation
