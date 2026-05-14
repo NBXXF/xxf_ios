@@ -32,11 +32,7 @@ public final class WebEventHandlerRegistry {
         let eventName = event.event
         guard let handler = handlers[eventName] else {
             completion(
-                WebEventResponse.fail(
-                    data: AnyCodable(NSNull()),
-                    message: "Unhandled web event: \(eventName)",
-                    code: 404
-                )
+                WebEventResponse.webviewNotHandle(eventName: eventName)
             )
             return
         }

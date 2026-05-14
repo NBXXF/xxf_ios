@@ -37,4 +37,12 @@ public extension WebEventResponse where T == AnyCodable {
             data: AnyCodable(NSNull())
         )
     }
+
+    static func webviewNotHandle(eventName: String) -> WebEventResponse<AnyCodable> {
+        WebEventResponse.fail(
+            data: AnyCodable(NSNull()),
+            message: "Unhandled web event: \(eventName)",
+            code: 404
+        )
+    }
 }
