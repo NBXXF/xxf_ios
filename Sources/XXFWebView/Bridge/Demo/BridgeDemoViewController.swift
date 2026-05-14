@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-public final class BridgeDemoViewController: UIViewController {
+public final class BridgeDemoViewController: UIViewController, UIGestureRecognizerDelegate {
     private struct NativeToWebRequestData: Codable {
         let text: String
         let timestamp: String
@@ -87,6 +87,13 @@ public final class BridgeDemoViewController: UIViewController {
         return view
     }()
 
+    private let nativeScrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.showsVerticalScrollIndicator = true
+        scrollView.alwaysBounceVertical = true
+        return scrollView
+    }()
+
     private let webPanel: UIView = {
         let view = UIView()
         view.backgroundColor = .secondarySystemBackground
@@ -135,7 +142,7 @@ public final class BridgeDemoViewController: UIViewController {
         stack.axis = .vertical
         stack.spacing = 16
         stack.alignment = .fill
-        stack.distribution = .fillEqually
+        stack.distribution = .fill
         return stack
     }()
 
@@ -149,6 +156,7 @@ public final class BridgeDemoViewController: UIViewController {
         view.backgroundColor = .systemBackground
         title = "Bridge Demo"
         setupLayout()
+        setupDismissKeyboardGesture()
         setupWebBridge()
         loadDemoPage()
     }
@@ -167,12 +175,19 @@ public final class BridgeDemoViewController: UIViewController {
             containerStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
         ])
 
+        NSLayoutConstraint.activate([
+            nativePanel.heightAnchor.constraint(equalTo: containerStackView.heightAnchor, multiplier: 1.0 / 3.0)
+        ])
+
         setupNativePanel()
         setupWebPanel()
     }
 
     private func setupNativePanel() {
-        nativePanel.addSubview(nativeStackView)
+        nativePanel.addSubview(nativeScrollView)
+        nativeScrollView.translatesAutoresizingMaskIntoConstraints = false
+
+        nativeScrollView.addSubview(nativeStackView)
         nativeStackView.translatesAutoresizingMaskIntoConstraints = false
 
         nativeStackView.addArrangedSubview(nativeTitleLabel)
@@ -182,10 +197,16 @@ public final class BridgeDemoViewController: UIViewController {
         nativeStackView.addArrangedSubview(nativeSendButton)
 
         NSLayoutConstraint.activate([
-            nativeStackView.topAnchor.constraint(equalTo: nativePanel.topAnchor, constant: 16),
-            nativeStackView.leadingAnchor.constraint(equalTo: nativePanel.leadingAnchor, constant: 16),
-            nativeStackView.trailingAnchor.constraint(equalTo: nativePanel.trailingAnchor, constant: -16),
-            nativeStackView.bottomAnchor.constraint(lessThanOrEqualTo: nativePanel.bottomAnchor, constant: -16)
+            nativeScrollView.topAnchor.constraint(equalTo: nativePanel.topAnchor, constant: 16),
+            nativeScrollView.leadingAnchor.constraint(equalTo: nativePanel.leadingAnchor, constant: 16),
+            nativeScrollView.trailingAnchor.constraint(equalTo: nativePanel.trailingAnchor, constant: -16),
+            nativeScrollView.bottomAnchor.constraint(equalTo: nativePanel.bottomAnchor, constant: -16),
+
+            nativeStackView.topAnchor.constraint(equalTo: nativeScrollView.contentLayoutGuide.topAnchor),
+            nativeStackView.leadingAnchor.constraint(equalTo: nativeScrollView.contentLayoutGuide.leadingAnchor),
+            nativeStackView.trailingAnchor.constraint(equalTo: nativeScrollView.contentLayoutGuide.trailingAnchor),
+            nativeStackView.bottomAnchor.constraint(equalTo: nativeScrollView.contentLayoutGuide.bottomAnchor),
+            nativeStackView.widthAnchor.constraint(equalTo: nativeScrollView.frameLayoutGuide.widthAnchor)
         ])
     }
 
@@ -249,6 +270,28 @@ public final class BridgeDemoViewController: UIViewController {
 
     private func loadDemoPage() {
         bridgeWebView.loadHTMLString(Self.makeHTML(), baseURL: nil)
+    }
+
+    private func setupDismissKeyboardGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapToDismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        tapGesture.delegate = self
+        view.addGestureRecognizer(tapGesture)
+    }
+
+    @objc
+    private func handleTapToDismissKeyboard() {
+        view.endEditing(true)
+    }
+
+    public func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldReceive touch: UITouch
+    ) -> Bool {
+        if touch.view is UIControl {
+            return false
+        }
+        return true
     }
 
     @objc
