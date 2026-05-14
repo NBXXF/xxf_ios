@@ -238,7 +238,7 @@ public final class BridgeDemoViewController: UIViewController {
             self.webStatusLabel.text = "H5 收到的 native 消息：\n\(requestJSONString)"
 
             callback(.init(
-                code: 0,
+                code: 200,
                 message: "native received",
                 data: .init([
                     "reply": "native got your message",
@@ -433,7 +433,7 @@ public final class BridgeDemoViewController: UIViewController {
               dsBridge.registerAsyn('nativeEvent', function(request, callback) {
                 nativeResult.textContent = render(request)
                 callback({
-                  code: 0,
+                  code: 200,
                   message: 'h5 received',
                   data: {
                     echo: request.data.text,
