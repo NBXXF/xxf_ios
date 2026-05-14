@@ -8,24 +8,26 @@
 import Foundation
 import XXFJson
 
-public final class WebEventHandlerRegistry {
+open class WebEventHandlerRegistry: NSObject {
     private var handlers: [String: WebEventHandler] = [:]
 
-    public init() {}
+    public override init() {
+        super.init()
+    }
 
-    public func register(_ handler: WebEventHandler) {
+    open func register(_ handler: WebEventHandler) {
         handlers[handler.eventName] = handler
     }
 
-    public func unregister(eventName: String) {
+    open func unregister(eventName: String) {
         handlers.removeValue(forKey: eventName)
     }
 
-    public func removeAll() {
+    open func removeAll() {
         handlers.removeAll()
     }
 
-    public func dispatch(
+    open func dispatch(
         event: WebEventRequest<AnyCodable>,
         completion: @escaping (WebEventResponse<AnyCodable>) -> Void
     ) {
