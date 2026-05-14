@@ -224,7 +224,6 @@ public final class BridgeDemoViewController: UIViewController {
         bridgeWebView.onWebEvent = { [weak self] request, callback in
             guard let self else { return }
 
-            let messageText = Self.stringValue(from: request.data.value)
             let requestJSONString: String = {
                 do {
                     let data = try JSONEncoder().encode(request)

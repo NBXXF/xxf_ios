@@ -14,8 +14,8 @@ open class BridgeWebView: DSBridge.WebView {
     private static let webBridgeNativeEventMethodName = "nativeEvent"
 
     /// 发送自定义的事件 native->h5
-    open func postEvent<Data: Encodable, ResponseData: Codable>(
-        _ event: WebEventRequest<Data>,
+    open func postEvent<RequestData: Codable, ResponseData: Codable>(
+        _ event: WebEventRequest<RequestData>,
         expecting responseType: WebEventResponse<ResponseData>.Type,
         completion: @escaping (Result<WebEventResponse<ResponseData>, any Swift.Error>) -> Void
     ) {
@@ -35,6 +35,17 @@ open class BridgeWebView: DSBridge.WebView {
         } catch {
             completion(.failure(error))
         }
+    }
+
+    /// 发送自定义的事件 native->h5（便捷方法：直接传 eventName 和 data）
+    open func postEvent<RequestData: Codable, ResponseData: Codable>(
+        eventName: String,
+        data: RequestData? = nil,
+        expecting responseType: WebEventResponse<ResponseData>.Type,
+        completion: @escaping (Result<WebEventResponse<ResponseData>, any Swift.Error>) -> Void
+    ) {
+        let event = WebEventRequest(event: eventName, data: data)
+        postEvent(event, expecting: responseType, completion: completion)
     }
 
     public typealias WebEventHandling = (
