@@ -6,7 +6,7 @@
 
 ## 一、Skill 清单
 
-共 **53 个** skill，按类别分组。每个 skill 目录下有 `SKILL.md`（AI 读）和 `triggers.md`（回归用例）。
+共 **65 个** skill，按类别分组。每个 skill 目录下有 `SKILL.md`（AI 读）和 `triggers.md`（回归用例）。
 
 ### 元 skill（路由 / 维护）
 
@@ -110,6 +110,18 @@
 | `xxf-swift-format` | XXFSwiftFormat |
 | `xxf-coding-style` | 编码规范（项目约束） |
 | `xxf-coding-arch` | 架构约束（项目约束） |
+| `xxf-architecture-review` | 架构评审（跨模块） |
+| `xxf-test-strategy` | 测试策略（跨模块） |
+| `xxf-risk-gate` | 风险门禁（跨模块） |
+| `xxf-release-management` | 发布管理（跨模块） |
+| `xxf-adr-rfc` | ADR/RFC 决策（跨模块） |
+| `xxf-incident-response` | 事故响应与复盘（跨模块） |
+| `xxf-observability` | 可观测性规范（跨模块） |
+| `xxf-security-privacy` | 安全与隐私基线（跨模块） |
+| `xxf-api-contract` | 接口契约治理（跨模块） |
+| `xxf-migration-playbook` | 迁移作战手册（跨模块） |
+| `xxf-project-planning` | 技术项目规划（跨模块） |
+| `xxf-ci-quality-gates` | CI 质量门禁（跨模块） |
 
 ---
 
@@ -155,7 +167,7 @@ done
 # 升级：cd ~/.cache/xxf-ios-skills && git pull
 ```
 
-**按需安装：** 53 个 skill 全装会占用路由预算；只需要部分时，把脚本 `for` 循环改成固定几个，或手动 `ln -sfn` 想要的 skill 即可。
+**按需安装：** 65 个 skill 全装会占用路由预算；只需要部分时，把脚本 `for` 循环改成固定几个，或手动 `ln -sfn` 想要的 skill 即可。
 
 ### 2.2 Codex CLI（OpenAI）
 
