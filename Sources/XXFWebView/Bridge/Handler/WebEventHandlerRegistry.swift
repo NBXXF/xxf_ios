@@ -11,12 +11,16 @@ import XXFJson
 open class WebEventHandlerRegistry: NSObject {
     private var handlers: [String: WebEventHandler] = [:]
 
-    public override init() {
+    override public init() {
         super.init()
     }
 
     open func register(_ handler: WebEventHandler) {
         handlers[handler.eventName] = handler
+    }
+
+    open func register(eventName: String, handler: @escaping NamedWebEventHandler.Handler) {
+        self.register(NamedWebEventHandler(eventName: eventName, handler: handler))
     }
 
     open func unregister(eventName: String) {
