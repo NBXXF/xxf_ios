@@ -1020,11 +1020,74 @@ let data = try await Luban.with().load(image).compress()
 - `XXFImageEditorBrightroom`
 - `XXFPhotoPickerZl`
 - `XXFTrackerSentry` / `XXFTrackerBugsnag`
-- `XXFHudIOS` / `XXFHudMac`
+- `XXFHudiOS` / `XXFHudMac`
 
 ### 注意事项
 扩展模块升级需与抽象层版本联测。
 典型反模式：只升级实现模块不做联测，最终在运行期出现协议不兼容。
+
+---
+## 全量模块清单（按 Package.swift）
+
+> 说明：以下按仓库当前 `Package.swift` 归档，分为“对外产品”和“内部目标（通过 XXFArch 间接使用或暂未单独暴露）”。
+
+### A. 对外产品（library）
+- `XXFArch`
+- `XXFDatabaseGrdb`
+- `XXFDatabaseObjectBox`
+- `XXFCacheMMKV`
+- `XXFHudiOS`
+- `XXFHudMac`
+- `XXFServer`
+- `XXFTrackerBugsnag`
+- `XXFTrackerSentry`
+- `XXFTrackerFirebase`
+- `XXFRouter`
+- `XXFImageEditor`
+- `XXFImageEditorBrightroom`
+- `XXFPhotoPicker`
+- `XXFPhotoPickerZl`
+- `XXFKeyboard`
+- `XXFCompress`
+- `XXFEventReporter`
+- `XXFEventReporterFirebase`
+- `XXFQRCode`
+- `XXFWebView`
+
+### B. 内部目标（target）
+- `XXFFoundation`
+- `XXFExtensions`
+- `XXFLog`
+- `XXFSpeed`
+- `XXFFlow`
+- `XXFHttp`
+- `XXFDataSource`
+- `XXFDatabase`
+- `XXFCache`
+- `XXFDi`
+- `XXFHud`
+- `XXFPerformance`
+- `XXFReusable`
+- `XXFRefreshable`
+- `XXFBus`
+- `XXFJson`
+- `XXFTracker`
+- `XXFUIKit`
+- `XXFKeychain`
+- `XXFIdentifier`
+- `XXFImage`
+- `XXFImageLoader`
+- `XXFImageNukeLoader`
+- `XXFViewModel`
+- `XXFSwiftFormat`
+- `XXFAdapter`
+
+### C. 建议阅读顺序（新增同学）
+1. `XXFArch`（总入口）
+2. `XXFHttp + XXFFlow + XXFJson`（请求主链路）
+3. `XXFDatabase + XXFCache`（数据主链路）
+4. `XXFRouter + XXFViewModel`（页面组织）
+5. `XXFLog + XXFPerformance + XXFTracker`（稳定性治理）
 
 ---
 ## 设计模式
