@@ -32,12 +32,18 @@ public extension URL {
     }
 
     /// 返回一个新的 URL，增加 query 参数，不修改原 URL
-    func appendingQueryParameters(_ parameters: [String: String]) -> URL {
+    /// - Parameters:
+    ///   - parameters: 要追加的参数
+    ///   - replace: 是否覆盖同名参数，默认 false（仅追加）
+    func appendQueryParameters(_ parameters: [String: String], replace: Bool = false) -> URL {
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
             return self
         }
 
         var queryItems = components.queryItems ?? []
+        if replace {
+            queryItems.removeAll { parameters.keys.contains($0.name) }
+        }
         for (key, value) in parameters {
             queryItems.append(URLQueryItem(name: key, value: value))
         }
@@ -46,17 +52,18 @@ public extension URL {
     }
 
     /// 返回一个新的 URL，增加 query 参数，已有同名 key 不覆盖
-    func appendingQueryParametersIfAbsent(_ parameters: [String: String]) -> URL {
+    func appendQueryParametersIfAbsent(_ parameters: [String: String]) -> URL {
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
             return self
         }
 
         var queryItems = components.queryItems ?? []
-        let existingKeys = Set(queryItems.map { $0.name })
+        var existingKeys = Set(queryItems.map { $0.name })
 
         for (key, value) in parameters {
             if !existingKeys.contains(key) {
                 queryItems.append(URLQueryItem(name: key, value: value))
+                existingKeys.insert(key)
             }
         }
 
@@ -67,7 +74,7 @@ public extension URL {
     /// 返回移除指定 query 参数后的 URL
     /// - Parameter key: 要移除的参数名
     /// - Returns: 新的 URL，如果无法解析则返回原 URL
-    func removingParameter(_ key: String) -> URL {
+    func removeParameter(_ key: String) -> URL {
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false),
               let queryItems = components.queryItems
         else {
@@ -80,7 +87,7 @@ public extension URL {
     /// 支持一次移除多个参数
     /// - Parameter keys: 要移除的参数名数组
     /// - Returns: 新的 URL，如果无法解析则返回原 URL
-    func removingParameters(_ keys: [String]) -> URL {
+    func removeParameters(_ keys: [String]) -> URL {
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false),
               let queryItems = components.queryItems
         else {
@@ -91,7 +98,7 @@ public extension URL {
     }
 
     /// 返回一个新的 URL，移除所有 query 参数 问号也不保留
-    func removingAllParameters() -> URL {
+    func removeAllParameters() -> URL {
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
             return self
         }
