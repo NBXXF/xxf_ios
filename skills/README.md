@@ -6,7 +6,7 @@
 
 ## 一、Skill 清单
 
-共 **49 个** skill，按类别分组。每个 skill 目录下有 `SKILL.md`（AI 读）和 `triggers.md`（回归用例）。
+共 **53 个** skill，按类别分组。每个 skill 目录下有 `SKILL.md`（AI 读）和 `triggers.md`（回归用例）。
 
 ### 元 skill（路由 / 维护）
 
@@ -70,6 +70,12 @@
 | `xxf-refreshable` | XXFRefreshable |
 | `xxf-viewmodel` | XXFViewModel |
 
+### Web 与页面容器
+
+| 技能 | 对应模块 |
+|:------|:------|
+| `xxf-webview` | XXFWebView |
+
 ### 图片
 
 | 技能 | 对应模块 |
@@ -82,6 +88,7 @@
 | `xxf-photo-picker` | XXFPhotoPicker |
 | `xxf-photo-picker-zl` | XXFPhotoPickerZl |
 | `xxf-compress` | XXFCompress |
+| `xxf-qrcode` | XXFQRCode |
 
 ### 观测与埋点
 
@@ -101,6 +108,8 @@
 | 技能 | 对应模块 |
 |:------|:------|
 | `xxf-swift-format` | XXFSwiftFormat |
+| `xxf-coding-style` | 编码规范（项目约束） |
+| `xxf-coding-arch` | 架构约束（项目约束） |
 
 ---
 
@@ -146,7 +155,7 @@ done
 # 升级：cd ~/.cache/xxf-ios-skills && git pull
 ```
 
-**按需安装：** 49 个 skill 全装会占用路由预算；只需要部分时，把脚本 `for` 循环改成固定几个，或手动 `ln -sfn` 想要的 skill 即可。
+**按需安装：** 53 个 skill 全装会占用路由预算；只需要部分时，把脚本 `for` 循环改成固定几个，或手动 `ln -sfn` 想要的 skill 即可。
 
 ### 2.2 Codex CLI（OpenAI）
 

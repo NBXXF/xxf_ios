@@ -186,6 +186,12 @@ swift build
 
 # 运行测试
 swift test
+
+# 一键执行代码检查 + 逻辑测试（本仓新增）
+bash scripts/ci-check.sh
+
+# 生成风险报告（Markdown）
+python3 scripts/risk-scan.py
 ```
 
 ### Xcode 工程集成建议

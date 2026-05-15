@@ -1,0 +1,52 @@
+name: Code Quality
+
+on:
+  push:
+    paths:
+      - 'Sources/**'
+      - 'Tests/**'
+      - 'Package.swift'
+      - 'Package.resolved'
+      - 'scripts/**'
+      - '.github/workflows/code-quality.yml'
+  pull_request:
+    paths:
+      - 'Sources/**'
+      - 'Tests/**'
+      - 'Package.swift'
+      - 'Package.resolved'
+      - 'scripts/**'
+
+jobs:
+  check-and-test:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Run code checks and tests
+        run: bash scripts/ci-check.sh
+
+  risk-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate risk report
+        run: python3 scripts/risk-scan.py
+
+      - name: Upload risk report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: risk-report
+          path: reports/risk-report.md
+
+      - name: Add summary
+        run: |
+          echo "## Risk Report" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat reports/risk-report.md >> "$GITHUB_STEP_SUMMARY"
