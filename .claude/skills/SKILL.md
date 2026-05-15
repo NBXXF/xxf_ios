@@ -34,6 +34,34 @@ If any precondition is missing: do not edit code.
 - Mixing unrelated cleanup with functional change.
 - Public API expansion without necessity and compatibility proof.
 - Hard-coded scenario branches tied to one business line.
+- Upgrading API versions without explicit request and compatibility validation.
+- Upgrading Swift language/compiler version without explicit request (especially Swift 6.x).
+- Upgrading third-party dependencies by default or "while we are here".
+
+## Version Upgrade Red Lines (Mandatory)
+1. API Compatibility First
+- Do not proactively migrate to new API signatures/protocols.
+- Keep old API behavior and call patterns stable unless user explicitly asks for migration.
+- Any unavoidable API change must include compatibility strategy (adapter/fallback/deprecation path).
+
+2. Swift Toolchain Stability First
+- Do not change Swift tools version / compiler target by default.
+- Do not introduce Swift 6.x-only constraints/features unless explicitly required and approved.
+- Prefer the currently working compiler baseline to avoid hidden compile/runtime regressions.
+
+3. Third-Party Dependency Stability First
+- Do not bump dependency versions unless explicitly requested or required for blocking security/build issues.
+- If upgrade is necessary, scope to minimal version delta and assess transitive impact.
+- No opportunistic dependency refresh during unrelated tasks.
+
+## Execution Discipline (Think First, Then Change)
+Before any edit, complete all items below:
+1. Study current behavior and boundaries in the existing code.
+2. Verify backward compatibility risk (API, compile, runtime, dependency graph).
+3. Provide minimal-impact plan and why alternatives are riskier.
+4. Only then implement the smallest safe change.
+
+If analysis is insufficient: stop editing and continue investigation first.
 
 ## Collaboration Response Contract
 - Start with boundary judgment.
@@ -41,4 +69,5 @@ If any precondition is missing: do not edit code.
 - Only after preconditions pass: provide minimal plan, then edit.
 
 ## One-Line Enforcement
-- 宁可不改，也不乱改；先论证，后动手；无批准，不改架构。
+- Better no change than reckless change; justify first, then implement; no architecture change without approval.
+- No arbitrary version upgrades, no compatibility breakage, no excessive changes; understand deeply before editing.
