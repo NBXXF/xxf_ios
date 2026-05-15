@@ -11,6 +11,10 @@ import XXFJson
 open class WebEventHandlerRegistry: NSObject {
     private var handlers: [String: WebEventHandler] = [:]
 
+    open var registeredEventNames: [String] {
+        handlers.keys.sorted()
+    }
+
     override public init() {
         super.init()
     }
