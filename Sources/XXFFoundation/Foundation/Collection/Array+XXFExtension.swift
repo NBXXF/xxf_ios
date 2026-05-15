@@ -7,6 +7,7 @@
 
 import Collections
 import Foundation
+import OrderedCollections
 
 public extension Array {
     // MARK: 过滤nil
