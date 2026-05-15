@@ -1090,6 +1090,150 @@ let data = try await Luban.with().load(image).compress()
 5. `XXFLog + XXFPerformance + XXFTracker`（稳定性治理）
 
 ---
+## 模块全面特性清单
+
+> 本节补充“最小 Demo”之外的完整能力面，便于做模块选型和架构评审。
+
+### 1) XXFFoundation
+- 并发安全集合：`ConcurrentDictionary/Array`。
+- 容错工具：`tryOrLog/tryOrNil/tryOrDefault`。
+- 函数式结果处理：`Result` 扩展链式 API。
+- 高频事件治理：`debounce/throttle`。
+
+### 2) XXFFlow
+- RxSwift 常用调度封装：IO/Main 快速切换。
+- 生命周期自动解绑，减少泄漏风险。
+- 常见容错/降级操作符封装。
+- 调试日志与链路观测辅助。
+
+### 3) XXFHttp
+- 类型安全请求封装（Moya + Rx）。
+- 六种缓存策略（cache-first/remote-first/only-cache 等）。
+- SSE 流式事件解析（多行 data 合并）。
+- 请求拦截、统一错误映射、网络状态观测。
+
+### 4) XXFRouter
+- 路由注册：单个、批量、分组。
+- 拦截器链：登录、VIP、实名、参数校验、限流。
+- 导航模式：push/present/replace/root/async。
+- 失败降级与回调结果统一。
+
+### 5) XXFDatabase
+- Repository 抽象（统一 CRUD/分页/查询）。
+- 双实现可切换：GRDB（关系型）/ObjectBox（对象数据库）。
+- 事务、批处理、可扩展查询构建。
+- 业务层无感知替换底层存储引擎。
+
+### 6) XXFBus
+- 类型安全事件发布订阅。
+- Sticky 事件支持。
+- 基于 Rx 的链式观察与主线程回调。
+
+### 7) XXFCache
+- 属性包装器声明式持久化。
+- 默认 UserDefaults，可切换 MMKV。
+- Codable 对象自动编解码支持。
+- 支持迁移路径（UserDefaults -> MMKV）。
+
+### 8) XXFLog
+- 多级别日志（D/I/W/E）。
+- 多 Handler（控制台/文件/内存）。
+- 崩溃前缓存与 Pulse 可视化。
+- 统一 Tag 与链路字段扩展。
+
+### 9) XXFJson
+- 高容错解码：默认值、宽松类型转换。
+- 日期多格式解析（ISO8601/秒/毫秒）。
+- 自定义 Adapter（`@CodingBy`）。
+- 深拷贝与线程优化编解码。
+
+### 10) XXFSpeed
+- XXH3 高吞吐哈希。
+- LRU O(1) 缓存读写。
+- 适配热点数据与高频 key 计算场景。
+
+### 11) XXFReusable
+- UITableView/UICollectionView 自动注册。
+- 泛型安全出队（减少强转崩溃）。
+- 支持 NIB 与 Header/Footer 复用。
+
+### 12) XXFRefreshable
+- 下拉刷新 + 上拉加载状态机。
+- 刷新/加载互斥与冲突处理。
+- Rx 绑定刷新状态，减少手工状态维护。
+
+### 13) XXFAdapter
+- DiffableDataSource 统一包装。
+- 统一 CRUD 快照操作。
+- 主线程安全应用 diff，支持动画更新。
+
+### 14) XXFSwiftFormat
+- 统一格式规则入口。
+- CI 可复用配置路径。
+- 规则集中管理与团队一致性治理。
+
+### 15) XXFImageEditor
+- 抽象门面 + Provider 可替换实现。
+- 支持自由裁切、固定比例裁切、完整编辑。
+- Brightroom 实现解耦（可替换其他实现）。
+
+### 16) XXFPhotoPicker
+- 图片/视频单选多选。
+- 相机拍照/摄像入口。
+- 可选裁切、主题定制、Provider 可替换。
+
+### 17) XXFKeyboard
+- `KeyboardResizeContainer` 内容区自动适配。
+- `KeyboardPanelContainer` 面板高度联动。
+- `KeyboardHeightProvider` 全局高度缓存。
+- 支持输入页、聊天页、工具面板模式。
+
+### 18) XXFPerformance
+- 主线程卡顿检测（BlockWatcher）。
+- FPS/CPU/内存监控面板。
+- 监控协议抽象，便于替换实现。
+
+### 19) XXFCompress
+- Luban 策略压缩（session/timeline）。
+- 链式、同步、异步、async/await 调用。
+- 支持 `UIImage/NSImage/Data/URL/Path` 输入。
+
+### 20) 扩展实现模块（生态层）
+- 数据：`XXFDatabaseGrdb` / `XXFDatabaseObjectBox`。
+- 缓存：`XXFCacheMMKV`。
+- 媒体：`XXFImageEditorBrightroom` / `XXFPhotoPickerZl`。
+- 稳定性：`XXFTrackerSentry/Bugsnag/Firebase`。
+- UI 与能力：`XXFHudiOS/XXFHudMac/XXFWebView/XXFQRCode`。
+
+---
+## 模块功能矩阵（选型评审用）
+
+状态说明：`✅ 原生支持` `🧩 通过扩展模块支持` `⚠️ 部分支持` `❌ 不支持`
+
+| 模块 | 线程安全 | 可替换实现 | 流式能力 | 缓存能力 | 可观测性 | iOS | macOS |
+|------|---------|-----------|---------|---------|---------|-----|-------|
+| XXFFoundation | ✅ | ⚠️ | ❌ | ❌ | ⚠️ | ✅ | ✅ |
+| XXFFlow | ⚠️ | ⚠️ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| XXFHttp | ⚠️ | ⚠️ | ✅ (SSE) | ✅ | ✅ | ✅ | ✅ |
+| XXFRouter | ⚠️ | ⚠️ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| XXFDatabase | ⚠️ | ✅ (GRDB/ObjectBox) | ❌ | ✅ | ✅ | ✅ | ✅ |
+| XXFBus | ⚠️ | ⚠️ | ✅ | ❌ | ⚠️ | ✅ | ✅ |
+| XXFCache | ⚠️ | ✅ (MMKV) | ❌ | ✅ | ⚠️ | ✅ | ✅ |
+| XXFLog | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| XXFJson | ⚠️ | ✅ (Adapter) | ❌ | ❌ | ⚠️ | ✅ | ✅ |
+| XXFSpeed | ✅ | ⚠️ | ❌ | ✅ (LRU) | ⚠️ | ✅ | ✅ |
+| XXFReusable | ⚠️ | ⚠️ | ❌ | ❌ | ⚠️ | ✅ | ❌ |
+| XXFRefreshable | ⚠️ | ⚠️ | ✅ | ❌ | ⚠️ | ✅ | ❌ |
+| XXFAdapter | ⚠️ | ⚠️ | ❌ | ❌ | ⚠️ | ✅ | ❌ |
+| XXFSwiftFormat | ✅ | ⚠️ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| XXFImageEditor | ⚠️ | ✅ (Provider) | ❌ | ❌ | ⚠️ | ✅ | ⚠️ |
+| XXFPhotoPicker | ⚠️ | ✅ (Provider) | ❌ | ❌ | ⚠️ | ✅ | ❌ |
+| XXFKeyboard | ⚠️ | ⚠️ | ✅ | ✅ (高度缓存) | ⚠️ | ✅ | ❌ |
+| XXFPerformance | ⚠️ | ✅ (监控实现) | ✅ | ❌ | ✅ | ✅ | ⚠️ |
+| XXFCompress | ⚠️ | ⚠️ | ❌ | ❌ | ⚠️ | ✅ | ✅ |
+| 扩展实现模块 | ⚠️ | ✅ | ⚠️ | ⚠️ | ⚠️ | ✅ | ⚠️ |
+
+---
 ## 设计模式
 
 | 模式 | 应用 | 收益 |
