@@ -102,26 +102,31 @@ open class BridgeWebView: DSBridge.WebView {
         emitLog(.info, "\(action) registryWebEvents(\(eventNames.count)): \(eventNames)")
     }
 
+    @discardableResult
     override open func load(_ request: URLRequest) -> WKNavigation? {
         debugLogRegisteredEvents(action: "load")
         return super.load(request)
     }
 
+    @discardableResult
     override open func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
         debugLogRegisteredEvents(action: "loadHTMLString")
         return super.loadHTMLString(string, baseURL: baseURL)
     }
 
+    @discardableResult
     override open func loadFileURL(_ URL: URL, allowingReadAccessTo readAccessURL: URL) -> WKNavigation? {
         debugLogRegisteredEvents(action: "loadFileURL")
         return super.loadFileURL(URL, allowingReadAccessTo: readAccessURL)
     }
 
+    @discardableResult
     override open func reload() -> WKNavigation? {
         debugLogRegisteredEvents(action: "reload")
         return super.reload()
     }
 
+    @discardableResult
     override open func reloadFromOrigin() -> WKNavigation? {
         debugLogRegisteredEvents(action: "reloadFromOrigin")
         return super.reloadFromOrigin()
