@@ -9,8 +9,14 @@ public struct WebEventRequest<T: Codable>: Codable {
     public let event: String
     public let data: T?
 
-    public init(event: String, data: T? = nil) {
-        self.event = event
+    public init(rawEvent: String, data: T? = nil) {
+        self.event = rawEvent
+        self.data = data
+    }
+
+    public init(event: String, direction: WebEventDirection, data: T? = nil) {
+        let rawEvent = direction.makeEvent(event)
+        self.event = rawEvent
         self.data = data
     }
 }
