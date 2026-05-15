@@ -6,7 +6,7 @@
 //
 import XXFJson
 
-public enum WebEventDirection: String, Codable {
+public enum WebEventDirection: String, Codable, Sendable {
     /// native 向web 发送消息或者请求资源
     case nativeToWeb = "ntw:"
     /// web 向native 发送消息或者请求资源

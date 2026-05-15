@@ -6,16 +6,12 @@
 //
 
 public struct WebEventRequest<T: Codable>: Codable {
+    /// 为了兼容以前的,暂时不要声明direction字段,用url组合的方式
     public let event: String
     public let data: T?
 
-    public init(rawEvent: String, data: T? = nil) {
-        self.event = rawEvent
-        self.data = data
-    }
-
-    public init(event: String, direction: WebEventDirection, data: T? = nil) {
-        let rawEvent = direction.makeEvent(event)
+    public init(name: String, direction: WebEventDirection, data: T? = nil) {
+        let rawEvent = direction.makeEvent(name)
         self.event = rawEvent
         self.data = data
     }

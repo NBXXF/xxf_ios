@@ -305,7 +305,8 @@ public final class BridgeDemoViewController: UIViewController, UIGestureRecogniz
         nativeResultLabel.text = "Native 发送到 H5 的回包：sending..."
 
         let request = WebEventRequest(
-            event: "nativeMessage",
+            name: "nativeMessage",
+            direction:.nativeToWeb,
             data: NativeToWebRequestData(
                 text: text,
                 timestamp: Self.timestampString()
