@@ -110,7 +110,7 @@ public class ImageRequestBuilder {
         // 合并自定义参数
         params.merge(extraParameters) { _, new in new }
 
-        return url.appendQueryParameters(params)
+        return url.appendingQueryParameters(params)
     }
 }
 

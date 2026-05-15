@@ -11,7 +11,7 @@ import XXFFoundation
 public class RequestOptions: @unchecked Sendable {
     /// 移除添加的参数
     public class func removeOptions(url: URL) -> URL {
-        return url.removeParameters(ImageLoaderConfigKeys.allCases.map(\.rawValue))
+        return url.removingParameters(ImageLoaderConfigKeys.allCases.map(\.rawValue))
     }
 
     var requestTargetSize: CGSize

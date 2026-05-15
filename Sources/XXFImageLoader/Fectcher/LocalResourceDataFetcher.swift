@@ -47,7 +47,7 @@ public final class LocalResourceDataFetcher: ImageDataFetcher {
             self.fetchQueue = fetchQueue
             self.completion = completion
             /// 不能影响文件加载
-            fileLoadURL = request.url.or(URL.emptyURL).removeAllParameters()
+            fileLoadURL = request.url.or(URL.emptyURL).removingAllParameters()
         }
 
         func isImageFile(url: URL) -> Bool {
