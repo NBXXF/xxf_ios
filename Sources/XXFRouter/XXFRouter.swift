@@ -45,8 +45,6 @@ public typealias XXFNavigationType = NavigationType
 
 // Routable
 public typealias XXFRoutable = Routable
-public typealias XXFRouteFactory = RouteFactory
-public typealias XXFRouteHandler = RouteHandler
 
 // Registry
 public typealias XXFRouteRegistry = RouteRegistry
@@ -121,7 +119,7 @@ public typealias XXFRouteGroup = RouteGroup
 
      private var userId: String = ""
 
-     required init?(context: RouteContext) {
+     required init(context: RouteContext) throws {
          super.init(nibName: nil, bundle: nil)
          self.userId = context.string(for: "userId") ?? ""
      }
@@ -134,6 +132,10 @@ public typealias XXFRouteGroup = RouteGroup
  // 注册
  Router.shared.register(ProfileViewController.self)
  ```
+
+ `Routable` 的 `init(context:)` 现在支持 `throws`。
+ 当参数校验失败或业务前置条件不满足时，建议直接抛出 `RouteError`，
+ 调用方可在导航失败回调或 `viewControllerOrThrow(for:)` 中拿到明确错误。
 
  ### 2.2 使用闭包注册
 
@@ -312,7 +314,15 @@ public typealias XXFRouteGroup = RouteGroup
      // ...
  }
 
- // 获取视图控制器（不导航）
+ // 推荐：获取视图控制器（失败时抛出明确错误）
+ do {
+     let vc = try Router.shared.viewControllerOrThrow(for: "app://profile/123")
+     print(vc)
+ } catch {
+     print("Create view controller failed: \(error)")
+ }
+
+ // 兼容接口：获取视图控制器（失败时返回 nil）
  if let vc = Router.shared.viewController(for: "app://profile/123") {
      // ...
  }

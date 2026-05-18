@@ -427,21 +427,23 @@ public final class Router: @unchecked Sendable {
         return registry.contains(url: url)
     }
 
-    /// 获取URL对应的视图控制器（不执行导航）
+    /// 获取URL对应的视图控制器（不执行导航，失败时抛出明确错误）
     /// - Parameters:
     ///   - url: URL字符串
     ///   - extraParameters: 额外参数
     /// - Returns: 视图控制器
-    public func viewController(
+    /// - Throws: `RouteError.notFound` 或页面创建过程抛出的业务错误
+    @MainActor
+    public func viewControllerOrThrow(
         for url: String,
         extraParameters: RouteParameters = [:]
-    ) -> RouteViewController? {
+    ) throws -> RouteViewController {
         guard let (entry, pathParameters) = registry.find(for: url) else {
-            return nil
+            throw RouteError.notFound(url: url)
         }
 
         guard let factory = entry.factory else {
-            return nil
+            throw RouteError.notFound(url: url)
         }
 
         let queryParameters = parseQueryParameters(from: url)
@@ -454,7 +456,26 @@ public final class Router: @unchecked Sendable {
             flags: entry.flags
         )
 
-        return try? factory.createViewController(with: context)
+        do {
+            return try factory(context)
+        } catch let routeError as RouteError {
+            throw routeError
+        } catch {
+            throw RouteError.routeFactoryThrown(url: context.url, underlyingError: error)
+        }
+    }
+
+    /// 获取URL对应的视图控制器（不执行导航，兼容接口）
+    /// - Parameters:
+    ///   - url: URL字符串
+    ///   - extraParameters: 额外参数
+    /// - Returns: 视图控制器；创建失败时返回 nil
+    @MainActor
+    public func viewController(
+        for url: String,
+        extraParameters: RouteParameters = [:]
+    ) -> RouteViewController? {
+        return try? viewControllerOrThrow(for: url, extraParameters: extraParameters)
     }
 
     // MARK: - 内部导航实现
@@ -675,7 +696,7 @@ public final class Router: @unchecked Sendable {
 
         // 处理器路由
         if let handler = entry.handler {
-            let success = handler.handle(context: context)
+            let success = handler(context)
             listenerManager.notify(event: .handlerExecuted(success: success), context: context)
 
             if success {
@@ -703,7 +724,7 @@ public final class Router: @unchecked Sendable {
         // 创建视图控制器
         let viewController: RouteViewController
         do {
-            viewController = try factory.createViewController(with: context)
+            viewController = try factory(context)
         } catch let routeError as RouteError {
             callback?.onRouteFailure(context: context, error: routeError)
             callback?.onRouteComplete(context: context, result: .failure(error: routeError))
@@ -887,7 +908,7 @@ public extension Router {
             flags: entry.flags
         )
 
-        return handler.handle(context: context)
+        return handler(context)
     }
 }
 

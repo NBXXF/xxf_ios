@@ -24,10 +24,10 @@ public struct RouteEntry: @unchecked Sendable {
     public let priority: Int
 
     /// 路由工厂（用于创建视图控制器）
-    public let factory: RouteFactory?
+    public let factory: (@MainActor @Sendable (RouteContext) throws -> RouteViewController)?
 
     /// 路由处理器（用于执行特定操作）
-    public let handler: RouteHandler?
+    public let handler: (@Sendable (RouteContext) -> Bool)?
 
     /// 是否是工厂路由
     public var isFactory: Bool { factory != nil }
@@ -36,22 +36,32 @@ public struct RouteEntry: @unchecked Sendable {
     public var isHandler: Bool { handler != nil }
 
     /// 创建工厂路由条目
-    public static func factory(_ factory: RouteFactory) -> RouteEntry {
+    public static func factory(
+        pattern: String,
+        flags: RouteFlags,
+        priority: Int,
+        factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController
+    ) -> RouteEntry {
         return RouteEntry(
-            pattern: factory.pattern,
-            flags: factory.flags,
-            priority: factory.priority,
+            pattern: pattern,
+            flags: flags,
+            priority: priority,
             factory: factory,
             handler: nil
         )
     }
 
     /// 创建处理器路由条目
-    public static func handler(_ handler: RouteHandler) -> RouteEntry {
+    public static func handler(
+        pattern: String,
+        flags: RouteFlags,
+        priority: Int,
+        handler: @escaping @Sendable (RouteContext) -> Bool
+    ) -> RouteEntry {
         return RouteEntry(
-            pattern: handler.pattern,
-            flags: handler.flags,
-            priority: handler.priority,
+            pattern: pattern,
+            flags: flags,
+            priority: priority,
             factory: nil,
             handler: handler
         )
@@ -94,39 +104,13 @@ public final class RouteRegistry: @unchecked Sendable {
     /// - Parameter type: 实现了Routable协议的类型
     @MainActor
     public func register<T: Routable>(_ type: T.Type) {
-        let factory = TypeRouteFactory(type: type)
-        registerFactory(factory)
-    }
-
-    /// 注册路由工厂
-    /// - Parameter factory: 路由工厂
-    public func register(factory: RouteFactory) {
-        let entry = RouteEntry(
-            pattern: factory.pattern,
-            flags: factory.flags,
-            priority: factory.priority,
-            factory: factory,
-            handler: nil
-        )
-        register(entry: entry)
-    }
-
-    /// 内部方法：注册工厂
-    private func registerFactory(_ factory: RouteFactory) {
-        let entry = RouteEntry(
-            pattern: factory.pattern,
-            flags: factory.flags,
-            priority: factory.priority,
-            factory: factory,
-            handler: nil
-        )
-        register(entry: entry)
-    }
-
-    /// 注册路由处理器
-    /// - Parameter handler: 路由处理器
-    public func register(handler: RouteHandler) {
-        let entry = RouteEntry.handler(handler)
+        let entry = RouteEntry.factory(
+            pattern: type.routePattern,
+            flags: type.routeFlags,
+            priority: type.routePriority
+        ) { context in
+            return try type.init(context: context)
+        }
         register(entry: entry)
     }
 
@@ -144,13 +128,13 @@ public final class RouteRegistry: @unchecked Sendable {
         priority: Int = 0,
         factory: @escaping @MainActor @Sendable (RouteContext) throws -> RouteViewController
     ) {
-        let closureFactory = ClosureRouteFactory(
+        let entry = RouteEntry.factory(
             pattern: pattern,
             flags: flags,
             priority: priority,
             factory: factory
         )
-        registerFactory(closureFactory)
+        register(entry: entry)
     }
 
     /// 注册闭包处理器
@@ -165,13 +149,13 @@ public final class RouteRegistry: @unchecked Sendable {
         priority: Int = 0,
         handler: @escaping @Sendable (RouteContext) -> Bool
     ) {
-        let closureHandler = ClosureRouteHandler(
+        let entry = RouteEntry.handler(
             pattern: pattern,
             flags: flags,
             priority: priority,
             handler: handler
         )
-        register(handler: closureHandler)
+        register(entry: entry)
     }
 
     /// 注册路由条目
@@ -327,9 +311,14 @@ public extension RouteRegistry {
         entriesToAdd.reserveCapacity(types.count)
 
         for type in types {
-            // 通过协议方法创建工厂
-            let factory = AnyRoutableFactory(type: type)
-            entriesToAdd.append(.factory(factory))
+            let entry = RouteEntry.factory(
+                pattern: type.routePattern,
+                flags: type.routeFlags,
+                priority: type.routePriority
+            ) { context in
+                return try type.init(context: context)
+            }
+            entriesToAdd.append(entry)
         }
 
         registerEntries(entriesToAdd)
@@ -354,13 +343,12 @@ public extension RouteRegistry {
         guard !factories.isEmpty else { return }
 
         let entries = factories.map { config -> RouteEntry in
-            let factory = ClosureRouteFactory(
+            return RouteEntry.factory(
                 pattern: config.pattern,
                 flags: config.flags,
                 priority: config.priority,
                 factory: config.factory
             )
-            return .factory(factory)
         }
         registerEntries(entries)
     }
@@ -383,13 +371,12 @@ public extension RouteRegistry {
         guard !handlers.isEmpty else { return }
 
         let entries = handlers.map { config -> RouteEntry in
-            let handler = ClosureRouteHandler(
+            return RouteEntry.handler(
                 pattern: config.pattern,
                 flags: config.flags,
                 priority: config.priority,
                 handler: config.handler
             )
-            return .handler(handler)
         }
         registerEntries(entries)
     }

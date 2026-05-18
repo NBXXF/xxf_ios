@@ -301,10 +301,16 @@ public extension String {
         return Router.shared.canRoute(to: self)
     }
 
-    /// 获取此URL对应的视图控制器
+    /// 获取此URL对应的视图控制器（兼容接口，失败时返回 nil）
     @MainActor
     func toViewController(extraParameters: RouteParameters = [:]) -> RouteViewController? {
         return Router.shared.viewController(for: self, extraParameters: extraParameters)
+    }
+
+    /// 获取此URL对应的视图控制器，失败时抛出明确错误
+    @MainActor
+    func toViewControllerOrThrow(extraParameters: RouteParameters = [:]) throws -> RouteViewController {
+        return try Router.shared.viewControllerOrThrow(for: self, extraParameters: extraParameters)
     }
 }
 

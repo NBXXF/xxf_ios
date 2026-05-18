@@ -13,7 +13,7 @@ public enum RouteError: Error, Sendable, CustomStringConvertible {
     /// 被拦截器拦截（框架使用：否；场景：建议业务在需要结构化拦截错误时主动抛出）
     case intercepted(reason: String)
 
-    /// 路由工厂抛出错误（框架使用：是；场景：factory 抛出异常，或 Routable init 返回 nil）
+    /// 路由工厂抛出错误（框架使用：是；场景：factory 或 Routable init 抛出异常）
     case routeFactoryThrown(url: String, underlyingError: any Error)
 
     /// 导航失败（框架使用：是；场景：handler 返回 false 或导航器执行失败）
