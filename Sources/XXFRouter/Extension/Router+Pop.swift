@@ -190,11 +190,13 @@ public extension Router {
 
     @MainActor
     private func matchesPattern(_ vc: UIViewController, pattern: String) -> Bool {
-        if let routable = vc as? Routable, type(of: routable).routePattern == pattern {
-            return true
-        }
-        if let routeURL = (vc as? RouteAwareViewController)?.routeURL, routeURL == pattern {
-            return true
+        if let routable = vc as? Routable {
+            if type(of: routable).routePattern == pattern {
+                return true
+            }
+            if routable.routeURL == pattern {
+                return true
+            }
         }
         return false
     }
@@ -324,16 +326,5 @@ public extension Router {
 }
 
 
-
-// MARK: - ═══════════════════════════════════════════════════════════════════
-
-// MARK: 路由感知协议
-
-// MARK: ═══════════════════════════════════════════════════════════════════
-
-/// 视图控制器路由感知协议，用于支持 popTo 功能
-public protocol RouteAwareViewController: AnyObject {
-    var routeURL: String? { get }
-}
 
 #endif

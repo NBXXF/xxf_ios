@@ -46,6 +46,9 @@ public protocol Routable: RouteViewController {
     /// 路由描述，用于调试和文档生成
     @MainActor static var routeDescription: String { get }
 
+    /// 当前实例对应的具体路由 URL，用于支持实例级匹配，例如 `popTo`
+    @MainActor var routeURL: String? { get }
+
     /// 通过路由上下文创建实例
     /// - Parameter context: 路由上下文，包含URL参数等信息
     /// - Throws: 业务可在此进行参数校验并抛出 RouteError，
@@ -64,4 +67,7 @@ public extension Routable {
 
     /// 默认描述为类名
     @MainActor static var routeDescription: String { String(describing: Self.self) }
+
+    /// 默认不提供实例级 URL 匹配
+    @MainActor var routeURL: String? { nil }
 }
