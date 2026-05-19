@@ -6,7 +6,7 @@
 
 ## 不应该触发
 
-- "XXF 怎么做架构设计" → 语义模糊，应走 `xxf-quickstart`
+- "XXF 怎么做架构设计" → 语义模糊，应走 `xxf-aaa-quickstart`
 - "iOS 架构推荐 MVVM 还是 VIPER" → 与 XXF 无关
 
 ## 边界用例

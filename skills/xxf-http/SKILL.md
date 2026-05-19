@@ -1,6 +1,6 @@
 ---
 name: xxf-http
-description: 使用 XXFHttp 写网络接口。当用户要封装 REST API、GET/POST 请求、文件上传下载、SSE 流式响应、请求拦截器、错误统一处理，或说"用 XXFHttp 怎么…"、"网络层用 XXF 实现"时使用。
+description: 使用 XXFHttp 写网络接口。当用户要封装 REST API、GET/POST 请求、文件上传下载、SSE 流式响应、请求拦截器、错误统一处理，或说"用 XXFHttp 怎么…"、"网络层用 XXF 实现"时使用。若属于普通编码任务中的实现环节，应先经过 `xxf-aaa-delivery-loop` 再落到本 skill。
 allowed-tools: Read, Glob, Grep, Edit, Write
 ---
 

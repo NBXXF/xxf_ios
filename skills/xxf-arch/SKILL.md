@@ -20,7 +20,7 @@ allowed-tools: Read, Glob, Grep
 2. 对包体积敏感吗？（`XXFArch` 会把埋点 / 图片编辑 / ZL 相册等全部拉进来）
 3. 能接受自动引入所有 Provider 的依赖吗？
 
-**生产 App 默认建议按模块按需引入**，见 `xxf-quickstart`。
+**生产 App 默认建议按模块按需引入**，见 `xxf-aaa-quickstart`。
 
 ## 工作流
 
@@ -42,4 +42,4 @@ allowed-tools: Read, Glob, Grep
 
 ## 相关 skill
 
-- `xxf-quickstart` — 模块选型决策树
+- `xxf-aaa-quickstart` — 模块选型决策树

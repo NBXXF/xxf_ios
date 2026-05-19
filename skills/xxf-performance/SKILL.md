@@ -41,4 +41,4 @@ allowed-tools: Read, Glob, Grep, Edit, Write
 
 - `xxf-log` — 卡顿输出到日志
 - `xxf-tracker` — 卡顿作为性能埋点上报
-- `xxf-troubleshooting` — 性能问题总入口
+- `xxf-aaa-troubleshooting` — 性能问题总入口

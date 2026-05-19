@@ -1,6 +1,6 @@
 ---
 name: xxf-uikit
-description: XXFUIKit 对 UIKit 的增强封装。当用户要用 XXF 提供的 View / Controller / 手势 / 布局工具（iOS 侧），或询问"XXFUIKit 有什么"时使用。
+description: XXFUIKit 对 UIKit 的增强封装。当用户要用 XXF 提供的 View / Controller / 手势 / 布局工具（iOS 侧），或询问"XXFUIKit 有什么"时使用。若属于普通编码任务中的实现环节，应先经过 `xxf-aaa-delivery-loop` 再落到本 skill。
 allowed-tools: Read, Glob, Grep, Edit, Write
 ---
 

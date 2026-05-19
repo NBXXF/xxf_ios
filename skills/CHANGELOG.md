@@ -39,7 +39,7 @@
 
 **网络辅助（2）**：xxf-server、xxf-speed
 
-**工程化（1）**：xxf-swift-format
+**工程化（1）**：xxf-aaa-swift-format
 
 ### Changed
 - `xxf-database` 缩窄为抽象层专属，GRDB / ObjectBox 相关内容拆到各自子 skill
@@ -56,13 +56,13 @@
 ## [0.1.0] — 2026-04-27
 
 ### Added
-- `xxf-quickstart` — 接入与模块选型助手
+- `xxf-aaa-quickstart` — 接入与模块选型助手
 - `xxf-http` — 网络层范式，含 `references/patterns.md`（分层 / 拦截器 / SSE / 上传下载）
 - `xxf-router` — 路由框架，含 `references/patterns.md`(路由 key 管理 / 拦截器职责 / 降级链 / URL 映射)
 - `xxf-database` — 持久化 + GRDB/ObjectBox 选型指引
 - `xxf-flow` — 响应式流，含 `references/rxswift-migration.md`(类型/操作符/线程映射)
-- `xxf-module-scaffold` — 框架维护者新增模块脚手架
-- `xxf-troubleshooting` — 编译 / 崩溃 / 性能速查
+- `xxf-aaa-module-scaffold` — 框架维护者新增模块脚手架
+- `xxf-aaa-troubleshooting` — 编译 / 崩溃 / 性能速查
 - 多 Agent 安装指南（Claude Code / Cursor / CodeBuddy / Submodule / 自建）
 - CI lint（frontmatter / name-dir 匹配 / 死链）
 - 每个 skill 的 `triggers.md` 评测用例

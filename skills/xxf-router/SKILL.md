@@ -1,6 +1,6 @@
 ---
 name: xxf-router
-description: 使用 XXFRouter 管理页面跳转。当用户要注册路由、配置页面导航、添加跳转拦截器、实现降级策略、处理 URL Scheme 或 Universal Link、解耦模块间跳转时使用。
+description: 使用 XXFRouter 管理页面跳转。当用户要注册路由、配置页面导航、添加跳转拦截器、实现降级策略、处理 URL Scheme 或 Universal Link、解耦模块间跳转时使用。若属于普通编码任务中的实现环节，应先经过 `xxf-aaa-delivery-loop` 再落到本 skill。
 allowed-tools: Read, Glob, Grep, Edit, Write
 ---
 

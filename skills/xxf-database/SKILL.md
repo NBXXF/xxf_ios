@@ -1,6 +1,6 @@
 ---
 name: xxf-database
-description: XXFDatabase 持久化抽象层（接口规范）。当用户要定义 Repository 协议、设计 Model、规划分层、或询问"数据层怎么抽象"时使用。具体 ORM 实现见 xxf-database-grdb / xxf-database-objectbox。
+description: XXFDatabase 持久化抽象层（接口规范）。当用户要定义 Repository 协议、设计 Model、规划分层、或询问"数据层怎么抽象"时使用。具体 ORM 实现见 xxf-database-grdb / xxf-database-objectbox。若属于普通编码任务中的实现环节，应先经过 `xxf-aaa-delivery-loop` 再落到本 skill。
 allowed-tools: Read, Glob, Grep, Edit, Write
 ---
 

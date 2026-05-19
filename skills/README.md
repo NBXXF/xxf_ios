@@ -6,15 +6,16 @@
 
 ## 一、Skill 清单
 
-共 **65 个** skill，按类别分组。每个 skill 目录下有 `SKILL.md`（AI 读）和 `triggers.md`（回归用例）。
+共 **66 个** skill，按类别分组。每个 skill 目录下有 `SKILL.md`（AI 读）和 `triggers.md`（回归用例）。
 
 ### 元 skill（路由 / 维护）
 
 | 技能 | 触发场景 |
 |:------|:------|
-| `xxf-quickstart` | 新项目接入、模块选型、版本排查 |
-| `xxf-troubleshooting` | 编译 / 运行时 / 性能故障排查 |
-| `xxf-module-scaffold` | 框架维护者新增模块（非业务方） |
+| `xxf-aaa-delivery-loop` | 日常编码任务的默认交付闭环：实现、补测、验证、review、风险门禁 |
+| `xxf-aaa-quickstart` | 新项目接入、模块选型、版本排查 |
+| `xxf-aaa-troubleshooting` | 编译 / 运行时 / 性能故障排查 |
+| `xxf-aaa-module-scaffold` | 框架维护者新增模块（非业务方） |
 
 ### 基础设施
 
@@ -107,21 +108,21 @@
 
 | 技能 | 对应模块 |
 |:------|:------|
-| `xxf-swift-format` | XXFSwiftFormat |
-| `xxf-coding-style` | 编码规范（项目约束） |
-| `xxf-coding-arch` | 架构约束（项目约束） |
-| `xxf-architecture-review` | 架构评审（跨模块） |
-| `xxf-test-strategy` | 测试策略（跨模块） |
-| `xxf-risk-gate` | 风险门禁（跨模块） |
-| `xxf-release-management` | 发布管理（跨模块） |
-| `xxf-adr-rfc` | ADR/RFC 决策（跨模块） |
-| `xxf-incident-response` | 事故响应与复盘（跨模块） |
-| `xxf-observability` | 可观测性规范（跨模块） |
-| `xxf-security-privacy` | 安全与隐私基线（跨模块） |
-| `xxf-api-contract` | 接口契约治理（跨模块） |
-| `xxf-migration-playbook` | 迁移作战手册（跨模块） |
-| `xxf-project-planning` | 技术项目规划（跨模块） |
-| `xxf-ci-quality-gates` | CI 质量门禁（跨模块） |
+| `xxf-aaa-swift-format` | XXFSwiftFormat |
+| `xxf-aaa-coding-style` | 编码规范（项目约束） |
+| `xxf-aaa-coding-arch` | 架构约束（项目约束） |
+| `xxf-aaa-architecture-review` | 架构评审（跨模块） |
+| `xxf-aaa-test-strategy` | 测试策略（跨模块） |
+| `xxf-aaa-risk-gate` | 风险门禁（跨模块） |
+| `xxf-aaa-release-management` | 发布管理（跨模块） |
+| `xxf-aaa-adr-rfc` | ADR/RFC 决策（跨模块） |
+| `xxf-aaa-incident-response` | 事故响应与复盘（跨模块） |
+| `xxf-aaa-observability` | 可观测性规范（跨模块） |
+| `xxf-aaa-security-privacy` | 安全与隐私基线（跨模块） |
+| `xxf-aaa-api-contract` | 接口契约治理（跨模块） |
+| `xxf-aaa-migration-playbook` | 迁移作战手册（跨模块） |
+| `xxf-aaa-project-planning` | 技术项目规划（跨模块） |
+| `xxf-aaa-ci-quality-gates` | CI 质量门禁（跨模块） |
 
 ---
 
@@ -167,7 +168,7 @@ done
 # 升级：cd ~/.cache/xxf-ios-skills && git pull
 ```
 
-**按需安装：** 65 个 skill 全装会占用路由预算；只需要部分时，把脚本 `for` 循环改成固定几个，或手动 `ln -sfn` 想要的 skill 即可。
+**按需安装：** 66 个 skill 全装会占用路由预算；只需要部分时，把脚本 `for` 循环改成固定几个，或手动 `ln -sfn` 想要的 skill 即可。
 
 ### 2.2 Codex CLI（OpenAI）
 

@@ -1,6 +1,6 @@
 ---
 name: xxf-flow
-description: 使用 XXFFlow 做响应式编程，或从 RxSwift / Combine 迁移到 XXFFlow。当用户提到 Observable、Single、Flow、操作符、subscribeOn/observeOn、线程切换、事件流，或询问"RxSwift 怎么换成 XXFFlow"时使用。
+description: 使用 XXFFlow 做响应式编程，或从 RxSwift / Combine 迁移到 XXFFlow。当用户提到 Observable、Single、Flow、操作符、subscribeOn/observeOn、线程切换、事件流，或询问"RxSwift 怎么换成 XXFFlow"时使用。若属于普通编码任务中的实现环节，应先经过 `xxf-aaa-delivery-loop` 再落到本 skill。
 allowed-tools: Read, Glob, Grep, Edit, Write
 ---
 

@@ -5,7 +5,7 @@
 
 ## 不应该触发
 - "Instruments 怎么用" → Apple 工具
-- "启动优化通用方法" → `xxf-troubleshooting`
+- "启动优化通用方法" → `xxf-aaa-troubleshooting`
 
 ## 边界用例
 - "生产开 XXFPerformance 可以吗" → 触发，劝阻常开
