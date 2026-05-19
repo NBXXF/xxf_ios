@@ -9,10 +9,6 @@ import Foundation
 import Pulse
 
 open class LoggerEventMonitor: EventMonitor, @unchecked Sendable {
-    /// 更新打印发起请求的header key, request.allHTTPHeaderFields 部分机型会闪退
-    public static func setIncludeRequestHeaderKeys(_ keys: Set<String>) {
-        NetworkLogger.includeHeaderKeys = keys
-    }
 
     // MARK: - Singleton
 
