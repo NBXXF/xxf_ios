@@ -12,6 +12,7 @@ Then load any additional relevant skills:
 - Engineering constraints when relevant:
   - `./skills/xxf-aaa-coding-style/SKILL.md`
   - `./skills/xxf-aaa-coding-arch/SKILL.md`
+  - `./skills/xxf-aaa-class-declaration-guidelines/SKILL.md`
   - `./skills/xxf-aaa-test-strategy/SKILL.md`
   - `./skills/xxf-aaa-unit-test-writer/SKILL.md`
   - `./skills/xxf-aaa-auto-test-orchestrator/SKILL.md`

@@ -32,6 +32,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash
 - 代码修改默认同时受这些工程 skill 约束：
   - `xxf-aaa-coding-style`
   - `xxf-aaa-coding-arch`
+  - `xxf-aaa-class-declaration-guidelines`（任务涉及 ViewController 或 ViewModel 时）
   - `xxf-aaa-test-strategy`（需要判断最小必测集时）
 
 ### 2. 实现阶段

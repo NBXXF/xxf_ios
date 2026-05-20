@@ -6,7 +6,7 @@
 
 ## 一、Skill 清单
 
-共 **66 个** skill，按类别分组。每个 skill 目录下有 `SKILL.md`（AI 读）和 `triggers.md`（回归用例）。
+共 **70 个** skill，按类别分组。每个 skill 目录下有 `SKILL.md`（AI 读）和 `triggers.md`（回归用例）。
 
 ### 元 skill（路由 / 维护）
 
@@ -111,6 +111,7 @@
 | `xxf-aaa-swift-format` | XXFSwiftFormat |
 | `xxf-aaa-coding-style` | 编码规范（项目约束） |
 | `xxf-aaa-coding-arch` | 架构约束（项目约束） |
+| `xxf-aaa-class-declaration-guidelines` | VC/VM 分区治理（成员变量/方法 MARK 结构） |
 | `xxf-aaa-architecture-review` | 架构评审（跨模块） |
 | `xxf-aaa-test-strategy` | 测试策略（跨模块） |
 | `xxf-aaa-risk-gate` | 风险门禁（跨模块） |
@@ -168,7 +169,7 @@ done
 # 升级：cd ~/.cache/xxf-ios-skills && git pull
 ```
 
-**按需安装：** 66 个 skill 全装会占用路由预算；只需要部分时，把脚本 `for` 循环改成固定几个，或手动 `ln -sfn` 想要的 skill 即可。
+**按需安装：** 70 个 skill 全装会占用路由预算；只需要部分时，把脚本 `for` 循环改成固定几个，或手动 `ln -sfn` 想要的 skill 即可。
 
 ### 2.2 Codex CLI（OpenAI）
 
@@ -181,7 +182,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/NBXXF/xxf_ios/main/skills/in
 
 注入的内容被 `<!-- BEGIN: xxf-ios-skills ... -->` / `<!-- END ... -->` 标记包裹，**再次运行脚本只刷新该块，不动你其它内容**。
 
-效果：Codex 看到用户问"怎么用 XXFHttp"时，会自己去读 `~/.cache/xxf-ios-skills/skills/xxf-http/SKILL.md`。
+效果：Codex 在普通编码任务中会先读取 `xxf-aaa-delivery-loop`，再按任务加载对应模块 skill（如 `xxf-http`）和工程约束 skill。
 
 **手动版：** 把 `SKILL.md` 内容直接粘到 `AGENTS.md` 也行，但不方便后续升级；推荐用脚本。
 

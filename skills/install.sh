@@ -131,6 +131,7 @@ PY
     echo "- Engineering constraints when relevant:"
     echo "    $CACHE_DIR_DISPLAY/skills/xxf-aaa-coding-style/SKILL.md"
     echo "    $CACHE_DIR_DISPLAY/skills/xxf-aaa-coding-arch/SKILL.md"
+    echo "    $CACHE_DIR_DISPLAY/skills/xxf-aaa-class-declaration-guidelines/SKILL.md"
     echo "    $CACHE_DIR_DISPLAY/skills/xxf-aaa-test-strategy/SKILL.md"
     echo "    $CACHE_DIR_DISPLAY/skills/xxf-aaa-unit-test-writer/SKILL.md"
     echo "    $CACHE_DIR_DISPLAY/skills/xxf-aaa-auto-test-orchestrator/SKILL.md"

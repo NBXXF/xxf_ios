@@ -1,6 +1,6 @@
 ---
 name: xxf-viewmodel
-description: XXFViewModel MVVM 的 VM 基类与生命周期。当用户要写 ViewModel、绑定 View、处理输入输出流，或询问"XXF 的 MVVM 怎么用"时使用。
+description: XXFViewModel MVVM 的 VM 基类与生命周期。当用户要写 ViewModel、绑定 View、处理输入输出流，或询问"XXF 的 MVVM 怎么用"时使用。若出现 ViewModel 成员或方法膨胀、顺序混乱，应联动 `xxf-aaa-class-declaration-guidelines` 做分区治理。
 allowed-tools: Read, Glob, Grep, Edit, Write
 ---
 
@@ -49,3 +49,4 @@ Repository / Service
 - `xxf-flow` — 输入输出流
 - `xxf-di` — 依赖注入
 - `xxf-datasource` — 列表数据源
+- `xxf-aaa-class-declaration-guidelines` — VC/VM 分区治理（MARK 结构）
