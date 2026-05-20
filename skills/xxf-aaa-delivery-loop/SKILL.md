@@ -16,15 +16,35 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash
 
 本 skill 不是替代具体模块 skill，而是规定默认交付闭环：
 
-1. 先识别是否涉及 XXF 模块或工程约束。
-2. 读取对应模块 skill 与相关工程 skill。
-3. 实现最小必要改动。
-4. 需要时补最小有效单测。
-5. 执行最小相关验证。
-6. 对结果做一次以 findings 为中心的审查。
-7. 最后给出放行风险结论。
+1. 先应用 `xxf-aaa-vibe-coding-governor` 的任务定义卡与硬门禁框架（治理前置层）。
+2. 识别是否涉及 XXF 模块或工程约束。
+3. 读取对应模块 skill 与相关工程 skill。
+4. 实现最小必要改动。
+5. 需要时补最小有效单测。
+6. 执行最小相关验证。
+7. 对结果做一次以 findings 为中心的审查。
+8. 最后给出放行风险结论。
+
+## 职责边界（避免语义冲突）
+
+- `xxf-aaa-vibe-coding-governor`：负责通用治理框架（任务定义、门禁思想、证据化交付、全局禁止池）。
+- `xxf-aaa-delivery-loop`：负责在 XXF 仓库中自动编排执行顺序（实现、补测、验证、review、risk gate）。
+- `xxf-aaa-test-strategy / unit-test-writer / auto-test-orchestrator`：负责“测什么、怎么补、怎么跑”。
+- `xxf-aaa-code-reviewer / risk-gate`：负责 findings 细化与放行结论。
+
+规则：`delivery-loop` 不重复定义专项细则；只负责触发与串联下游 skill。
 
 ## 默认工作流
+
+### 0. 治理前置
+
+- 先按 `xxf-aaa-vibe-coding-governor` 生成最小任务定义卡：
+  - 目标
+  - 边界（不改项）
+  - 验收标准
+  - 关键约束
+  - 风险点
+- 若任务定义卡缺失，先补齐再进入实现。
 
 ### 1. 路由到正确上下文
 
