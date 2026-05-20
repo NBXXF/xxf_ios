@@ -29,6 +29,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash
 
 - `xxf-aaa-vibe-coding-governor`：负责通用治理框架（任务定义、门禁思想、证据化交付、全局禁止池）。
 - `xxf-aaa-delivery-loop`：负责在 XXF 仓库中自动编排执行顺序（实现、补测、验证、review、risk gate）。
+- `xxf-aaa-ios-performance-gate`：负责性能风险主动鉴别、最小性能验证与性能门禁结论。
 - `xxf-aaa-test-strategy / unit-test-writer / auto-test-orchestrator`：负责“测什么、怎么补、怎么跑”。
 - `xxf-aaa-code-reviewer / risk-gate`：负责 findings 细化与放行结论。
 
@@ -82,6 +83,16 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash
   - 有残余风险无法靠当前验证完全证明
   - 涉及数据库、路由、缓存、权限、隐私、兼容性
 
+### 6. 性能门禁阶段（主动执行）
+
+- 出现以下任一情况时，自动进入 `xxf-aaa-ios-performance-gate`（无需用户额外提示）：
+  - 改动触及 UI 渲染/布局/列表滚动路径
+  - 改动触及图片加载、解码、缓存
+  - 改动触及主线程任务调度、并发模型、网络与数据库热路径
+  - 改动触及启动链路或全局初始化
+  - 用户反馈卡顿、掉帧、启动慢、内存上涨、耗电异常
+- 性能门禁执行后，若结果为 `Block / Warn`，再交由 `xxf-aaa-risk-gate` 汇总放行结论。
+
 ## 自动进入下游 skill 的条件
 
 ### 进入 `xxf-aaa-unit-test-writer`
@@ -108,6 +119,12 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash
 - 用户问能否放行
 - 已有 findings 或验证残余风险
 - 需要决定是否必须灰度、回滚、防护或补测
+
+### 进入 `xxf-aaa-ios-performance-gate`
+
+- 改动涉及 `UI/列表/图片/启动/并发/缓存/网络热路径`
+- 出现“性能退化”信号或用户性能投诉
+- 虽功能正确但存在中高概率性能回归面
 
 ## 升级给开发者的条件
 

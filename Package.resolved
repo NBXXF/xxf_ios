@@ -1,5 +1,5 @@
 {
-  "originHash" : "5a231ed214324da5781a0dbdae05961dec30e9adbdbaee610836d4497dc3c1db",
+  "originHash" : "9fc7fa77a3bd702560aa79750f345c6143924f0dc3595e83badb5505297b3f12",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -294,8 +294,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NBXXF/PulseCompat",
       "state" : {
-        "revision" : "79dc9a83abc66c79b8c9773c1412196453099440",
-        "version" : "4.4.8"
+        "revision" : "b61b7551eb77341bc3a99b3ae3a509abcd5c850f",
+        "version" : "4.4.9"
       }
     },
     {
