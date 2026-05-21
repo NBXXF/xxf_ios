@@ -162,6 +162,8 @@ final class XxxListViewModel: NSObject, ViewModel {
             hasMore = true
             viewState.state = .loading
         } else if !hasMore {
+            refreshableState.state = refreshableState.state.copy(isLoadingMore: false)
+            viewState.state = .completed
             return
         }
 
