@@ -125,8 +125,22 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
     ) {
         // 处理导航前的模态视图关闭
         if options.dismissBeforeNavigation {
-            if let presented = topViewController()?.presentedViewController {
+            let source = context.sourceViewController ?? topViewController()
+            if let presented = source?.presentedViewController {
                 presented.dismiss(animated: options.animated) {
+                    self.executeNavigation(
+                        to: viewController,
+                        context: context,
+                        options: options,
+                        completion: completion
+                    )
+                }
+                return
+            }
+
+            // source 本身是被 present 出来的页面时，优先关闭该模态链，再继续导航
+            if let source, source.presentingViewController != nil {
+                source.dismiss(animated: options.animated) {
                     self.executeNavigation(
                         to: viewController,
                         context: context,
@@ -203,7 +217,11 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
         options: RouteOptions,
         completion: (@Sendable (Bool) -> Void)?
     ) {
-        guard let navigationController = currentNavigationController() else {
+        // push 场景优先使用 from（sourceViewController）所在导航栈，保持与 present/custom 一致
+        let sourceNavigationController = context.sourceViewController.flatMap {
+            Self.findNavigationController(from: $0)
+        }
+        guard let navigationController = sourceNavigationController ?? currentNavigationController() else {
             // 没有导航控制器，尝试present
             executePresent(
                 to: viewController,
@@ -267,7 +285,10 @@ public final class DefaultRouteNavigator: RouteNavigator, @unchecked Sendable {
         options: RouteOptions,
         completion: (@Sendable (Bool) -> Void)?
     ) {
-        guard let navigationController = currentNavigationController() else {
+        let sourceNavigationController = context.sourceViewController.flatMap {
+            Self.findNavigationController(from: $0)
+        }
+        guard let navigationController = sourceNavigationController ?? currentNavigationController() else {
             completion?(false)
             return
         }

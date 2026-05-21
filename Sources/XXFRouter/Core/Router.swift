@@ -786,7 +786,7 @@ public final class Router: @unchecked Sendable {
                     url: targetURL,
                     extraParameters: [:],
                     options: options,
-                    sourceViewController: nil,
+                    sourceViewController: context.sourceViewController,
                     callback: callback,
                     redirectCount: redirectCount + 1
                 )
