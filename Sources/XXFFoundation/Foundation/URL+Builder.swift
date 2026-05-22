@@ -45,7 +45,7 @@ public extension URL {
         if replace {
             queryItems.removeAll { parameters.keys.contains($0.name) }
         }
-        for (key, value) in parameters {
+        for (key, value) in parameters.sorted(by: { $0.key < $1.key }) {
             queryItems.append(URLQueryItem(name: key, value: value))
         }
         components.queryItems = queryItems
@@ -61,7 +61,7 @@ public extension URL {
         var queryItems = components.queryItems ?? []
         var existingKeys = Set(queryItems.map { $0.name })
 
-        for (key, value) in parameters {
+        for (key, value) in parameters.sorted(by: { $0.key < $1.key }) {
             if !existingKeys.contains(key) {
                 queryItems.append(URLQueryItem(name: key, value: value))
                 existingKeys.insert(key)
