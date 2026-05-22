@@ -98,8 +98,8 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
                      progressHandler: ((Int64, Int64) -> Void)?,
                      completion: ((Result<Void, Swift.Error>) -> Void)?)
     {
-        // 取消之前的任务,否则容易有并发错位的问题
-        view.nukeImageTask?.cancel()
+        // 取消之前的任务：置 nil 触发 token deinit → task.cancel()
+        view.nukeCancellationToken = nil
 
         // 设置占位图,且避免占位图为空 进行闪缩
         if placeholder != nil {
@@ -163,19 +163,18 @@ public final class ImageNukeLoaderAdapter: @preconcurrency ImageLoaderAdapter {
                     completion?(.failure(err))
             }
 
-            // 完成后清理 task
-            view.nukeImageTask = nil
+            // 完成后清理（已完成的 task cancel 是 no-op，安全）
+            view.nukeCancellationToken = nil
             view.nukeRequestId = nil
         }
 
-        // 保存 task 到关联对象
-        view.nukeImageTask = task
+        // token 持有 task，UIImageView 释放时自动触发取消
+        view.nukeCancellationToken = NukeTaskCancellationToken(task)
     }
 
     @MainActor
     public func cancel(view: XXFImageLoader.PlatformImageView) {
-        view.nukeImageTask?.cancel()
-        view.nukeImageTask = nil
+        view.nukeCancellationToken = nil  // deinit 取消 task
         view.nukeRequestId = nil
         // 停动画、保留当前帧:
         // - UIImageView.stopAnimating() 对非动画态是 no-op
