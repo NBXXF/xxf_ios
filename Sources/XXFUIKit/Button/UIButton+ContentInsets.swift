@@ -1,6 +1,6 @@
 //
 //  UIButton+ContentInsets.swift
-//  nexus
+//  xxf_ios
 //
 //  iOS 15+ 的 `contentEdgeInsets` 替代,内部走 UIButton.Configuration.contentInsets。
 //  带 legacy 状态自动迁移(font / color / alignment),避免切到 Configuration 路径
