@@ -101,7 +101,7 @@ open class LoggerIntercetor: Interceptor, @unchecked Sendable {
         // 从请求中取 URL，防止 header 没有 x-original-url
         let url = URL(string: originalRequest.url.string) ?? URL(string: "http://\(LoopbackAddress.domain)")!
 
-        let headerDict = Dictionary(uniqueKeysWithValues: response.headers.map { ($0.name, $0.value) })
+        let headerDict = makeHeaderFields(from: response.headers)
 
         return HTTPURLResponse(
             url: url,
@@ -109,5 +109,15 @@ open class LoggerIntercetor: Interceptor, @unchecked Sendable {
             httpVersion: "HTTP/1.1",
             headerFields: headerDict
         )
+    }
+
+    func makeHeaderFields(from headers: HTTPHeaders) -> [String: String] {
+        return headers.reduce(into: [String: String]()) { result, header in
+            if let existingValue = result[header.name] {
+                result[header.name] = "\(existingValue), \(header.value)"
+            } else {
+                result[header.name] = header.value
+            }
+        }
     }
 }
