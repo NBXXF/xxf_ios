@@ -1,6 +1,6 @@
 //
 //  Observable+SSE.swift
-//  nexus
+//  xxf_ios
 //
 //  SSE (Server-Sent Events) 流解析扩展
 //  Created by Claude on 2024-03-06.
