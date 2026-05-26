@@ -7,6 +7,7 @@
 
 import Foundation
 import GCDWebServer
+import Darwin
 import XXFFoundation
 
 /// 本地 HTTP 服务,用于把沙盒里的本地目录以 `http://<loopback>:PORT/<token>/...` 形式暴露给 WKWebView。
@@ -270,12 +271,25 @@ public final class LocalWebServer {
             return GCDWebServerResponse(statusCode: 403)
         }
 
-        // 5. 读文件
+        // 5. 读文件。GCDWebServerFileResponse 遇到不存在/非普通文件会直接 abort,这里必须先挡住。
+        guard Self.isRegularFileForResponse(atPath: targetStandardized) else {
+            return GCDWebServerResponse(statusCode: 404)
+        }
+
         guard let response = GCDWebServerFileResponse(file: targetStandardized, byteRange: request.byteRange) else {
             return GCDWebServerResponse(statusCode: 404)
         }
         response.cacheControlMaxAge = 0
         return response
+    }
+
+    static func isRegularFileForResponse(atPath path: String) -> Bool {
+        var info = stat()
+        let result = path.withCString { pointer in
+            lstat(pointer, &info)
+        }
+        guard result == 0 else { return false }
+        return (info.st_mode & S_IFMT) == S_IFREG
     }
 
     private func emitLog(_ level: LogLevel, _ message: String) {
