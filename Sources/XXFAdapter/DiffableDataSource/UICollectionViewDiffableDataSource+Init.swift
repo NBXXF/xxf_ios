@@ -11,6 +11,18 @@ import UIKit
 @available(iOS 13.0, *)
 @MainActor
 public extension UICollectionViewDiffableDataSource {
+    /// 参考ensureSection 注释
+    convenience init(
+        collectionView: UICollectionView,
+        initialSection: SectionIdentifierType?,
+        animateInitialSectionInsertion: Bool = false,
+        cellProvider: @escaping CellProvider
+    ) {
+        self.init(collectionView: collectionView, cellProvider: cellProvider)
+        guard let initialSection else { return }
+        ensureSection(initialSection, animatingDifferences: animateInitialSectionInsertion)
+    }
+
     /// Ensure the snapshot contains the given section.
     ///
     /// Why / 为什么要调用:
