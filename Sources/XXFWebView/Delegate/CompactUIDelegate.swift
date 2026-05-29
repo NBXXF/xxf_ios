@@ -137,7 +137,7 @@ open class CompactUIDelegate: NSObject, WKUIDelegate {
     ///
     /// 作用：
     /// - 给 WebKit 明确权限决策，避免 getUserMedia 结果不稳定。
-    /// - 已授权返回 grant；未授权返回 prompt，由系统走标准授权弹窗。
+    /// - 先完成 App 级系统权限，再向 WebKit 返回 grant / deny，避免新建 WKWebView 后重复弹站点权限。
     @available(iOS 15.0, *)
     open func webView(
         _ webView: WKWebView,
@@ -148,17 +148,116 @@ open class CompactUIDelegate: NSObject, WKUIDelegate {
     ) {
         switch type {
         case .camera:
-            let status = AVCaptureDevice.authorizationStatus(for: .video)
-            decisionHandler(status == .authorized ? .grant : .prompt)
+            resolveMediaCapturePermission(for: [.video], decisionHandler: decisionHandler)
         case .microphone:
-            let status = AVCaptureDevice.authorizationStatus(for: .audio)
-            decisionHandler(status == .authorized ? .grant : .prompt)
+            resolveMediaCapturePermission(for: [.audio], decisionHandler: decisionHandler)
         case .cameraAndMicrophone:
-            let cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
-            let micStatus = AVCaptureDevice.authorizationStatus(for: .audio)
-            decisionHandler((cameraStatus == .authorized && micStatus == .authorized) ? .grant : .prompt)
+            resolveMediaCapturePermission(for: [.video, .audio], decisionHandler: decisionHandler)
         @unknown default:
-            decisionHandler(.prompt)
+            decisionHandler(.deny)
+        }
+    }
+
+    @available(iOS 15.0, *)
+    open func webView(
+        _ webView: WKWebView,
+        decideMediaCapturePermissionsFor origin: WKSecurityOrigin,
+        initiatedBy frame: WKFrameInfo,
+        type: WKMediaCaptureType
+    ) async -> WKPermissionDecision {
+        switch type {
+        case .camera:
+            return await resolveMediaCapturePermission(for: [.video])
+        case .microphone:
+            return await resolveMediaCapturePermission(for: [.audio])
+        case .cameraAndMicrophone:
+            return await resolveMediaCapturePermission(for: [.video, .audio])
+        @unknown default:
+            return .deny
+        }
+    }
+
+    @available(iOS 15.0, *)
+    private func resolveMediaCapturePermission(
+        for mediaTypes: [AVMediaType],
+        decisionHandler: @escaping (WKPermissionDecision) -> Void
+    ) {
+        let handler = MediaCaptureDecisionHandler(decisionHandler)
+        Self.requestSystemCaptureAccess(for: mediaTypes) { granted in
+            Task { @MainActor in
+                handler.call(granted ? .grant : .deny)
+            }
+        }
+    }
+
+    @available(iOS 15.0, *)
+    private func resolveMediaCapturePermission(
+        for mediaTypes: [AVMediaType]
+    ) async -> WKPermissionDecision {
+        let granted = await Self.requestSystemCaptureAccess(for: mediaTypes)
+        return granted ? .grant : .deny
+    }
+
+    private static func requestSystemCaptureAccess(
+        for mediaTypes: [AVMediaType],
+        at index: Int = 0,
+        completion: @escaping @Sendable (Bool) -> Void
+    ) {
+        guard index < mediaTypes.count else {
+            completion(true)
+            return
+        }
+
+        let mediaType = mediaTypes[index]
+        switch AVCaptureDevice.authorizationStatus(for: mediaType) {
+        case .authorized:
+            requestSystemCaptureAccess(for: mediaTypes, at: index + 1, completion: completion)
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: mediaType) { granted in
+                guard granted else {
+                    completion(false)
+                    return
+                }
+                requestSystemCaptureAccess(for: mediaTypes, at: index + 1, completion: completion)
+            }
+        case .denied, .restricted:
+            completion(false)
+        @unknown default:
+            completion(false)
+        }
+    }
+
+    @available(iOS 15.0, *)
+    private static func requestSystemCaptureAccess(
+        for mediaTypes: [AVMediaType]
+    ) async -> Bool {
+        for mediaType in mediaTypes {
+            switch AVCaptureDevice.authorizationStatus(for: mediaType) {
+            case .authorized:
+                continue
+            case .notDetermined:
+                if await AVCaptureDevice.requestAccess(for: mediaType) == false {
+                    return false
+                }
+            case .denied, .restricted:
+                return false
+            @unknown default:
+                return false
+            }
+        }
+        return true
+    }
+
+    @MainActor
+    private final class MediaCaptureDecisionHandler {
+        private let handler: (WKPermissionDecision) -> Void
+
+        init(_ handler: @escaping (WKPermissionDecision) -> Void) {
+            self.handler = handler
+        }
+
+        func call(_ decision: WKPermissionDecision) {
+            handler(decision)
         }
     }
 
