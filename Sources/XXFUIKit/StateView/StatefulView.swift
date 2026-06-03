@@ -26,6 +26,9 @@ open class StatefulView: UIView {
         case content
     }
 
+    /// 全局默认状态视图创建回调，返回 nil 时继续使用内置默认视图
+    public static var defaultStateViewProvider: ((State) -> UIView?)?
+
     /// 内容视图（常驻，不销毁）
     public let contentView: UIView
 
@@ -257,6 +260,10 @@ open class StatefulView: UIView {
     }
 
     private func createDefaultView(for state: State) -> UIView {
+        if let defaultStateView = Self.defaultStateViewProvider?(state) {
+            return defaultStateView
+        }
+
         switch state {
         case .loading:
             return DefaultLoadingView()
