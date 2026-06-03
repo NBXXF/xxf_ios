@@ -11,7 +11,7 @@
 //  - 内置加载指示器
 //  - 完整的 Target-Action 事件支持
 //  - Interface Builder 实时预览支持
-//
+//  - 解决原始的uibutton contentinsets 内边距对imageview无效
 //  Created by xxf on 4/9.
 //
 #if canImport(UIKit)
