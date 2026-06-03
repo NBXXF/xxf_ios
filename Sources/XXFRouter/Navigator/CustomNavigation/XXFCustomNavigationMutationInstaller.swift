@@ -27,7 +27,7 @@ enum XXFCustomNavigationMutationInstaller {
     private static let lock = NSLock()
 
     /// 记录当前进程内是否已经完成 hook 安装。
-    private static var isInstalled = false
+    private nonisolated(unsafe) static var isInstalled = false
 
     /// 安装所有需要监听的 UIKit setter hook。
     ///

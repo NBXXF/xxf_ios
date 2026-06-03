@@ -130,7 +130,13 @@ open class XXFCustomNavigationController: XXFNavigationController {
     private var isSyncScheduled = false
 
     /// UIKit setter hook 发出的内部通知 observer token。
+    nonisolated(unsafe)
     private var navigationMutationObserver: NSObjectProtocol?
+
+    /// 临时桥接 `Notification.object` 的非 Sendable 类型。
+    private struct NavigationMutationSource: @unchecked Sendable {
+        let value: Any?
+    }
 
     /// 记录每个页面由本类额外追加的 top safe area，避免覆盖业务自己设置的 `additionalSafeAreaInsets.top`。
     private var appliedTopInsetAdditions: [ObjectIdentifier: CGFloat] = [:]
@@ -390,19 +396,20 @@ open class XXFCustomNavigationController: XXFNavigationController {
             object: nil,
             queue: nil
         ) { [weak self] notification in
-            self?.handleNavigationMutation(from: notification.object)
+            self?.handleNavigationMutation(from: NavigationMutationSource(value: notification.object))
         }
     }
 
     /// 接收 setter hook 通知，并确保后续处理切回主线程。
-    private func handleNavigationMutation(from source: Any?) {
+    @MainActor
+    private func handleNavigationMutation(from source: NavigationMutationSource) {
         if Thread.isMainThread {
-            handleNavigationMutationOnMain(from: source)
+            handleNavigationMutationOnMain(from: source.value)
             return
         }
 
         DispatchQueue.main.async { [weak self] in
-            self?.handleNavigationMutationOnMain(from: source)
+            self?.handleNavigationMutationOnMain(from: source.value)
         }
     }
 
