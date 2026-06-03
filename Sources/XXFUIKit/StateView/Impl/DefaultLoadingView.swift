@@ -10,7 +10,7 @@ import UIKit
 
 /// 默认加载中状态视图
 @MainActor
-open class DefaultLoadingView: UIView {
+open class DefaultLoadingView: UIView, ILoadingView {
     // MARK: - UI Components
 
     private let containerView = UIView()
@@ -85,19 +85,17 @@ open class DefaultLoadingView: UIView {
             stackView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             stackView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
         ])
-
-        activityIndicator.startAnimating()
     }
 
     // MARK: - Public Methods
 
-    /// 开始动画
-    public func startAnimating() {
+    /// 开始加载动画
+    public func startLoading() {
         activityIndicator.startAnimating()
     }
 
-    /// 停止动画
-    public func stopAnimating() {
+    /// 停止加载动画
+    public func stopLoading() {
         activityIndicator.stopAnimating()
     }
 }

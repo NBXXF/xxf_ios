@@ -32,6 +32,11 @@ open class StatefulView: UIView {
     /// 内容视图（常驻，不销毁）
     public let contentView: UIView
 
+    /// 加载中视图（类型化访问）
+    public var loadingView: ILoadingView? {
+        return stateViews[.loading] as? ILoadingView
+    }
+
     /// 空数据视图（类型化访问）
     public var emptyView: IEmptyView? {
         return stateViews[.empty] as? IEmptyView
@@ -121,6 +126,7 @@ open class StatefulView: UIView {
     public func setStateView(_ view: UIView, for state: State) {
         // 移除该状态已有的视图
         if let existingView = stateViews[state] {
+            stopLoadingIfNeeded(existingView, for: state)
             existingView.removeFromSuperview()
         }
 
@@ -216,12 +222,18 @@ open class StatefulView: UIView {
 
     /// 移除指定状态视图
     public func removeStateView(for state: State) {
+        if let stateView = stateViews[state] {
+            stopLoadingIfNeeded(stateView, for: state)
+        }
         stateViews[state]?.removeFromSuperview()
         stateViews.removeValue(forKey: state)
     }
 
     /// 清空所有状态视图
     public func removeAllStateViews() {
+        stateViews.forEach { state, view in
+            stopLoadingIfNeeded(view, for: state)
+        }
         stateViews.values.forEach { $0.removeFromSuperview() }
         stateViews.removeAll()
     }
@@ -229,6 +241,7 @@ open class StatefulView: UIView {
     // MARK: - 私有方法
 
     private func hideAllStateViews() {
+        stopLoadingIfNeeded(stateViews[.loading], for: .loading)
         stateViews.values.forEach { $0.isHidden = true }
     }
 
@@ -248,6 +261,7 @@ open class StatefulView: UIView {
         // 显示目标状态视图
         if let targetView = stateViews[state] {
             targetView.isHidden = false
+            startLoadingIfNeeded(targetView, for: state)
             if animated {
                 targetView.alpha = 0
                 UIView.animate(withDuration: animationDuration) {
@@ -257,6 +271,16 @@ open class StatefulView: UIView {
                 targetView.alpha = 1
             }
         }
+    }
+
+    private func startLoadingIfNeeded(_ view: UIView, for state: State) {
+        guard state == .loading else { return }
+        (view as? ILoadingView)?.startLoading()
+    }
+
+    private func stopLoadingIfNeeded(_ view: UIView?, for state: State) {
+        guard state == .loading else { return }
+        (view as? ILoadingView)?.stopLoading()
     }
 
     private func createDefaultView(for state: State) -> UIView {
