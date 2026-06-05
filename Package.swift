@@ -35,6 +35,10 @@ let package = Package(
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
+        .library(
+            name: "XXFUIKit",
+            targets: ["XXFUIKit"]
+        ),
 //        .library(
 //            name: "XXFAppkit",
 //            targets: ["XXFAppkit"]
@@ -184,7 +188,7 @@ let package = Package(
         .library(
             name: "XXFWebView",
             targets: ["XXFWebView"]
-        ),
+        )
     ] + mmkvProducts,
     // 依赖版本策略：
     // 1) from: "x.y.z" == .upToNextMajor(from: "x.y.z")，范围 [x.y.z, nextMajor)
@@ -261,7 +265,7 @@ let package = Package(
 
         // 二维码生成（支持自定义眼形 / 像素形 / 填充样式 / Logo）
         .package(url: "https://github.com/dagronf/QRCode.git", from: "20.0.0"),
-        
+
         // js bridge
         .package(url: "https://github.com/EdgarDegas/DSBridge-Swift.git", from: "0.1.2")
     ] + mmkvDependencies,
@@ -661,6 +665,6 @@ let package = Package(
         .testTarget(
             name: "xxf_iosTests",
             dependencies: ["XXFFoundation", "XXFLog", "XXFCache", "XXFServer"]
-        ),
+        )
     ] + mmkvTargets
 )
