@@ -62,6 +62,32 @@ public extension PlatformColor {
             self.init(hex: Int(value))
         }
     }
+    
+    /// 当前颜色 Alpha
+     var alphaValue: CGFloat {
+         cgColor.alpha
+     }
+    /// Alpha 乘法叠加
+    ///
+    /// 例：
+    /// black(alpha: 0.06)
+    ///     .multipliedAlpha(0.8)
+    ///
+    /// => alpha = 0.048
+    ///
+    /// - Parameter factor: 乘数
+    /// - Returns: 新颜色
+    func multipliedAlpha(_ factor: CGFloat) -> Self {
+
+         let newAlpha = min(
+             max(alphaValue * factor, 0),
+             1
+         )
+
+         return withAlphaComponent(
+             newAlpha
+         ) as! Self
+     }
 }
 
 #endif
