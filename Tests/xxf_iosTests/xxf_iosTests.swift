@@ -1,4 +1,5 @@
 import Testing
+@testable import XXFFoundation
 @testable import XXFLog
 
 @Test func example() async throws {

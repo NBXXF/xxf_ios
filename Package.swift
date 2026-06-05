@@ -664,7 +664,7 @@ let package = Package(
         ),
         .testTarget(
             name: "xxf_iosTests",
-            dependencies: ["XXFLog", "XXFCache"]
+            dependencies: ["XXFFoundation", "XXFLog", "XXFCache", "XXFServer"]
         )
     ] + mmkvTargets
 )

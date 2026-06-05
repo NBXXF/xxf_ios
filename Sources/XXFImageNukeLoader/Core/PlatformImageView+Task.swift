@@ -11,21 +11,29 @@ import Nuke
 import ObjectiveC.runtime
 import XXFImageLoader
 
-// MARK: - PlatformImageView 扩展，用于保存 ImageTask
+// MARK: - 自动取消令牌
+// UIImageView 释放时关联对象随之释放 → deinit 触发 → task.cancel()
+// 无需任何 VC 手动管理并发槽
+final class NukeTaskCancellationToken {
+    private let task: ImageTask
+    init(_ task: ImageTask) { self.task = task }
+    deinit { task.cancel() }
+}
+
+// MARK: - PlatformImageView 扩展，用于保存取消令牌
 
 extension PlatformImageView {
-    private nonisolated(unsafe) static var kImageTaskKey: UInt8 = 0
+    private nonisolated(unsafe) static var kCancellationTokenKey: UInt8 = 0
     private nonisolated(unsafe) static var kImageTaskIdKey: UInt8 = 1
 
-    /// - Important: 存取方可能跨线程(主线程的 `load` / `cancel` 与 Nuke 完成回调
-    ///   所在的用户 queue)。必须用 `.OBJC_ASSOCIATION_RETAIN`(原子版),
-    ///   否则 NONATOMIC 的 retain/release 双线程交错会触发 double-release 崩溃。
-    var nukeImageTask: ImageTask? {
+    /// 存取方可能跨线程，使用原子版 RETAIN 避免 double-release。
+    /// 置 nil 时 deinit 触发，自动取消关联的 ImageTask。
+    var nukeCancellationToken: NukeTaskCancellationToken? {
         get {
-            objc_getAssociatedObject(self, &Self.kImageTaskKey) as? ImageTask
+            objc_getAssociatedObject(self, &Self.kCancellationTokenKey) as? NukeTaskCancellationToken
         }
         set {
-            objc_setAssociatedObject(self, &Self.kImageTaskKey, newValue, .OBJC_ASSOCIATION_RETAIN)
+            objc_setAssociatedObject(self, &Self.kCancellationTokenKey, newValue, .OBJC_ASSOCIATION_RETAIN)
         }
     }
 
